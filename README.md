@@ -19,8 +19,11 @@ You will also see any lint errors in the console.
 
 ## Notes:
 
-Project run on Node 24.5.0. Use nvm for efficient version swapping.
+- Project run on Node 24.5.0. Use nvm for efficient version swapping.
 
+- Make sure to push changes to **dev** branch first - main branch should be used as a latest stable release branch, which will later be used for pipelines too.
+
+    - merging dev to main should happen only in controlled manner and after rigorous testing!
 
 
 ## Other scripts:
