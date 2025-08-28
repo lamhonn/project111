@@ -3,7 +3,7 @@ services:
     image: node:20-alpine
     working_dir: /app
     volumes: 
-      - ./:/app #TODO: do we need to mount the whole project directory?
+      - ./frontend:/app
     command: sh -c "npm install && npm run dev -- --host 0.0.0.0" # Start Vite, bind to localhost
     ports:
       - "5173:5173"  # For Vite
@@ -11,9 +11,9 @@ services:
       - appnet
   api:
     image: node:20-alpine
-    working_dir: /app/api
+    working_dir: /api
     volumes:
-      - ./api:/app/api
+      - ./api:/api
     command: sh -c "npm install && npm run dev"
     ports:
       - "4000:4000"  # For GraphQL API
