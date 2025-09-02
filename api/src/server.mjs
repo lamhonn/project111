@@ -33,6 +33,8 @@ const resolvers = {
   },
 };
 
+//TODO: create query to add data to DB
+
 const app = express();
 const httpServer = http.createServer(app);
 

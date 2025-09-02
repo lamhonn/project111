@@ -40,4 +40,7 @@ function testGraphqlAPI() {
 }
 
 testGraphqlAPI();
+
+//TODO: create query for API to create new items
+
 export default App;
