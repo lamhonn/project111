@@ -2,11 +2,11 @@
   "name": "graphql-api",
   "version": "1.0.0",
   "description": "GraphQL API for project111",
-  "main": "src/index.js",
+  "main": "src/server.mjs",
   "type": "module",
   "scripts": {
-    "dev": "nodemon src/index.js",
-    "start": "node src/index.js"
+    "dev": "nodemon src/server.mjs",
+    "start": "node src/server.mjs"
   },
   "dependencies": {
     "@apollo/server": "^5.0.0",

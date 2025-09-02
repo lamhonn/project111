@@ -1,8 +1,10 @@
 import { ApolloServer } from '@apollo/server';
+import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
 import { expressMiddleware } from '@as-integrations/express5';
 import express from 'express';
 import cors from 'cors';
 import mysql from 'mysql2/promise';
+import http from 'http';
 
 // Create MySQL connection pool
 const pool = mysql.createPool({
@@ -32,14 +34,14 @@ const resolvers = {
 };
 
 const app = express();
+const httpServer = http.createServer(app);
 
 // Create Apollo Server
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
 });
-
-// Start the server
 await server.start();
 
 // Apply middleware
@@ -55,7 +57,6 @@ app.use(
 );
 
 // Start the Express server
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`);
-});
+const port = process.env.PORT || 4000;
+await new Promise((resolve) => httpServer.listen({ port }, resolve));
+console.log(`🚀 Server ready at http://localhost:${port}/graphql`);
