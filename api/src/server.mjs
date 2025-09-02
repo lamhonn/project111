@@ -56,7 +56,10 @@ app.use(
   }),
 );
 
+//TODO: Add error handling middleware
+//TODO: Add authentication to server
+
 // Start the Express server
-const port = process.env.PORT || 4000;
-await new Promise((resolve) => httpServer.listen({ port }, resolve));
-console.log(`🚀 Server ready at http://localhost:${port}/graphql`);
+const PORT = process.env.PORT || 4000;
+await new Promise((resolve) => httpServer.listen({ port: PORT }, resolve));
+console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`);
