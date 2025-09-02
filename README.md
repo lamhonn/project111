@@ -1,15 +1,3 @@
-#
-# Running with Docker Compose
-#
-To start the frontend and database using Docker:
-
-```bash
-docker compose up
-```
-
-- The frontend will be available at [http://localhost:5173/](http://localhost:5173/)
-- The database runs in a separate container and is accessible from the frontend container as `db` on port `3306`.
-
 # Project 111 (Restaurant Tablet Frontend) - README
 
 ## How to run the first time
