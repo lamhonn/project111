@@ -10,6 +10,13 @@ docker compose up
 - The frontend will be available at [http://localhost:5173/](http://localhost:5173/)
 - The database runs in a separate container and is accessible from the frontend container as `db` on port `3306`.
 
+- if you make changes to the db/init.sql file, remember to reset the database volume:
+```bash
+docker compose down
+docker volume rm project111_db_data
+docker compose up --build
+```
+
 # Project 111 (Restaurant Tablet Frontend) - README
 
 ## How to run the first time
