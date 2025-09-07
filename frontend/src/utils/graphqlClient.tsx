@@ -6,6 +6,7 @@ export const graphqlClient = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/graphql-response+json, application/json',
       },
       body: JSON.stringify({
         query,
