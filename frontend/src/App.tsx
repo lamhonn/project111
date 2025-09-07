@@ -24,7 +24,7 @@ function App() {
   );
 }
 
-//TODO: move this to a different file when layout requires it
+//TODO: move these graphql functions to a different file when layout requires it
 function testGraphqlAPI() {
   const query = `
     query {
@@ -39,8 +39,32 @@ function testGraphqlAPI() {
   });
 }
 
-testGraphqlAPI();
-
 //TODO: create query for API to create new items
+//TODO: create an input type for new items
+async function testCreateItem() {
+  try {
+    const newItem = await graphqlClient.query(`
+      mutation {
+        createItem(input: {
+          name: "Paras Hanppari"
+          description: "Kaupungin paras hanppari on nyt täällä!"
+          price: 10.00
+          category: "Hampurilaiset"
+        }) {
+          id
+          name
+          description
+          price
+          category
+        }
+      }
+    `);
+    console.log('Created item:', newItem);
+  } catch (error) {
+    console.error('Error creating item:', error);
+  }
+}
 
+testGraphqlAPI();
+testCreateItem(); 
 export default App;

@@ -18,10 +18,31 @@ const pool = mysql.createPool({
 });
 
 // Define your GraphQL schema
+//TODO: Is input the correct naming convention to pass data to mutation?
 const typeDefs = `#graphql
+  type Item {
+    id: ID!
+    name: String!
+    description: String
+    price: Float!
+    category: String
+    created_at: String
+    updated_at: String
+  }
+
+  input CreateItemInput {
+    name: String!
+    description: String
+    price: Float!
+    category: String
+  }
+
   type Query {
     hello: String
-    # Add your queries here
+  }
+
+  type Mutation {
+    createItem(input: CreateItemInput!): Item
   }
 `;
 
@@ -29,11 +50,29 @@ const typeDefs = `#graphql
 const resolvers = {
   Query: {
     hello: () => 'Hello from GraphQL API!',
-    // Add your resolvers here
+  },
+
+  //TODO: use correct TS typing here
+  Mutation: {
+    //GraphQL requires the parent argument even if unused
+    createItem: async(parent, { input }, { db }) => {
+      try {
+        const { name, description, price, category } = input;
+
+        const [result] = await db.execute(
+          'INSERT INTO items (name, description, price, category) VALUES (?, ?, ?, ?)',
+          [name, description, price, category]
+        );
+
+        const [rows] = await db.execute('SELECT * FROM items where id= ?', [result.insertId]);
+
+        return rows[0];
+      } catch(error) {
+        throw new Error(`Failed to create item: ${error.message}`);
+      }
+    }
   },
 };
-
-//TODO: create query to add data to DB
 
 const app = express();
 const httpServer = http.createServer(app);
