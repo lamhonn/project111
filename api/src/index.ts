@@ -25,16 +25,16 @@ const typeDefs = `#graphql
     name: String!
     description: String
     price: Float!
-    category: String
+    category: String!
     created_at: String
     updated_at: String
   }
 
-  input CreateItemInput {
+  input CreateItem {
     name: String!
     description: String
     price: Float!
-    category: String
+    category: String!
   }
 
   type Query {
@@ -42,7 +42,7 @@ const typeDefs = `#graphql
   }
 
   type Mutation {
-    createItem(input: CreateItemInput!): Item
+    addItem(input: CreateItem!): Item
   }
 `;
 
@@ -55,7 +55,7 @@ const resolvers = {
   //TODO: use correct TS typing here
   Mutation: {
     //GraphQL requires the parent argument even if unused
-    createItem: async(parent, { input }, { db }) => {
+    addItem: async(parent, { input }, { db }) => {
       try {
         const { name, description, price, category } = input;
 

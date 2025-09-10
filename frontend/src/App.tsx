@@ -42,23 +42,29 @@ function testGraphqlAPI() {
 //TODO: create query for API to create new items
 //TODO: create an input type for new items
 async function testCreateItem() {
-  try {
-    const newItem = await graphqlClient.query(`
-      mutation {
-        createItem(input: {
-          name: "Paras Hanppari"
-          description: "Kaupungin paras hanppari on nyt täällä!"
-          price: 10.00
-          category: "Hampurilaiset"
-        }) {
-          id
-          name
-          description
-          price
-          category
-        }
+  const item = {
+    name: "Paras Hanppari",
+    description: "Kaupungin paras hanppari on nyt täällä!",
+    price: 10.00,
+    category: "Hampurilaiset"
+  };
+
+  const query = `
+    mutation NewItem($input: CreateItem!) {
+      addItem(input: $input) {
+        id
+        name
+        description
+        price
+        category
+        created_at
+        updated_at
       }
-    `);
+    }
+  `;
+
+  try {
+    const newItem = await graphqlClient.query(query, { input: item });
     console.log('Created item:', newItem);
   } catch (error) {
     console.error('Error creating item:', error);
