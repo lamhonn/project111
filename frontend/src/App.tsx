@@ -46,7 +46,7 @@ async function testCreateItem() {
     name: "Paras Hanppari",
     description: "Kaupungin paras hanppari on nyt täällä!",
     price: 10.00,
-    category: "Hampurilaiset"
+    categoryID: 3
   };
 
   const query = `
@@ -56,7 +56,7 @@ async function testCreateItem() {
         name
         description
         price
-        category
+        categoryID
         created_at
         updated_at
       }

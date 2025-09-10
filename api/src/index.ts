@@ -18,14 +18,13 @@ const pool = mysql.createPool({
 });
 
 // Define your GraphQL schema
-//TODO: Is input the correct naming convention to pass data to mutation?
 const typeDefs = `#graphql
   type Item {
     id: ID!
     name: String!
     description: String
     price: Float!
-    category: String!
+    categoryID: ID!
     created_at: String
     updated_at: String
   }
@@ -34,7 +33,7 @@ const typeDefs = `#graphql
     name: String!
     description: String
     price: Float!
-    category: String!
+    categoryID: ID!
   }
 
   type Query {
@@ -57,11 +56,11 @@ const resolvers = {
     //GraphQL requires the parent argument even if unused
     addItem: async(parent, { input }, { db }) => {
       try {
-        const { name, description, price, category } = input;
+        const { name, description, price, categoryID } = input;
 
         const [result] = await db.execute(
-          'INSERT INTO items (name, description, price, category) VALUES (?, ?, ?, ?)',
-          [name, description, price, category]
+          'INSERT INTO items (name, description, price, categoryID) VALUES (?, ?, ?, ?)',
+          [name, description, price, categoryID]
         );
 
         const [rows] = await db.execute('SELECT * FROM items where id= ?', [result.insertId]);
