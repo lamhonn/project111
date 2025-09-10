@@ -101,6 +101,12 @@ app.use(
 //TODO: Add authentication to server
 
 // Start the Express server
+//TODO: Is this error handling explicit enough?
 const PORT = process.env.PORT || 4000;
-await new Promise((resolve) => httpServer.listen({ port: PORT }, resolve));
+await new Promise<void>((resolve, reject) => {
+  httpServer.listen({ port: PORT }, (error?: Error) => {
+    if(error) reject(error);
+    else resolve();
+  });
+});
 console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`);
