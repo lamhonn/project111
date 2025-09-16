@@ -39,7 +39,40 @@ function testGraphqlAPI() {
   });
 }
 
-//TODO: create query for API to create new items
+//TODO: Do we need to check if item has changed before updating?
+//TODO: Do we need to handle race conditions when multiple updates occur simultaneously?
+//TODO: Find out if we need to implement an Interceptor? Check: https://axios-http.com/docs/interceptors
+
+async function testUpdateItem() {
+  const itemUpdate = {
+    id: 8,
+    name: "Updated Hanppari 2",
+    description: "Päivitetty kuvaus 2",
+    price: 14.00,
+    categoryID: 1
+  };
+
+  const query = `
+    mutation UpdateItem($input: UpdateItem!) {
+      updateItem(input: $input) {
+        id,
+        name,
+        description,
+        price,
+        categoryID,
+        updated_at
+      }
+    }
+  `;
+
+  try {
+    const updatedItem = await graphqlClient.query(query, { input: itemUpdate });
+    console.log('Updated item:', updatedItem);
+  } catch (error) {
+    console.error('Error creating item:', error);
+  }
+};
+
 //TODO: create an input type for new items
 async function testCreateItem() {
   const item = {
@@ -72,5 +105,6 @@ async function testCreateItem() {
 }
 
 testGraphqlAPI();
-testCreateItem(); 
+testCreateItem();
+testUpdateItem();
 export default App;

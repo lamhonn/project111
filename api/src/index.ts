@@ -36,12 +36,24 @@ const typeDefs = `#graphql
     categoryID: ID!
   }
 
+  input UpdateItem {
+    id: ID!
+    name: String!
+    description: String
+    price: Float!
+    categoryID: ID!
+  }
+
   type Query {
     hello: String
   }
 
   type Mutation {
     addItem(input: CreateItem!): Item
+  }
+
+   type Mutation {
+    updateItem(input: UpdateItem!): Item
   }
 `;
 
@@ -69,7 +81,20 @@ const resolvers = {
       } catch(error) {
         throw new Error(`Failed to create item: ${error.message}`);
       }
-    }
+    },
+    updateItem: async (parent, { input }, { db }) => {
+      try {
+        const { id, name, description, price, categoryID } = input;
+
+        const [result] = await db.execute('UPDATE items SET name = ?, description = ?, price = ?, categoryID = ? WHERE id = ?;', [name, description, price, categoryID, id]);
+
+        const [rows] = await db.execute('SELECT * FROM items where id= ?;', [id]);
+
+        return rows[0];
+      } catch (error) {
+        throw new Error(`Failed to update item: ${error.message}`);
+      }
+    },
   },
 };
 
