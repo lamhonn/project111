@@ -1,7 +1,7 @@
 #
 # Running with Docker Compose
 #
-To start the frontend and database using Docker:
+To start the frontend, database and API using Docker:
 
 ```bash
 docker compose up
@@ -9,6 +9,7 @@ docker compose up
 
 - The frontend will be available at [http://localhost:5173/](http://localhost:5173/)
 - The database runs in a separate container and is accessible from the frontend container as `db` on port `3306`.
+- API runs in a seperate container and is accessible from the API container as 'api' on port '4000'
 
 - if you make changes to the db/init.sql file, remember to reset the database volume:
 ```bash
