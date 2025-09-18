@@ -109,14 +109,15 @@ const resolvers = {
     },
     deleteItem: async(parent, { id }, { db }) => {
       try {
-        const result = await db.execute(
+        const [selectResult] = await db.execute(
           'SELECT * FROM items where id = ?;', [id]);
         
-        //TODO: test if we can check this with boolean
-        if(!result) return {code: "200", sucess: true, message: "Item deleted"};
-
-        await db.execute(
-          'DELETE FROM items where id = ?;', [id]);
+      
+        if(!selectResult.length) return {code: "200", sucess: true, message: "Item deleted"};
+        
+        //TODO: what to do with this result?
+        const [deleteResult] = await db.execute(
+        'DELETE FROM items where id = ?;', [id]);
         
         return {code: "200", success: true, message: "Item deleted"};
       } catch(error) {
