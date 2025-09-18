@@ -1,0 +1,19 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug API Server (Simple)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/api/dist/index.js",
+      "preLaunchTask": "compile-api",
+      "envFile": "${workspaceFolder}/.env",
+      "console": "integratedTerminal",
+      "restart": true,
+      "skipFiles": ["<node_internals>/**"],
+      "outFiles": ["${workspaceFolder}/api/dist/**/*.js"],
+      "sourceMaps": true,
+      "cwd": "${workspaceFolder}/api"
+    }
+  ]
+}

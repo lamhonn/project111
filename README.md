@@ -1,6 +1,5 @@
-#
 # Running with Docker Compose
-#
+
 To start the frontend, database and API using Docker:
 
 ```bash
@@ -17,6 +16,43 @@ docker compose down
 docker volume rm project111_db_data
 docker compose up --build
 ```
+
+# API Debugging with VS Code
+
+For development with step-debugging capabilities, you can run the API locally while keeping the database in Docker.
+
+## Setup Steps:
+
+1. **Start database and frontend only:**
+   ```bash
+   sudo docker compose down
+   sudo docker compose up db frontend
+   ```
+
+2. **Open VS Code in the project root**
+
+3. **Set breakpoints:**
+   - Open `api/src/index.ts`
+   - Click in left margin to set red breakpoints
+
+4. **Start debugging:**
+   - Go to Run & Debug panel (Ctrl+Shift+D)
+   - Select "Debug API Server (Simple)"
+
+5. **Test your API:**
+   - Frontend at `http://localhost:5173` will hit your local API
+
+## Making Code Changes:
+
+- Edit your TypeScript files in `api/src/`
+- Save changes
+- Stop debugger and restart to see changes
+- Breakpoints will be preserved
+
+## Troubleshooting:
+
+- If breakpoints are hollow, run `npm run compile` in the api directory
+- Make sure only database and frontend are running in Docker (not the full stack)
 
 # Project 111 (Restaurant Tablet Frontend) - README
 
