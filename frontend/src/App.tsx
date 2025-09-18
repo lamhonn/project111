@@ -38,6 +38,37 @@ function testGraphqlAPI() {
     console.error('Error calling GraphQL API:', error);
   });
 }
+//TODO: implement correct responses 
+//TODO: create an input type for new items
+async function testCreateItem() {
+  const item = {
+    name: "Paras Hanppari",
+    description: "Kaupungin paras hanppari on nyt täällä!",
+    price: 10.00,
+    categoryID: 3
+  };
+
+  const query = `
+    mutation NewItem($input: CreateItem!) {
+      addItem(input: $input) {
+        id
+        name
+        description
+        price
+        categoryID
+        created_at
+        updated_at
+      }
+    }
+  `;
+
+  try {
+    const newItem = await graphqlClient.query(query, { input: item });
+    console.log('Created item:', newItem);
+  } catch (error) {
+    console.error('Error creating item:', error);
+  }
+}
 
 //TODO: Do we need to check if item has changed before updating?
 //TODO: Do we need to handle race conditions when multiple updates occur simultaneously?
@@ -73,38 +104,31 @@ async function testUpdateItem() {
   }
 };
 
-//TODO: create an input type for new items
-async function testCreateItem() {
-  const item = {
-    name: "Paras Hanppari",
-    description: "Kaupungin paras hanppari on nyt täällä!",
-    price: 10.00,
-    categoryID: 3
-  };
+//TODO: create delete query via api
+
+async function testDeleteItem() {
+  const itemId = 14;
 
   const query = `
-    mutation NewItem($input: CreateItem!) {
-      addItem(input: $input) {
-        id
-        name
-        description
-        price
-        categoryID
-        created_at
-        updated_at
+    mutation DeleteItem($id: ID!) {
+      deleteItem(id: $id) {
+        code
+        success
+        message
       }
     }
   `;
 
-  try {
-    const newItem = await graphqlClient.query(query, { input: item });
-    console.log('Created item:', newItem);
+   try {
+    const deletedItem = await graphqlClient.query(query, { id:  itemId});
+    console.log('Deleted item successfully');
   } catch (error) {
-    console.error('Error creating item:', error);
-  }
+    //TODO: security wise we don't want to disclose if ID exists in our database, so we shouldn't return an error here. Instead we want to only log it server side.
+    console.error('Error deleting item:', error);
+  }  
 }
-
 testGraphqlAPI();
-testCreateItem();
-testUpdateItem();
+//testCreateItem();
+//testUpdateItem();
+testDeleteItem();
 export default App;

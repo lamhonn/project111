@@ -18,6 +18,7 @@ const pool = mysql.createPool({
 });
 
 // Define your GraphQL schema
+//TODO: When CRUD is finished use proper mutation responses: https://www.apollographql.com/docs/apollo-server/schema/schema
 const typeDefs = `#graphql
   type Item {
     id: ID!
@@ -27,6 +28,12 @@ const typeDefs = `#graphql
     categoryID: ID!
     created_at: String
     updated_at: String
+  }
+
+  interface MutationResponse {
+    code: String!
+    success: Boolean!
+    message: String!
   }
 
   input CreateItem {
@@ -44,17 +51,22 @@ const typeDefs = `#graphql
     categoryID: ID!
   }
 
+  type DeleteItemMutationResponse implements MutationResponse {
+    code: String!
+    success: Boolean!
+    message: String!
+  }
+
   type Query {
     hello: String
   }
 
   type Mutation {
     addItem(input: CreateItem!): Item
+    updateItem(input: UpdateItem!): Item
+    deleteItem(id: ID!): DeleteItemMutationResponse
   }
 
-   type Mutation {
-    updateItem(input: UpdateItem!): Item
-  }
 `;
 
 // Define your resolvers
@@ -82,7 +94,7 @@ const resolvers = {
         throw new Error(`Failed to create item: ${error.message}`);
       }
     },
-    updateItem: async (parent, { input }, { db }) => {
+    updateItem: async(parent, { input }, { db }) => {
       try {
         const { id, name, description, price, categoryID } = input;
 
@@ -93,6 +105,23 @@ const resolvers = {
         return rows[0];
       } catch (error) {
         throw new Error(`Failed to update item: ${error.message}`);
+      }
+    },
+    deleteItem: async(parent, { id }, { db }) => {
+      try {
+        const result = await db.execute(
+          'SELECT * FROM items where id = ?;', [id]);
+        
+        //TODO: test if we can check this with boolean
+        if(!result) return {code: "200", sucess: true, message: "Item deleted"};
+
+        await db.execute(
+          'DELETE FROM items where id = ?;', [id]);
+        
+        return {code: "200", success: true, message: "Item deleted"};
+      } catch(error) {
+        //TODO: log error here
+        throw new Error(`Failed to delete item: ${error.message}`);
       }
     },
   },
