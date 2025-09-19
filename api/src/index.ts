@@ -59,6 +59,7 @@ const typeDefs = `#graphql
 
   type Query {
     hello: String
+    items: [Item!] # Nullable array,non-nullable items
   }
 
   type Mutation {
@@ -73,6 +74,17 @@ const typeDefs = `#graphql
 const resolvers = {
   Query: {
     hello: () => 'Hello from GraphQL API!',
+    //GraphQL requires the parent and args even if unused
+    //TODO: Should we implement some kind of pagination logic?
+    items: async(parent, args, { db }) => {
+      try {
+        const [rows] = await db.execute('SELECT * FROM items');
+
+        return rows;
+      } catch(error) {
+        throw new Error(`Failed to fetch items ${error.message}`);
+      }
+    }
   },
 
   //TODO: use correct TS typing here
@@ -87,7 +99,7 @@ const resolvers = {
           [name, description, price, categoryID]
         );
 
-        const [rows] = await db.execute('SELECT * FROM items where id= ?', [result.insertId]);
+        const [rows] = await db.execute('SELECT * FROM items where id = ?', [result.insertId]);
 
         return rows[0];
       } catch(error) {
@@ -100,7 +112,7 @@ const resolvers = {
 
         const [result] = await db.execute('UPDATE items SET name = ?, description = ?, price = ?, categoryID = ? WHERE id = ?;', [name, description, price, categoryID, id]);
 
-        const [rows] = await db.execute('SELECT * FROM items where id= ?;', [id]);
+        const [rows] = await db.execute('SELECT * FROM items where id = ?;', [id]);
 
         return rows[0];
       } catch (error) {
@@ -113,7 +125,7 @@ const resolvers = {
           'SELECT * FROM items where id = ?;', [id]);
         
       
-        if(!selectResult.length) return {code: "200", sucess: true, message: "Item deleted"};
+        if(!selectResult.length) return {code: "200", success: true, message: "Item deleted"};
         
         //TODO: what to do with this result?
         const [deleteResult] = await db.execute(

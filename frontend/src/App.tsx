@@ -11,6 +11,7 @@ function App() {
         <p>
           Edit <code>src/App.tsx</code> and save to reload.
         </p>
+        <p>Check console for GraphQL test results</p>
         <a
           className="App-link"
           href="https://reactjs.org"
@@ -37,6 +38,32 @@ function testGraphqlAPI() {
   }).catch((error) => {
     console.error('Error calling GraphQL API:', error);
   });
+}
+
+async function queryItems() {
+  const query = `
+    query GetItems {
+      items {
+        id
+        name
+        description
+        price
+        categoryID
+        created_at
+        updated_at
+      }
+    }
+  `;
+
+  try {
+    const queryResponse = await graphqlClient.query(query);
+    console.log('Response: ', queryResponse);
+
+    return queryResponse.data.items;
+
+  } catch(error) {
+    console.error('Failed to fetch items: ', error);
+  }
 }
 //TODO: implement correct responses 
 //TODO: create an input type for new items
@@ -104,10 +131,9 @@ async function testUpdateItem() {
   }
 };
 
-//TODO: create delete query via api
 
 async function testDeleteItem() {
-  const itemId = 14;
+  const itemId = 2;
 
   const query = `
     mutation DeleteItem($id: ID!) {
@@ -127,8 +153,22 @@ async function testDeleteItem() {
     console.error('Error deleting item:', error);
   }  
 }
+// Simple test without async function
+queryItems()
+  .then(items => {
+    console.log('Fetched items:', items);
+    if (items) {
+      items.forEach((item: any) => {
+        console.log('Item name:', item.name);
+      });
+    }
+  })
+  .catch(error => {
+    console.error('Error fetching items:', error);
+  });
+
 testGraphqlAPI();
 //testCreateItem();
 //testUpdateItem();
-testDeleteItem();
+//testDeleteItem();
 export default App;
