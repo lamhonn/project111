@@ -18,7 +18,6 @@ const pool = mysql.createPool({
 });
 
 // Define your GraphQL schema
-//TODO: When CRUD is finished use proper mutation responses: https://www.apollographql.com/docs/apollo-server/schema/schema
 const typeDefs = `#graphql
   type Item {
     id: ID!
@@ -51,6 +50,20 @@ const typeDefs = `#graphql
     categoryID: ID!
   }
 
+  type CreateItemMutationResponse implements MutationResponse {
+    code: String!
+    success: Boolean!
+    message: String!
+    item: Item
+  }
+
+  type UpdateItemMutationResponse implements MutationResponse {
+    code: String!
+    success: Boolean!
+    message: String!
+    item: Item
+  }
+
   type DeleteItemMutationResponse implements MutationResponse {
     code: String!
     success: Boolean!
@@ -59,12 +72,12 @@ const typeDefs = `#graphql
 
   type Query {
     hello: String
-    items: [Item!] # Nullable array,non-nullable items
+    items: [Item!]
   }
 
   type Mutation {
-    addItem(input: CreateItem!): Item
-    updateItem(input: UpdateItem!): Item
+    createItem(input: CreateItem!): CreateItemMutationResponse
+    updateItem(input: UpdateItem!): UpdateItemMutationResponse
     deleteItem(id: ID!): DeleteItemMutationResponse
   }
 
@@ -74,8 +87,9 @@ const typeDefs = `#graphql
 const resolvers = {
   Query: {
     hello: () => 'Hello from GraphQL API!',
-    //GraphQL requires the parent and args even if unused
+
     //TODO: Should we implement some kind of pagination logic?
+    //GraphQL requires the parent and args even if unused
     items: async(parent, args, { db }) => {
       try {
         const [rows] = await db.execute('SELECT * FROM items');
@@ -90,7 +104,7 @@ const resolvers = {
   //TODO: use correct TS typing here
   Mutation: {
     //GraphQL requires the parent argument even if unused
-    addItem: async(parent, { input }, { db }) => {
+    createItem: async(parent, { input }, { db }) => {
       try {
         const { name, description, price, categoryID } = input;
 
@@ -101,24 +115,28 @@ const resolvers = {
 
         const [rows] = await db.execute('SELECT * FROM items where id = ?', [result.insertId]);
 
-        return rows[0];
+         return {code: 200, success: true, message: "Item added", item: rows[0]};
       } catch(error) {
-        throw new Error(`Failed to create item: ${error.message}`);
+        throw new Error(`Failed to add item: ${error.message}`);
       }
     },
+
     updateItem: async(parent, { input }, { db }) => {
       try {
         const { id, name, description, price, categoryID } = input;
 
         const [result] = await db.execute('UPDATE items SET name = ?, description = ?, price = ?, categoryID = ? WHERE id = ?;', [name, description, price, categoryID, id]);
 
+        //TODO: check result to see if anything was actually updated?
+
         const [rows] = await db.execute('SELECT * FROM items where id = ?;', [id]);
 
-        return rows[0];
+        return {code: 200, success: true, message: "Item updated", item: rows[0]};
       } catch (error) {
         throw new Error(`Failed to update item: ${error.message}`);
       }
     },
+
     deleteItem: async(parent, { id }, { db }) => {
       try {
         const [selectResult] = await db.execute(
@@ -131,11 +149,14 @@ const resolvers = {
         const [deleteResult] = await db.execute(
         'DELETE FROM items where id = ?;', [id]);
         
-        return {code: "200", success: true, message: "Item deleted"};
+        
       } catch(error) {
-        //TODO: log error here
+        //TODO: log error here and remove throw
         throw new Error(`Failed to delete item: ${error.message}`);
       }
+
+      //Always return success to client, even if error, prevents ID snooping
+      return {code: "200", success: true, message: "Item deleted"}; 
     },
   },
 };

@@ -76,15 +76,20 @@ async function testCreateItem() {
   };
 
   const query = `
-    mutation NewItem($input: CreateItem!) {
-      addItem(input: $input) {
-        id
-        name
-        description
-        price
-        categoryID
-        created_at
-        updated_at
+    mutation CreateItem($input: CreateItem!) {
+      createItem(input: $input) {
+        code
+        success
+        message
+        item {
+          id
+          name
+          description
+          price
+          categoryID
+          created_at
+          updated_at
+        }
       }
     }
   `;
@@ -103,7 +108,7 @@ async function testCreateItem() {
 
 async function testUpdateItem() {
   const itemUpdate = {
-    id: 8,
+    id: 20,
     name: "Updated Hanppari 2",
     description: "Päivitetty kuvaus 2",
     price: 14.00,
@@ -113,12 +118,18 @@ async function testUpdateItem() {
   const query = `
     mutation UpdateItem($input: UpdateItem!) {
       updateItem(input: $input) {
-        id,
-        name,
-        description,
-        price,
-        categoryID,
-        updated_at
+        code
+        success
+        message
+        item {
+          id
+          name
+          description
+          price
+          categoryID
+          created_at
+          updated_at
+        }
       }
     }
   `;
@@ -133,7 +144,7 @@ async function testUpdateItem() {
 
 
 async function testDeleteItem() {
-  const itemId = 2;
+  const itemId = 23;
 
   const query = `
     mutation DeleteItem($id: ID!) {
@@ -157,11 +168,6 @@ async function testDeleteItem() {
 queryItems()
   .then(items => {
     console.log('Fetched items:', items);
-    if (items) {
-      items.forEach((item: any) => {
-        console.log('Item name:', item.name);
-      });
-    }
   })
   .catch(error => {
     console.error('Error fetching items:', error);
