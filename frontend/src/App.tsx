@@ -136,7 +136,7 @@ async function testUpdateItem() {
     const updatedItem = await graphqlClient.query(query, { input: itemUpdate });
     console.log('Updated item:', updatedItem);
   } catch (error) {
-    console.error('Error creating item:', error);
+    console.error('Error updating item:', error);
   }
 };
 
