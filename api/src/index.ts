@@ -108,14 +108,19 @@ const resolvers = {
       try {
         const { name, description, price, categoryID } = input;
 
-        const [result] = await db.execute(
+        const [insertResult] = await db.execute(
           'INSERT INTO items (name, description, price, categoryID) VALUES (?, ?, ?, ?)',
           [name, description, price, categoryID]
         );
 
-        const [rows] = await db.execute('SELECT * FROM items where id = ?', [result.insertId]);
+        const [rows] = await db.execute('SELECT * FROM items where id = ?', [insertResult.insertId]);
 
-         return {code: 200, success: true, message: "Item added", item: rows[0]};
+        return {
+          code: 200,
+          success: true,
+          message: "Item added",
+          item: rows[0]
+        };
       } catch(error) {
         throw new Error(`Failed to add item: ${error.message}`);
       }
@@ -125,25 +130,39 @@ const resolvers = {
       try {
         const { id, name, description, price, categoryID } = input;
 
-        const [result] = await db.execute('UPDATE items SET name = ?, description = ?, price = ?, categoryID = ? WHERE id = ?;', [name, description, price, categoryID, id]);
+        const [updateResult] = await db.execute('UPDATE items SET name = ?, description = ?, price = ?, categoryID = ? WHERE id = ?;', [name, description, price, categoryID, id]);
 
-        //TODO: check result to see if anything was actually updated?
+        const [rows] = await db.execute('SELECT * FROM items WHERE id = ?;', [id]);
+       
+        
+        if (updateResult.changedRows === 0) {
+          return {
+            code: "200",
+            success: true,
+            message: "No changes made - item already up to date",
+            item: rows[0]
+          };
+        }
 
-        const [rows] = await db.execute('SELECT * FROM items where id = ?;', [id]);
-
-        return {code: 200, success: true, message: "Item updated", item: rows[0]};
+        return {
+          code: 200, 
+          success: true,
+          message: "Item updated",
+          item: rows[0]
+        };
       } catch (error) {
         throw new Error(`Failed to update item: ${error.message}`);
       }
     },
 
     deleteItem: async(parent, { id }, { db }) => {
+      const returnValue = {code: "200", success: true, message: "Item deleted"};
+
       try {
         const [selectResult] = await db.execute(
           'SELECT * FROM items where id = ?;', [id]);
-        
       
-        if(!selectResult.length) return {code: "200", success: true, message: "Item deleted"};
+        if(selectResult.length === 0) return returnValue;
         
         //TODO: what to do with this result?
         const [deleteResult] = await db.execute(
@@ -156,7 +175,7 @@ const resolvers = {
       }
 
       //Always return success to client, even if error, prevents ID snooping
-      return {code: "200", success: true, message: "Item deleted"}; 
+      return returnValue;
     },
   },
 };

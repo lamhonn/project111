@@ -65,8 +65,7 @@ async function queryItems() {
     console.error('Failed to fetch items: ', error);
   }
 }
-//TODO: implement correct responses 
-//TODO: create an input type for new items
+//TODO: create input types for all mutations for client-side validations
 async function testCreateItem() {
   const item = {
     name: "Paras Hanppari",
@@ -104,15 +103,14 @@ async function testCreateItem() {
 
 //TODO: Do we need to check if item has changed before updating?
 //TODO: Do we need to handle race conditions when multiple updates occur simultaneously?
-//TODO: Find out if we need to implement an Interceptor? Check: https://axios-http.com/docs/interceptors
 
 async function testUpdateItem() {
   const itemUpdate = {
     id: 20,
-    name: "Updated Hanppari 2",
-    description: "Päivitetty kuvaus 2",
-    price: 14.00,
-    categoryID: 1
+    name: "Updated Hanppari 3",
+    description: "Päivitetty kuvaus 3",
+    price: 14.50,
+    categoryID: 2
   };
 
   const query = `
@@ -174,7 +172,7 @@ queryItems()
   });
 
 testGraphqlAPI();
-//testCreateItem();
-//testUpdateItem();
-//testDeleteItem();
+testCreateItem();
+testUpdateItem();
+testDeleteItem();
 export default App;
