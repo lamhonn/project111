@@ -116,7 +116,7 @@ const resolvers = {
         const [rows] = await db.execute('SELECT * FROM items where id = ?', [insertResult.insertId]);
 
         return {
-          code: 200,
+          code: "200",
           success: true,
           message: "Item added",
           item: rows[0]
@@ -145,7 +145,7 @@ const resolvers = {
         }
 
         return {
-          code: 200, 
+          code: "200", 
           success: true,
           message: "Item updated",
           item: rows[0]
@@ -156,8 +156,12 @@ const resolvers = {
     },
 
     deleteItem: async(parent, { id }, { db }) => {
-      const returnValue = {code: "200", success: true, message: "Item deleted"};
-
+      const returnValue = {
+        code: "200", 
+        success: true, 
+        message: "Item deleted"
+      };
+      
       try {
         const [selectResult] = await db.execute(
           'SELECT * FROM items where id = ?;', [id]);
