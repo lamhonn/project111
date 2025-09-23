@@ -134,7 +134,6 @@ const resolvers = {
 
         const [rows] = await db.execute('SELECT * FROM items WHERE id = ?;', [id]);
        
-        
         if (updateResult.changedRows === 0) {
           return {
             code: "200",
@@ -161,7 +160,7 @@ const resolvers = {
         success: true, 
         message: "Item deleted"
       };
-      
+
       try {
         const [selectResult] = await db.execute(
           'SELECT * FROM items where id = ?;', [id]);
