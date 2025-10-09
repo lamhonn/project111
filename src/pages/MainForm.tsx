@@ -8,7 +8,7 @@ import drinks from "@/assets/drinks.jpg";
 import desserts from "@/assets/desserts.jpg";
 import specialDish from "@/assets/special-dish.jpg";
 
-const Index = () => {
+const MainForm = () => {
   const navigate = useNavigate();
   
   const categories = [
@@ -78,4 +78,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default MainForm;
