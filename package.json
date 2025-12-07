@@ -39,6 +39,7 @@
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
     "i18n": "^0.15.1",
+    "jotai": "^2.15.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.7.1",
