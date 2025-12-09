@@ -197,3 +197,104 @@ export const productDialogTheme = {
 };
 
 export type ProductDialogTheme = typeof productDialogTheme;
+
+export const actionBarTheme = {
+  // Action bar container
+  container: {
+    position: 'fixed' as const,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'success.main',
+    padding: theme.spacing.md,
+    gap: theme.spacing.md,
+    boxShadow: theme.shadows.lg,
+    zIndex: 50,
+  },
+
+  // Buttons
+  buttons: {
+    service: {
+      backgroundColor: 'white',
+      color: 'success.main',
+      fontWeight: theme.typography.fontWeights.semibold,
+      fontSize: theme.typography.fontSizes.medium,
+      paddingX: theme.spacing.lg,
+      paddingY: 1.5,
+      borderRadius: theme.borderRadius.xlarge,
+      textTransform: 'none' as const,
+      boxShadow: theme.shadows.sm,
+      gap: theme.spacing.sm,
+    },
+    order: {
+      backgroundColor: 'white',
+      color: 'success.main',
+      fontWeight: theme.typography.fontWeights.semibold,
+      fontSize: theme.typography.fontSizes.medium,
+      paddingX: theme.spacing.lg,
+      paddingY: 1.5,
+      borderRadius: theme.borderRadius.xlarge,
+      textTransform: 'none' as const,
+      boxShadow: theme.shadows.sm,
+      gap: theme.spacing.sm,
+    },
+  },
+
+  // Badge
+  badge: {
+    backgroundColor: 'error.main',
+    color: 'white',
+    fontSize: '0.75rem',
+    fontWeight: theme.typography.fontWeights.bold,
+    minWidth: 20,
+    height: 20,
+  },
+
+  // Dialog
+  dialog: {
+    borderRadius: theme.borderRadius.xlarge,
+    padding: theme.spacing.lg,
+    maxWidth: 'md' as const,
+  },
+
+  // Typography
+  typography: {
+    dialogTitle: {
+      variant: 'h6' as const,
+      fontWeight: theme.typography.fontWeights.semibold,
+    },
+    dialogContent: {
+      variant: 'body1' as const,
+    },
+  },
+
+  // Dialog buttons
+  dialogButtons: {
+    cancel: {
+      color: 'text.secondary',
+      fontWeight: theme.typography.fontWeights.medium,
+      textTransform: 'none' as const,
+      paddingX: theme.spacing.lg,
+      paddingY: 1,
+      borderRadius: theme.borderRadius.medium,
+    },
+    confirm: {
+      backgroundColor: 'success.main',
+      color: 'white',
+      fontWeight: theme.typography.fontWeights.semibold,
+      textTransform: 'none' as const,
+      paddingX: theme.spacing.lg,
+      paddingY: 1,
+      borderRadius: theme.borderRadius.medium,
+    },
+  },
+
+  // Colors
+  colors: {
+    white: 'white',
+    success: 'success.main',
+    successHover: 'success.dark',
+  },
+};
+
+export type ActionBarTheme = typeof actionBarTheme;

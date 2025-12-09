@@ -8,7 +8,7 @@
 export { theme as sharedTheme, type SharedTheme } from './theme';
 
 // Individual component themes
-export { productCardTheme, type ProductCardTheme, productDialogTheme, type ProductDialogTheme } from './componentThemes';
+export { productCardTheme, type ProductCardTheme, productDialogTheme, type ProductDialogTheme, actionBarTheme, type ActionBarTheme } from './componentThemes';
 
 // Add more component themes here as they are created:
 // export { headerTheme, type HeaderTheme } from './componentThemes';
