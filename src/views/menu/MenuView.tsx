@@ -1,12 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Box, Container, Typography } from '@mui/material';
 import ProductCard from '../../components/menu/ProductCard';
-import ActionBar from '../../components/actionbar/Actionbar';
+import ActionBar from '../../components/actionbar/ActionBar';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
+import CategoryPill from '../../components/category/CategoryPill';
+import MenuHeader from '../../components/header/MenuHeader';
+import TotalOrderSummaryDialog from '../../components/order/TotalOrderSummaryDialog';
+
+// Categories
+const categories = ['Pizzas', 'Burgers', 'Sides', 'Drinks'];
 
 // Sample product data
 const sampleProducts = [
+  // Pizzas
   {
     id: '1',
+    category: 0,
     image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400',
     name: 'Margherita Pizza',
     price: 12.99,
@@ -20,6 +29,7 @@ const sampleProducts = [
   },
   {
     id: '2',
+    category: 0,
     image: 'https://images.unsplash.com/photo-1571997478779-2adcbbe9ab2f?w=400',
     name: 'Pepperoni Pizza',
     price: 14.99,
@@ -32,6 +42,7 @@ const sampleProducts = [
   },
   {
     id: '3',
+    category: 0,
     image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400',
     name: 'Hawaiian Pizza',
     price: 13.99,
@@ -44,6 +55,7 @@ const sampleProducts = [
   },
   {
     id: '4',
+    category: 0,
     image: 'https://images.unsplash.com/photo-1628840042765-356cda07504e?w=400',
     name: 'Veggie Supreme',
     price: 13.49,
@@ -57,6 +69,7 @@ const sampleProducts = [
   },
   {
     id: '5',
+    category: 0,
     image: 'https://images.unsplash.com/photo-1595854341625-f33ee10dbf94?w=400',
     name: 'BBQ Chicken',
     price: 15.99,
@@ -69,6 +82,7 @@ const sampleProducts = [
   },
   {
     id: '6',
+    category: 0,
     image: 'https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=400',
     name: 'Meat Lovers',
     price: 16.99,
@@ -79,61 +93,273 @@ const sampleProducts = [
       { id: 't6', name: 'Extra Ham', price: 2.5 },
     ],
   },
+  // Burgers
+  {
+    id: '7',
+    category: 1,
+    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400',
+    name: 'Classic Burger',
+    price: 9.99,
+    description: 'Beef patty with lettuce, tomato, onion, and pickles',
+    toppings: [
+      { id: 't11', name: 'Bacon', price: 2.0 },
+      { id: 't12', name: 'Extra Patty', price: 3.5 },
+      { id: 't1', name: 'Cheese', price: 1.5 },
+    ],
+  },
+  {
+    id: '8',
+    category: 1,
+    image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=400',
+    name: 'Cheese Burger',
+    price: 10.99,
+    description: 'Double beef patty with melted cheese',
+    toppings: [
+      { id: 't11', name: 'Bacon', price: 2.0 },
+      { id: 't12', name: 'Extra Patty', price: 3.5 },
+    ],
+  },
+  {
+    id: '9',
+    category: 1,
+    image: 'https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=400',
+    name: 'Bacon Burger',
+    price: 11.99,
+    description: 'Burger with crispy bacon and BBQ sauce',
+    toppings: [
+      { id: 't11', name: 'Extra Bacon', price: 2.5 },
+      { id: 't12', name: 'Extra Patty', price: 3.5 },
+      { id: 't1', name: 'Cheese', price: 1.5 },
+    ],
+  },
+  // Sides
+  {
+    id: '10',
+    category: 2,
+    image: 'https://images.unsplash.com/photo-1630384082554-e4e5c0e7b869?w=400',
+    name: 'French Fries',
+    price: 4.99,
+    description: 'Crispy golden french fries',
+    toppings: [],
+  },
+  {
+    id: '11',
+    category: 2,
+    image: 'https://images.unsplash.com/photo-1619221882783-4f9a5e2e3ee9?w=400',
+    name: 'Onion Rings',
+    price: 5.49,
+    description: 'Crispy breaded onion rings',
+    toppings: [],
+  },
+  {
+    id: '12',
+    category: 2,
+    image: 'https://images.unsplash.com/photo-1626645738196-c2a7c87a8f58?w=400',
+    name: 'Mozzarella Sticks',
+    price: 6.99,
+    description: 'Breaded mozzarella sticks with marinara sauce',
+    toppings: [],
+  },
+  // Drinks
+  {
+    id: '13',
+    category: 3,
+    image: 'https://images.unsplash.com/photo-1581006852262-e4307cf6283a?w=400',
+    name: 'Coca-Cola',
+    price: 2.99,
+    description: 'Classic Coca-Cola',
+    toppings: [],
+  },
+  {
+    id: '14',
+    category: 3,
+    image: 'https://images.unsplash.com/photo-1622597467836-f3285f2131b8?w=400',
+    name: 'Sprite',
+    price: 2.99,
+    description: 'Refreshing lemon-lime soda',
+    toppings: [],
+  },
+  {
+    id: '15',
+    category: 3,
+    image: 'https://images.unsplash.com/photo-1560512823-829485b8bf24?w=400',
+    name: 'Orange Juice',
+    price: 3.49,
+    description: 'Fresh squeezed orange juice',
+    toppings: [],
+  },
 ];
 
 const MenuView: React.FC = () => {
-  const [orderCount] = useState(3);
-  const [totalPrice] = useState(42.47);
+  const [activeCategory, setActiveCategory] = useState<number>(0);
+  const [showCategoryBar, setShowCategoryBar] = useState<boolean>(true);
+  const [showTotalDialog, setShowTotalDialog] = useState<boolean>(false);
+  const categoryRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const lastScrollY = useRef<number>(0);
+
+  // Group products by category
+  const productsByCategory = categories.map((_, index) =>
+    sampleProducts.filter(product => product.category === index)
+  );
+
+  // Scroll to category
+  const handleCategoryClick = (index: number): void => {
+    const element = categoryRefs.current[index];
+    if (element) {
+      const headerOffset = 156; // Height of header (64px) + category pills bar (92px)
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.scrollY - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      });
+    }
+  };
+
+  // Track active category on scroll
+  useEffect(() => {
+    const handleScroll = (): void => {
+      const currentScrollY = window.scrollY;
+      const scrollPosition = currentScrollY + 250; // Offset for sticky header + category bar
+      const windowHeight = window.innerHeight;
+
+      // Show/hide category bar based on scroll direction
+      if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+        // Scrolling down
+        setShowCategoryBar(false);
+      } else {
+        // Scrolling up
+        setShowCategoryBar(true);
+      }
+      lastScrollY.current = currentScrollY;
+
+      // TODO: doesn't work properly with last category
+      // Check if user has scrolled to bottom
+      if ((windowHeight + scrollPosition) > document.body.offsetHeight) {
+        setActiveCategory(categories.length - 1);
+        return;
+      }
+
+      for (let i = categoryRefs.current.length - 1; i >= 0; i--) {
+        const ref = categoryRefs.current[i];
+        if (ref && ref.offsetTop <= scrollPosition) {
+          setActiveCategory(i);
+          break;
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <Box sx={{ pb: 10 }}>
-      {/* Header */}
+      {/* Fixed Menu Header */}
+      <MenuHeader
+        restaurantName="Penan pizza"
+        tableNumber={5}
+        onTotalClick={() => setShowTotalDialog(true)}
+      />
+
+      {/* Sticky Category Pills */}
       <Box
         sx={{
-          backgroundColor: 'success.main',
-          color: 'white',
-          py: 3,
-          mb: 4,
+          position: 'sticky',
+          top: { xs: 56, sm: 64 },
+          zIndex: 1000,
+          backgroundColor: 'grey.50',
+          py: 1.5,
+          transform: showCategoryBar ? 'translateY(0)' : 'translateY(-100%)',
+          transition: 'transform 0.1s ease-in-out',
         }}
       >
         <Container maxWidth="lg">
-          <Typography variant="h4" fontWeight="bold">
-            Menu
-          </Typography>
-          <Typography variant="body1" sx={{ mt: 1 }}>
-            Choose your favorite pizza
-          </Typography>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 1.5,
+              overflowX: 'auto',
+              '&::-webkit-scrollbar': {
+                height: 6,
+              },
+              '&::-webkit-scrollbar-thumb': {
+                backgroundColor: 'grey.300',
+                borderRadius: 3,
+              },
+            }}
+          >
+            {categories.map((category, index) => (
+              <CategoryPill
+                key={index}
+                index={index}
+                name={category}
+                isActive={activeCategory === index}
+                onClick={handleCategoryClick}
+              />
+            ))}
+          </Box>
         </Container>
       </Box>
 
-      {/* Product Grid */}
-      <Container maxWidth="lg">
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: {
-              xs: '1fr',
-              sm: 'repeat(2, 1fr)',
-              md: 'repeat(3, 1fr)',
-            },
-            gap: 3,
-          }}
-        >
-          {sampleProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              image={product.image}
-              name={product.name}
-              price={product.price}
-              description={product.description}
-              toppings={product.toppings}
-            />
-          ))}
-        </Box>
+      {/* Product Categories */}
+      <Container maxWidth="lg" sx={{ mt: 8 }}>
+        {categories.map((category, categoryIndex) => (
+          <Box
+            key={categoryIndex}
+            ref={(el) => {
+              if (el) {
+                categoryRefs.current[categoryIndex] = el as HTMLDivElement;
+              }
+            }}
+            sx={{ mb: 6 }}
+          >
+            <Typography
+              variant="h5"
+              fontWeight="bold"
+              sx={{ mb: 3 }}
+            >
+              {category}
+            </Typography>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: {
+                  xs: '1fr',
+                  sm: 'repeat(2, 1fr)',
+                  md: 'repeat(3, 1fr)',
+                },
+                gap: 3,
+              }}
+            >
+              {productsByCategory[categoryIndex].map((product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  image={product.image}
+                  name={product.name}
+                  price={product.price}
+                  description={product.description}
+                  toppings={product.toppings}
+                />
+              ))}
+            </Box>
+          </Box>
+        ))}
       </Container>
 
       {/* Action Bar */}
-      <ActionBar orderCount={orderCount} totalPrice={totalPrice} />
+      <ActionBar />
+
+      {/* Total Order Summary Dialog */}
+      <TotalOrderSummaryDialog
+        isOpen={showTotalDialog}
+        onClose={() => setShowTotalDialog(false)}
+      />
+
+      {/* Global Confirm Dialog */}
+      <ConfirmDialog />
     </Box>
   );
 };

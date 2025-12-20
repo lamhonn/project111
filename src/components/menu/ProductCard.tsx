@@ -12,10 +12,13 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { useSetAtom } from 'jotai';
 import { productCardTheme } from '../../theme';
 import ProductDialog from './ProductInfoDialog';
+import { addOrderItemAtom } from '../../context/orderStore';
 
 interface Props {
+  id: string;
   image: string;
   name: string;
   price: number;
@@ -29,33 +32,15 @@ interface Props {
 }
 
 const ProductCard: React.FC<Props> = (props: Props) => {
-  const { image, name, price, initialQuantity = 0, description, toppings } = props;
+  const { id, image, name, price, initialQuantity = 0, description, toppings } = props;
   const theme = productCardTheme;
+  const addItem = useSetAtom(addOrderItemAtom);
 
   const [quantity, setQuantity] = useState<number>(initialQuantity);
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const isSelected: boolean = quantity > 0;
 
-  const handleAddItem = (): void => {
-    setQuantity(1);
-  };
-
-  const handleAddItemClick = (e: React.MouseEvent): void => {
-    e.stopPropagation();
-    handleAddItem();
-  };
-
-  const handleIncrement = (): void => {
-    setQuantity(prev => prev + 1);
-  };
-
-  const handleDecrement = (): void => {
-    if (quantity > 0) {
-      setQuantity(prev => prev - 1);
-    }
-  };
-
-  const handleCardClick = (): void => {
+  const handleOpenDialog = (): void => {
     setDialogOpen(true);
   };
 
@@ -66,7 +51,7 @@ const ProductCard: React.FC<Props> = (props: Props) => {
   return (
     <>
       <Card
-        onClick={handleCardClick}
+        onClick={handleOpenDialog}
         sx={{
           maxWidth: theme.card.maxWidth,
           borderRadius: theme.card.borderRadius,
@@ -96,7 +81,7 @@ const ProductCard: React.FC<Props> = (props: Props) => {
               color="text.secondary" 
               fontSize={theme.typography.price.fontSize}
             >
-              (${price.toFixed(1)})
+              ({price.toFixed(2)}€)
             </Typography>
           </Typography>
         </CardContent>
@@ -106,12 +91,11 @@ const ProductCard: React.FC<Props> = (props: Props) => {
           pb: theme.spacing.cardActions.paddingBottom, 
           pt: theme.spacing.cardActions.paddingTop 
         }}>
-          {!isSelected ? (
             <Button
               fullWidth
               variant="outlined"
               startIcon={<AddIcon />}
-              onClick={handleAddItemClick}
+              onClick={handleOpenDialog}
               sx={{
                 borderRadius: theme.buttons.addItem.borderRadius,
                 textTransform: theme.buttons.addItem.textTransform,
@@ -127,78 +111,12 @@ const ProductCard: React.FC<Props> = (props: Props) => {
             >
               Add Item
             </Button>
-          ) : (
-            <Box
-              onClick={(e) => e.stopPropagation()}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                width: '100%',
-              }}
-            >
-              <Button
-                variant="contained"
-                startIcon={<CheckCircleIcon />}
-                sx={{
-                  borderRadius: theme.buttons.choose.borderRadius,
-                  textTransform: theme.buttons.choose.textTransform,
-                  fontSize: theme.buttons.choose.fontSize,
-                  py: theme.buttons.choose.paddingY,
-                  px: theme.buttons.choose.paddingX,
-                  backgroundColor: theme.colors.primary,
-                  '&:hover': {
-                    backgroundColor: theme.colors.primaryHover,
-                  },
-                }}
-              >
-                Choose
-              </Button>
-              
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: theme.quantityControl.container.gap,
-                  backgroundColor: theme.colors.background,
-                  borderRadius: theme.quantityControl.container.borderRadius,
-                  px: theme.quantityControl.container.paddingX,
-                }}
-              >
-                <IconButton
-                  size="small"
-                  onClick={handleDecrement}
-                  sx={{ color: 'text.primary' }}
-                >
-                  <RemoveIcon />
-                </IconButton>
-                
-                <Typography
-                  sx={{
-                    minWidth: theme.quantityControl.text.minWidth,
-                    textAlign: 'center',
-                    fontWeight: theme.quantityControl.text.fontWeight,
-                    fontSize: theme.quantityControl.text.fontSize,
-                  }}
-                >
-                  {quantity}
-                </Typography>
-                
-                <IconButton
-                  size="small"
-                  onClick={handleIncrement}
-                  sx={{ color: 'text.primary' }}
-                >
-                  <AddIcon />
-                </IconButton>
-              </Box>
-            </Box>
-          )}
         </CardActions>
       </Card>
 
       <ProductDialog
         product={{
+          id,
           image,
           name,
           price,

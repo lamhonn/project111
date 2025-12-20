@@ -45,7 +45,7 @@ export const productCardTheme = {
     border: theme.colors.border,
     background: theme.colors.background,
     primaryLight: theme.colors.primaryLight,
-    primaryShadow: theme.colors.primaryShadow,
+    primaryShadow: theme.colors.primaryDark,
   },
 
   // Buttons
@@ -136,11 +136,11 @@ export const productDialogTheme = {
     borderWidth: 1,
     borderColor: {
       default: 'grey.300',
-      selected: 'success.main',
+      selected: theme.colors.primary,
     },
     backgroundColor: {
       default: 'transparent',
-      selected: 'success.light',
+      selected: theme.colors.primaryLight,
     },
     transition: theme.transitions.normal,
   },
@@ -174,7 +174,7 @@ export const productDialogTheme = {
 
   // Footer
   footer: {
-    backgroundColor: 'success.main',
+    backgroundColor: theme.colors.primary,
     padding: theme.spacing.md,
     gap: theme.spacing.md,
   },
@@ -188,11 +188,11 @@ export const productDialogTheme = {
 
   // Colors
   colors: {
-    white: 'white',
-    success: 'success.main',
+    white: theme.colors.brandWhite,
+    primary: theme.colors.primary,
     error: 'error.main',
-    textSecondary: 'text.secondary',
-    textPrimary: 'text.primary',
+    textSecondary: theme.colors.text,
+    textPrimary: theme.colors.text,
   },
 };
 
@@ -205,7 +205,7 @@ export const actionBarTheme = {
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'success.main',
+    backgroundColor: theme.colors.primary,
     padding: theme.spacing.md,
     gap: theme.spacing.md,
     boxShadow: theme.shadows.lg,
@@ -215,8 +215,8 @@ export const actionBarTheme = {
   // Buttons
   buttons: {
     service: {
-      backgroundColor: 'white',
-      color: 'success.main',
+      backgroundColor: theme.colors.brandWhite,
+      color: theme.colors.primary,
       fontWeight: theme.typography.fontWeights.semibold,
       fontSize: theme.typography.fontSizes.medium,
       paddingX: theme.spacing.lg,
@@ -227,8 +227,8 @@ export const actionBarTheme = {
       gap: theme.spacing.sm,
     },
     order: {
-      backgroundColor: 'white',
-      color: 'success.main',
+      backgroundColor: theme.colors.brandWhite,
+      color: theme.colors.primary,
       fontWeight: theme.typography.fontWeights.semibold,
       fontSize: theme.typography.fontSizes.medium,
       paddingX: theme.spacing.lg,
@@ -271,7 +271,7 @@ export const actionBarTheme = {
   // Dialog buttons
   dialogButtons: {
     cancel: {
-      color: 'text.secondary',
+      color: theme.colors.text,
       fontWeight: theme.typography.fontWeights.medium,
       textTransform: 'none' as const,
       paddingX: theme.spacing.lg,
@@ -279,8 +279,8 @@ export const actionBarTheme = {
       borderRadius: theme.borderRadius.medium,
     },
     confirm: {
-      backgroundColor: 'success.main',
-      color: 'white',
+      backgroundColor: theme.colors.primary,
+      color: theme.colors.brandWhite,
       fontWeight: theme.typography.fontWeights.semibold,
       textTransform: 'none' as const,
       paddingX: theme.spacing.lg,
@@ -291,10 +291,124 @@ export const actionBarTheme = {
 
   // Colors
   colors: {
-    white: 'white',
-    success: 'success.main',
-    successHover: 'success.dark',
+    white: theme.colors.brandWhite,
+    primary: theme.colors.primary,
+    primaryHover: theme.colors.primaryHover,
   },
 };
 
 export type ActionBarTheme = typeof actionBarTheme;
+export const orderSummaryDialogTheme = {
+  // Dialog styling
+  dialog: {
+    borderRadius: theme.borderRadius.xlarge,
+    maxHeight: '90vh',
+    border: `1px solid ${theme.colors.border}`,
+    borderLight: '1px solid #f3f4f6',
+  },
+
+  // Item image
+  itemImage: {
+    size: 64,
+    borderRadius: theme.borderRadius.medium,
+  },
+
+  // Typography
+  typography: {
+    title: {
+      variant: 'h6' as const,
+      fontWeight: theme.typography.fontWeights.bold,
+    },
+    orderNumber: {
+      variant: 'body2' as const,
+    },
+    sectionHeader: {
+      variant: 'body1' as const,
+      fontWeight: theme.typography.fontWeights.semibold,
+    },
+    itemName: {
+      variant: 'body1' as const,
+      fontWeight: theme.typography.fontWeights.semibold,
+    },
+    itemPrice: {
+      variant: 'body2' as const,
+    },
+    summaryLabel: {
+      variant: 'body2' as const,
+    },
+    summaryValue: {
+      variant: 'body2' as const,
+      fontWeight: theme.typography.fontWeights.medium,
+    },
+    total: {
+      variant: 'body1' as const,
+      fontWeight: theme.typography.fontWeights.semibold,
+    },
+    totalValue: {
+      variant: 'h6' as const,
+      fontWeight: theme.typography.fontWeights.bold,
+    },
+  },
+
+  // Spacing
+  spacing: {
+    header: {
+      padding: theme.spacing.lg,
+    },
+    content: {
+      padding: theme.spacing.lg,
+    },
+    footer: {
+      padding: theme.spacing.lg,
+    },
+    orderNumber: {
+      marginTop: 0.5,
+    },
+    sectionHeader: {
+      marginBottom: theme.spacing.md,
+    },
+    items: {
+      gap: theme.spacing.md,
+    },
+    item: {
+      gap: theme.spacing.sm,
+      paddingBottom: theme.spacing.md,
+    },
+    itemPrice: {
+      marginTop: 0.5,
+    },
+    paymentSummary: {
+      marginTop: theme.spacing.lg,
+      paddingTop: theme.spacing.lg,
+    },
+    summary: {
+      gap: theme.spacing.sm,
+    },
+    divider: {
+      marginY: theme.spacing.sm,
+    },
+  },
+
+  // Buttons
+  buttons: {
+    placeOrder: {
+      backgroundColor: theme.colors.primary,
+      backgroundColorHover: theme.colors.primaryHover,
+      color: 'white',
+      fontWeight: theme.typography.fontWeights.semibold,
+      textTransform: 'none' as const,
+      paddingY: theme.spacing.md,
+      borderRadius: theme.borderRadius.xlarge,
+    },
+  },
+
+  // Colors
+  colors: {
+    closeButton: theme.colors.text,
+    closeButtonHover: theme.colors.brandGrey,
+    deleteButton: 'error.main',
+    deleteButtonHover: 'error.dark',
+  },
+};
+
+export type OrderSummaryDialogTheme = typeof orderSummaryDialogTheme;

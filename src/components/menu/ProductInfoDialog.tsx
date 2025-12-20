@@ -12,7 +12,9 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
+import { useSetAtom } from 'jotai';
 import { productDialogTheme } from '../../theme/componentThemes';
+import { addOrderItemAtom, Topping as OrderTopping } from '../../context/orderStore';
 
 // Temporary interfaces
 interface Topping {
@@ -22,6 +24,7 @@ interface Topping {
 }
 
 interface Product {
+  id: string;
   image: string;
   name: string;
   price: number;
@@ -35,11 +38,45 @@ interface ProductDialogProps {
   onClose: () => void;
 }
 
-// TODO: Labels, prices, etc.
 const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose }) => {
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedToppings, setSelectedToppings] = useState<Record<string, number>>({});
   const theme = productDialogTheme;
+  const addItem = useSetAtom(addOrderItemAtom);
+
+  const handleAddToOrder = (): void => {
+    // Convert selected toppings to array format
+    const toppingsArray: OrderTopping[] = [];
+    if (product.toppings) {
+      product.toppings.forEach(topping => {
+        const toppingQuantity = selectedToppings[topping.id] || 0;
+        if (toppingQuantity > 0) {
+          toppingsArray.push({
+            id: topping.id,
+            name: topping.name,
+            price: topping.price,
+            quantity: toppingQuantity,
+          });
+        }
+      });
+    }
+
+    // Add item to order
+    addItem({
+      id: product.id,
+      productId: product.id,
+      name: product.name,
+      image: product.image,
+      price: product.price,
+      quantity: quantity,
+      toppings: toppingsArray.length > 0 ? toppingsArray : undefined,
+    });
+
+    // Reset and close
+    setQuantity(1);
+    setSelectedToppings({});
+    onClose();
+  };
 
   const handleToppingToggle = (toppingId: string): void => {
     setSelectedToppings(prev => {
@@ -190,7 +227,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose 
                           </Typography>
                         )}
                         {count > 0 && (
-                          <Typography component="span" color={theme.colors.success} sx={{ ml: 1 }}>
+                          <Typography component="span" color={theme.colors.textSecondary} sx={{ ml: 1 }}>
                             ×{count}
                           </Typography>
                         )}
@@ -217,7 +254,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose 
                             size="small"
                             onClick={(e) => handleToppingIncrement(topping.id, e)}
                             sx={{
-                              color: theme.colors.success,
+                              color: theme.colors.textSecondary,
                               '&:hover': {
                                 backgroundColor: 'success.light',
                               },
@@ -286,11 +323,11 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose 
 
         <Button
           variant="contained"
-          onClick={onClose}
+          onClick={handleAddToOrder}
           sx={{
             flex: 1,
             backgroundColor: theme.colors.white,
-            color: theme.colors.success,
+            color: theme.colors.textPrimary,
             fontWeight: theme.buttons.addToCart.fontWeight,
             py: theme.buttons.addToCart.paddingY,
             px: theme.buttons.addToCart.paddingX,

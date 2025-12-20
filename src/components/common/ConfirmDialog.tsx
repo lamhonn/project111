@@ -6,36 +6,34 @@ import {
   Typography,
   Button,
 } from '@mui/material';
+import { useAtom, useSetAtom } from 'jotai';
 import { actionBarTheme } from '../../theme';
+import {
+  confirmDialogConfigAtom,
+  closeConfirmDialogAtom,
+} from '../../context/confirmDialogStore';
 
-interface ConfirmDialogProps {
-  open: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  title: string;
-  message: string;
-  cancelText?: string;
-  confirmText?: string;
-  maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-}
-
-const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
-  open,
-  onClose,
-  onConfirm,
-  title,
-  message,
-  cancelText = 'Cancel',
-  confirmText = 'Confirm',
-  maxWidth = 'md',
-}) => {
+const ConfirmDialog: React.FC = () => {
+  const [config] = useAtom(confirmDialogConfigAtom);
+  const closeDialog = useSetAtom(closeConfirmDialogAtom);
   const theme = actionBarTheme;
+
+  const handleClose = (): void => {
+    closeDialog();
+  };
+
+  const handleConfirm = (): void => {
+    if (config.onConfirm) {
+      config.onConfirm();
+    }
+    closeDialog();
+  };
 
   return (
     <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth={maxWidth}
+      open={config.isOpen}
+      onClose={handleClose}
+      maxWidth={config.maxWidth}
       fullWidth
       PaperProps={{
         sx: {
@@ -50,15 +48,15 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           fontWeight={theme.typography.dialogTitle.fontWeight}
           gutterBottom
         >
-          {title}
+          {config.title}
         </Typography>
         <Typography variant={theme.typography.dialogContent.variant} color="text.secondary">
-          {message}
+          {config.message}
         </Typography>
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'flex-end', gap: 1.5, pt: 0 }}>
         <Button
-          onClick={onClose}
+          onClick={handleClose}
           sx={{
             color: theme.dialogButtons.cancel.color,
             fontWeight: theme.dialogButtons.cancel.fontWeight,
@@ -71,10 +69,10 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             },
           }}
         >
-          {cancelText}
+          {config.cancelText}
         </Button>
         <Button
-          onClick={onConfirm}
+          onClick={handleConfirm}
           variant="contained"
           sx={{
             backgroundColor: theme.dialogButtons.confirm.backgroundColor,
@@ -85,11 +83,11 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             py: theme.dialogButtons.confirm.paddingY,
             borderRadius: theme.dialogButtons.confirm.borderRadius,
             '&:hover': {
-              backgroundColor: theme.colors.successHover,
+              backgroundColor: theme.colors.primaryHover,
             },
           }}
         >
-          {confirmText}
+          {config.confirmText}
         </Button>
       </DialogActions>
     </Dialog>

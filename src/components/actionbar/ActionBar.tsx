@@ -7,45 +7,52 @@ import {
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { actionBarTheme } from '../../theme';
-import ConfirmDialog from '../common/ConfirmDialog';
 import Toaster from '../common/Toaster';
+import OrderSummaryDialog from '../order/OrderSummaryDialog';
+import { orderCountAtom, totalPriceAtom } from '../../context/orderStore';
+import { openConfirmDialogAtom } from '../../context/confirmDialogStore';
 
 interface ActionBarProps {
-  orderCount?: number;
-  totalPrice?: number;
+  // No props needed, using Jotai atoms
 }
 
-const ActionBar: React.FC<ActionBarProps> = ({ orderCount = 0, totalPrice = 0 }) => {
+const ActionBar: React.FC<ActionBarProps> = () => {
   const theme = actionBarTheme;
-  const [showServiceDialog, setShowServiceDialog] = useState(false);
+  const orderCount = useAtomValue(orderCountAtom);
+  const totalPrice = useAtomValue(totalPriceAtom);
+  const openConfirmDialog = useSetAtom(openConfirmDialogAtom);
   const [showToaster, setShowToaster] = useState(false);
+  const [showOrderDialog, setShowOrderDialog] = useState(false);
 
   const handleShowOrder = (): void => {
-    console.log('Show order clicked');
-    // Add your show order logic here
+    setShowOrderDialog(true);
+  };
+
+  const handleCloseOrderDialog = (): void => {
+    setShowOrderDialog(false);
   };
 
   const handleCallService = (): void => {
-    setShowServiceDialog(true);
-  };
-
-  const handleConfirmService = (): void => {
-    console.log('Service called');
-    // Add your call service logic here
-    setShowServiceDialog(false);
-    setShowToaster(true);
+    openConfirmDialog({
+      title: 'Call for service?',
+      message: 'A waiter will be notified and come to assist you shortly.',
+      cancelText: 'Cancel',
+      confirmText: 'Confirm',
+      onConfirm: () => {
+        console.log('Service called');
+        // Add your call service logic here
+        setShowToaster(true); // TODO: make generic level component instead of implementing it on every single component
+      },
+    });
   };
 
   const handleCloseToaster = (): void => {
     setShowToaster(false);
   };
 
-  const handleCancelService = (): void => {
-    setShowServiceDialog(false);
-  };
-
-  const hasOrder: boolean = orderCount > 0;
+  // const hasOrder: boolean = orderCount > 0;
 
   return (
     <>
@@ -93,7 +100,7 @@ const ActionBar: React.FC<ActionBarProps> = ({ orderCount = 0, totalPrice = 0 })
         {/* Show Order Button */}
         <Button
           onClick={handleShowOrder}
-          disabled={!hasOrder}
+          // disabled={!hasOrder}
           sx={{
             flex: 1,
             backgroundColor: theme.buttons.order.backgroundColor,
@@ -107,7 +114,7 @@ const ActionBar: React.FC<ActionBarProps> = ({ orderCount = 0, totalPrice = 0 })
             boxShadow: theme.buttons.order.boxShadow,
             gap: theme.buttons.order.gap,
             '&:hover': {
-              backgroundColor: hasOrder ? 'grey.100' : undefined,
+              backgroundColor: 'grey.100',
             },
             '&.Mui-disabled': {
               backgroundColor: 'rgba(255, 255, 255, 0.5)',
@@ -131,7 +138,7 @@ const ActionBar: React.FC<ActionBarProps> = ({ orderCount = 0, totalPrice = 0 })
           >
             <ShoppingCartIcon />
           </Badge>
-          {hasOrder && (
+          {orderCount > 0 && (
             <Typography component="span" fontWeight="bold" sx={{ ml: 0.5 }}>
               {totalPrice.toFixed(2)} €
             </Typography>
@@ -139,22 +146,17 @@ const ActionBar: React.FC<ActionBarProps> = ({ orderCount = 0, totalPrice = 0 })
         </Button>
       </Box>
 
-      {/* Service Call Confirmation Dialog */}
-      <ConfirmDialog
-        open={showServiceDialog}
-        onClose={handleCancelService}
-        onConfirm={handleConfirmService}
-        title="Call for service?"
-        message="A waiter will be notified and come to assist you shortly."
-        cancelText="Cancel"
-        confirmText="Confirm"
-      />
-
       <Toaster
         open={showToaster}
         onClose={handleCloseToaster}
         message="Service called successfully! A waiter will assist you shortly."
         severity="success"
+      />
+
+      {/* Order Summary Dialog */}
+      <OrderSummaryDialog
+        isOpen={showOrderDialog}
+        onClose={handleCloseOrderDialog}
       />
     </>
   );
