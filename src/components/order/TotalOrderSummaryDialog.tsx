@@ -13,11 +13,12 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { orderSummaryDialogTheme } from '../../theme/componentThemes';
+import { theme } from '../../theme/theme';
 import {
   totalOrderItemsAtom,
   totalOrderCountAtom,
   orderNumberAtom,
+  billRequestedAtom,
 } from '../../context/orderStore';
 import { openConfirmDialogAtom } from '../../context/confirmDialogStore';
 
@@ -30,13 +31,13 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
   isOpen,
   onClose,
 }) => {
-  const theme = orderSummaryDialogTheme;
   
   // Use Jotai atoms
   const totalOrderItems = useAtomValue(totalOrderItemsAtom);
   const totalOrderCount = useAtomValue(totalOrderCountAtom);
   const orderNumber = useAtomValue(orderNumberAtom);
   const openConfirmDialog = useSetAtom(openConfirmDialogAtom);
+  const setBillRequested = useSetAtom(billRequestedAtom);
 
   const handleAskForBill = (): void => {
     openConfirmDialog({
@@ -45,8 +46,8 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
       cancelText: 'Cancel',
       confirmText: 'Confirm',
       onConfirm: () => {
+        setBillRequested(true);
         onClose();
-        // Add your ask for bill logic here
       },
     });
   };
@@ -70,40 +71,40 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: theme.dialog.borderRadius,
-          maxHeight: theme.dialog.maxHeight,
+          borderRadius: theme.borderRadius.xlarge,
+          maxHeight: '90vh',
         }
       }}
     >
       {/* Header */}
       <Box sx={{ 
-        p: theme.spacing.header.padding,
-        borderBottom: theme.dialog.border,
+        p: theme.spacing.lg,
+        borderBottom: `1px solid ${theme.colors.border}`,
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
       }}>
         <Box>
           <Typography 
-            variant={theme.typography.title.variant}
-            fontWeight={theme.typography.title.fontWeight}
+            variant="h6"
+            fontWeight={theme.typography.fontWeights.bold}
           >
             Total Receipt
           </Typography>
-          <Typography 
-            variant={theme.typography.orderNumber.variant}
+          {/* <Typography 
+            variant="body2"
             color="text.secondary"
-            sx={{ mt: theme.spacing.orderNumber.marginTop }}
+            sx={{ mt: 0.5 }}
           >
             {orderNumber}
-          </Typography>
+          </Typography> */}
         </Box>
         <IconButton
           onClick={onClose}
           sx={{
-            color: theme.colors.closeButton,
+            color: theme.colors.text,
             '&:hover': {
-              color: theme.colors.closeButtonHover,
+              color: theme.colors.brandGrey,
             },
           }}
         >
@@ -112,7 +113,7 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
       </Box>
 
       {/* Order Items */}
-      <DialogContent sx={{ p: theme.spacing.content.padding }}>
+      <DialogContent sx={{ p: theme.spacing.lg }}>
         {totalOrderItems.length === 0 ? (
           <Box
             sx={{
@@ -135,14 +136,14 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
         ) : (
           <>
             <Typography 
-              variant={theme.typography.sectionHeader.variant}
-              fontWeight={theme.typography.sectionHeader.fontWeight}
-              sx={{ mb: theme.spacing.sectionHeader.marginBottom }}
+              variant="body1"
+              fontWeight={theme.typography.fontWeights.semibold}
+              sx={{ mb: theme.spacing.md }}
             >
               All Items ({totalOrderCount})
             </Typography>
 
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.items.gap }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.md }}>
               {totalOrderItems.map((item) => {
                 // Calculate total price for this item including toppings
                 const itemBasePrice = item.price * item.quantity;
@@ -157,9 +158,9 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                     sx={{
                       display: 'flex',
                       alignItems: 'flex-start',
-                      gap: theme.spacing.item.gap,
-                      pb: theme.spacing.item.paddingBottom,
-                      borderBottom: theme.dialog.borderLight,
+                      gap: theme.spacing.sm,
+                      pb: theme.spacing.md,
+                      borderBottom: '1px solid #f3f4f6',
                       '&:last-child': {
                         borderBottom: 'none',
                       },
@@ -170,15 +171,15 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                       alt={item.name}
                       variant="rounded"
                       sx={{
-                        width: theme.itemImage.size,
-                        height: theme.itemImage.size,
-                        borderRadius: theme.itemImage.borderRadius,
+                        width: 64,
+                        height: 64,
+                        borderRadius: theme.borderRadius.medium,
                       }}
                     />
                     <Box sx={{ flex: 1 }}>
                       <Typography 
-                        variant={theme.typography.itemName.variant}
-                        fontWeight={theme.typography.itemName.fontWeight}
+                        variant="body1"
+                        fontWeight={theme.typography.fontWeights.semibold}
                       >
                         {item.quantity > 1 && `${item.quantity}x `}{item.name}
                       </Typography>
@@ -200,9 +201,9 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                       )}
                       
                       <Typography 
-                        variant={theme.typography.itemPrice.variant}
+                        variant="body2"
                         color="text.secondary"
-                        sx={{ mt: theme.spacing.itemPrice.marginTop }}
+                        sx={{ mt: 0.5 }}
                       >
                         €{itemTotalPrice.toFixed(2)}
                       </Typography>
@@ -214,52 +215,52 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
 
             {/* Payment Summary */}
             <Box sx={{ 
-              mt: theme.spacing.paymentSummary.marginTop,
-              pt: theme.spacing.paymentSummary.paddingTop,
-              borderTop: theme.dialog.border,
+              mt: theme.spacing.lg,
+              pt: theme.spacing.lg,
+              borderTop: `1px solid ${theme.colors.border}`,
             }}>
               <Typography 
-                variant={theme.typography.sectionHeader.variant}
-                fontWeight={theme.typography.sectionHeader.fontWeight}
-                sx={{ mb: theme.spacing.sectionHeader.marginBottom }}
+                variant="body1"
+                fontWeight={theme.typography.fontWeights.semibold}
+                sx={{ mb: theme.spacing.md }}
               >
                 Payment Summary
               </Typography>
               
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.summary.gap }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.sm }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant={theme.typography.summaryLabel.variant} color="text.secondary">
+                  <Typography variant="body2" color="text.secondary">
                     Price before VAT
                   </Typography>
                   <Typography 
-                    variant={theme.typography.summaryValue.variant}
-                    fontWeight={theme.typography.summaryValue.fontWeight}
+                    variant="body2"
+                    fontWeight={theme.typography.fontWeights.medium}
                   >
                     €{beforeTaxes.toFixed(2)}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant={theme.typography.summaryLabel.variant} color="text.secondary">
+                  <Typography variant="body2" color="text.secondary">
                     VAT
                   </Typography>
                   <Typography 
-                    variant={theme.typography.summaryValue.variant}
-                    fontWeight={theme.typography.summaryValue.fontWeight}
+                    variant="body2"
+                    fontWeight={theme.typography.fontWeights.medium}
                   >
                     €{taxes.toFixed(2)}
                   </Typography>
                 </Box>
-                <Divider sx={{ my: theme.spacing.divider.marginY }} />
+                <Divider sx={{ my: theme.spacing.sm }} />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography 
-                    variant={theme.typography.total.variant}
-                    fontWeight={theme.typography.total.fontWeight}
+                    variant="body1"
+                    fontWeight={theme.typography.fontWeights.semibold}
                   >
                     Total
                   </Typography>
                   <Typography 
-                    variant={theme.typography.totalValue.variant}
-                    fontWeight={theme.typography.totalValue.fontWeight}
+                    variant="h6"
+                    fontWeight={theme.typography.fontWeights.bold}
                     color="primary"
                   >
                     €{subtotal.toFixed(2)}
@@ -273,8 +274,8 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
 
       {/* Footer */}
       <DialogActions sx={{ 
-        p: theme.spacing.footer.padding,
-        borderTop: theme.dialog.border,
+        p: theme.spacing.lg,
+        borderTop: `1px solid ${theme.colors.border}`,
       }}>
         <Button
           onClick={handleAskForBill}
@@ -282,14 +283,14 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
           fullWidth
           disabled={totalOrderCount === 0}
           sx={{
-            backgroundColor: theme.buttons.placeOrder.backgroundColor,
-            color: theme.buttons.placeOrder.color,
-            fontWeight: theme.buttons.placeOrder.fontWeight,
-            textTransform: theme.buttons.placeOrder.textTransform,
-            py: theme.buttons.placeOrder.paddingY,
-            borderRadius: theme.buttons.placeOrder.borderRadius,
+            backgroundColor: theme.colors.primary,
+            color: 'white',
+            fontWeight: theme.typography.fontWeights.semibold,
+            textTransform: 'none',
+            py: theme.spacing.md,
+            borderRadius: theme.borderRadius.xlarge,
             '&:hover': {
-              backgroundColor: theme.buttons.placeOrder.backgroundColorHover,
+              backgroundColor: theme.colors.primaryHover,
             },
             '&.Mui-disabled': {
               backgroundColor: 'rgba(0, 0, 0, 0.12)',

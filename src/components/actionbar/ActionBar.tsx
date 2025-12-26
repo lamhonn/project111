@@ -8,7 +8,7 @@ import {
 import PersonIcon from '@mui/icons-material/Person';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { useAtomValue, useSetAtom } from 'jotai';
-import { actionBarTheme } from '../../theme';
+import { theme } from '../../theme/theme';
 import Toaster from '../common/Toaster';
 import OrderSummaryDialog from '../order/OrderSummaryDialog';
 import { orderCountAtom, totalPriceAtom } from '../../context/orderStore';
@@ -19,7 +19,6 @@ interface ActionBarProps {
 }
 
 const ActionBar: React.FC<ActionBarProps> = () => {
-  const theme = actionBarTheme;
   const orderCount = useAtomValue(orderCountAtom);
   const totalPrice = useAtomValue(totalPriceAtom);
   const openConfirmDialog = useSetAtom(openConfirmDialogAtom);
@@ -43,7 +42,7 @@ const ActionBar: React.FC<ActionBarProps> = () => {
       onConfirm: () => {
         console.log('Service called');
         // Add your call service logic here
-        setShowToaster(true); // TODO: make generic level component instead of implementing it on every single component
+        setShowToaster(true);
       },
     });
   };
@@ -59,18 +58,18 @@ const ActionBar: React.FC<ActionBarProps> = () => {
       {/* Floating Action Bar */}
       <Box
         sx={{
-          position: theme.container.position,
-          bottom: theme.container.bottom,
-          left: theme.container.left,
-          right: theme.container.right,
-          backgroundColor: theme.container.backgroundColor,
-          p: theme.container.padding,
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: theme.colors.primary,
+          p: theme.spacing.md,
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          gap: theme.container.gap,
-          boxShadow: theme.container.boxShadow,
-          zIndex: theme.container.zIndex,
+          gap: theme.spacing.md,
+          boxShadow: theme.shadows.lg,
+          zIndex: 50,
         }}
       >
         {/* Call for Service Button */}
@@ -79,16 +78,16 @@ const ActionBar: React.FC<ActionBarProps> = () => {
           startIcon={<PersonIcon />}
           sx={{
             flex: 1,
-            backgroundColor: theme.buttons.service.backgroundColor,
-            color: theme.buttons.service.color,
-            fontWeight: theme.buttons.service.fontWeight,
-            fontSize: theme.buttons.service.fontSize,
-            px: theme.buttons.service.paddingX,
-            py: theme.buttons.service.paddingY,
-            borderRadius: theme.buttons.service.borderRadius,
-            textTransform: theme.buttons.service.textTransform,
-            boxShadow: theme.buttons.service.boxShadow,
-            gap: theme.buttons.service.gap,
+            backgroundColor: theme.colors.brandWhite,
+            color: theme.colors.primary,
+            fontWeight: theme.typography.fontWeights.semibold,
+            fontSize: theme.typography.fontSizes.medium,
+            px: theme.spacing.lg,
+            py: 1.5,
+            borderRadius: theme.borderRadius.xlarge,
+            textTransform: 'none',
+            boxShadow: theme.shadows.sm,
+            gap: theme.spacing.sm,
             '&:hover': {
               backgroundColor: 'grey.100',
             },
@@ -103,16 +102,16 @@ const ActionBar: React.FC<ActionBarProps> = () => {
           // disabled={!hasOrder}
           sx={{
             flex: 1,
-            backgroundColor: theme.buttons.order.backgroundColor,
-            color: theme.buttons.order.color,
-            fontWeight: theme.buttons.order.fontWeight,
-            fontSize: theme.buttons.order.fontSize,
-            px: theme.buttons.order.paddingX,
-            py: theme.buttons.order.paddingY,
-            borderRadius: theme.buttons.order.borderRadius,
-            textTransform: theme.buttons.order.textTransform,
-            boxShadow: theme.buttons.order.boxShadow,
-            gap: theme.buttons.order.gap,
+            backgroundColor: theme.colors.brandWhite,
+            color: theme.colors.primary,
+            fontWeight: theme.typography.fontWeights.semibold,
+            fontSize: theme.typography.fontSizes.medium,
+            px: theme.spacing.lg,
+            py: 1.5,
+            borderRadius: theme.borderRadius.xlarge,
+            textTransform: 'none',
+            boxShadow: theme.shadows.sm,
+            gap: theme.spacing.sm,
             '&:hover': {
               backgroundColor: 'grey.100',
             },
@@ -127,12 +126,12 @@ const ActionBar: React.FC<ActionBarProps> = () => {
             badgeContent={orderCount}
             sx={{
               '& .MuiBadge-badge': {
-                backgroundColor: theme.badge.backgroundColor,
-                color: theme.badge.color,
-                fontSize: theme.badge.fontSize,
-                fontWeight: theme.badge.fontWeight,
-                minWidth: theme.badge.minWidth,
-                height: theme.badge.height,
+                backgroundColor: 'error.main',
+                color: 'white',
+                fontSize: '0.75rem',
+                fontWeight: theme.typography.fontWeights.bold,
+                minWidth: 20,
+                height: 20,
               },
             }}
           >

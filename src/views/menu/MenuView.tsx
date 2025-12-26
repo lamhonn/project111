@@ -1,11 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, Container, Typography } from '@mui/material';
+import { useAtomValue, useSetAtom } from 'jotai';
 import ProductCard from '../../components/menu/ProductCard';
 import ActionBar from '../../components/actionbar/ActionBar';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import CategoryPill from '../../components/category/CategoryPill';
 import MenuHeader from '../../components/header/MenuHeader';
 import TotalOrderSummaryDialog from '../../components/order/TotalOrderSummaryDialog';
+import ThankYouDialog from '../../components/order/ThankYouDialog';
+import { orderStatusAtom, billRequestedAtom, resetAppStateAtom } from '../../context/orderStore';
 
 // Categories
 const categories = ['Pizzas', 'Burgers', 'Sides', 'Drinks'];
@@ -196,6 +199,30 @@ const MenuView: React.FC = () => {
   const [showTotalDialog, setShowTotalDialog] = useState<boolean>(false);
   const categoryRefs = useRef<(HTMLDivElement | null)[]>([]);
   const lastScrollY = useRef<number>(0);
+  
+  const orderStatus = useAtomValue(orderStatusAtom);
+  const billRequested = useAtomValue(billRequestedAtom);
+  const resetAppState = useSetAtom(resetAppStateAtom);
+
+  const handleResetSession = () => {
+    resetAppState();
+  };
+
+  // Prevent scrolling when bill is requested
+  useEffect(() => {
+    if (billRequested) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+    } else {
+      document.body.style.overflow = 'unset';
+      document.body.style.position = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+      document.body.style.position = 'unset';
+    };
+  }, [billRequested]);
 
   // Group products by category
   const productsByCategory = categories.map((_, index) =>
@@ -260,6 +287,7 @@ const MenuView: React.FC = () => {
       <MenuHeader
         restaurantName="Penan pizza"
         tableNumber={5}
+        orderStatus={orderStatus}
         onTotalClick={() => setShowTotalDialog(true)}
       />
 
@@ -351,6 +379,9 @@ const MenuView: React.FC = () => {
 
       {/* Action Bar */}
       <ActionBar />
+
+      {/* Thank You Dialog - shown when bill is requested */}
+      <ThankYouDialog isOpen={billRequested} onReset={handleResetSession} />
 
       {/* Total Order Summary Dialog */}
       <TotalOrderSummaryDialog

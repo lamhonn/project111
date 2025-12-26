@@ -1,4 +1,5 @@
 import { atom } from 'jotai';
+import { OrderStatus } from '../components/header/MenuHeader';
 
 export interface Topping {
   id: string;
@@ -49,6 +50,24 @@ const generateItemId = (productId: string, toppings?: Topping[]): string => {
 export const orderItemsAtom = atom<OrderItem[]>([]);
 
 export const orderNumberAtom = atom<string>('#219021');
+
+export const orderStatusAtom = atom<OrderStatus | null>(null);
+
+export const billRequestedAtom = atom<boolean>(false);
+
+export const languageAtom = atom<string>('en'); // ISO language codes: 'en', 'fi', 'sv'
+
+// Atom to reset all state back to initial values
+export const resetAppStateAtom = atom(
+  null,
+  (get, set) => {
+    set(orderItemsAtom, []);
+    set(totalOrderItemsAtom, []);
+    set(orderStatusAtom, null);
+    set(billRequestedAtom, false);
+    set(languageAtom, 'en');
+  }
+);
 
 // Derived atoms
 export const orderCountAtom = atom((get) => {
@@ -174,5 +193,7 @@ export const submitOrderToTotalAtom = atom(
     set(totalOrderItemsAtom, updatedTotalItems);
     // Clear current order after submitting
     set(orderItemsAtom, []);
+    // Set order status to Received
+    set(orderStatusAtom, OrderStatus.Received);
   }
 );

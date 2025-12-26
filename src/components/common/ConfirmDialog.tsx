@@ -7,7 +7,7 @@ import {
   Button,
 } from '@mui/material';
 import { useAtom, useSetAtom } from 'jotai';
-import { actionBarTheme } from '../../theme';
+import { theme } from '../../theme/theme';
 import {
   confirmDialogConfigAtom,
   closeConfirmDialogAtom,
@@ -16,7 +16,6 @@ import {
 const ConfirmDialog: React.FC = () => {
   const [config] = useAtom(confirmDialogConfigAtom);
   const closeDialog = useSetAtom(closeConfirmDialogAtom);
-  const theme = actionBarTheme;
 
   const handleClose = (): void => {
     closeDialog();
@@ -37,20 +36,20 @@ const ConfirmDialog: React.FC = () => {
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: theme.dialog.borderRadius,
-          p: theme.dialog.padding,
+          borderRadius: theme.borderRadius.xlarge,
+          p: theme.spacing.lg,
         },
       }}
     >
       <DialogContent sx={{ pb: 2 }}>
         <Typography
-          variant={theme.typography.dialogTitle.variant}
-          fontWeight={theme.typography.dialogTitle.fontWeight}
+          variant="h6"
+          fontWeight={theme.typography.fontWeights.semibold}
           gutterBottom
         >
           {config.title}
         </Typography>
-        <Typography variant={theme.typography.dialogContent.variant} color="text.secondary">
+        <Typography variant="body1" color="text.secondary">
           {config.message}
         </Typography>
       </DialogContent>
@@ -58,12 +57,12 @@ const ConfirmDialog: React.FC = () => {
         <Button
           onClick={handleClose}
           sx={{
-            color: theme.dialogButtons.cancel.color,
-            fontWeight: theme.dialogButtons.cancel.fontWeight,
-            textTransform: theme.dialogButtons.cancel.textTransform,
-            px: theme.dialogButtons.cancel.paddingX,
-            py: theme.dialogButtons.cancel.paddingY,
-            borderRadius: theme.dialogButtons.cancel.borderRadius,
+            color: theme.colors.text,
+            fontWeight: theme.typography.fontWeights.medium,
+            textTransform: 'none',
+            px: theme.spacing.lg,
+            py: 1,
+            borderRadius: theme.borderRadius.medium,
             '&:hover': {
               backgroundColor: 'grey.100',
             },
@@ -75,13 +74,13 @@ const ConfirmDialog: React.FC = () => {
           onClick={handleConfirm}
           variant="contained"
           sx={{
-            backgroundColor: theme.dialogButtons.confirm.backgroundColor,
-            color: theme.dialogButtons.confirm.color,
-            fontWeight: theme.dialogButtons.confirm.fontWeight,
-            textTransform: theme.dialogButtons.confirm.textTransform,
-            px: theme.dialogButtons.confirm.paddingX,
-            py: theme.dialogButtons.confirm.paddingY,
-            borderRadius: theme.dialogButtons.confirm.borderRadius,
+            backgroundColor: theme.colors.primary,
+            color: theme.colors.brandWhite,
+            fontWeight: theme.typography.fontWeights.semibold,
+            textTransform: 'none',
+            px: theme.spacing.lg,
+            py: 1,
+            borderRadius: theme.borderRadius.medium,
             '&:hover': {
               backgroundColor: theme.colors.primaryHover,
             },

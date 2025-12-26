@@ -13,7 +13,7 @@ import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useSetAtom } from 'jotai';
-import { productCardTheme } from '../../theme';
+import { theme } from '../../theme/theme';
 import ProductDialog from './ProductInfoDialog';
 import { addOrderItemAtom } from '../../context/orderStore';
 
@@ -33,7 +33,6 @@ interface Props {
 
 const ProductCard: React.FC<Props> = (props: Props) => {
   const { id, image, name, price, initialQuantity = 0, description, toppings } = props;
-  const theme = productCardTheme;
   const addItem = useSetAtom(addOrderItemAtom);
 
   const [quantity, setQuantity] = useState<number>(initialQuantity);
@@ -53,33 +52,33 @@ const ProductCard: React.FC<Props> = (props: Props) => {
       <Card
         onClick={handleOpenDialog}
         sx={{
-          maxWidth: theme.card.maxWidth,
-          borderRadius: theme.card.borderRadius,
-          border: isSelected ? theme.card.border.selected : theme.card.border.default,
-          boxShadow: isSelected ? theme.card.boxShadow.selected : theme.card.boxShadow.default,
-          transition: theme.card.transition,
+          maxWidth: 345,
+          borderRadius: theme.borderRadius.small,
+          border: isSelected ? `3px solid ${theme.colors.primary}` : `1px solid ${theme.colors.border}`,
+          boxShadow: isSelected ? theme.shadows.primary : 1,
+          transition: theme.transitions.normal,
           cursor: 'pointer',
         }}
       >
         <CardMedia
           component="img"
-          height={theme.media.height}
+          height={200}
           image={image}
           alt={name}
-          sx={{ objectFit: theme.media.objectFit }}
+          sx={{ objectFit: 'cover' }}
         />
         
-        <CardContent sx={{ pb: theme.spacing.cardContent.paddingBottom }}>
+        <CardContent sx={{ pb: theme.spacing.sm }}>
           <Typography 
-            variant={theme.typography.title.variant} 
+            variant="h6" 
             component="div" 
-            fontWeight={theme.typography.title.fontWeight}
+            fontWeight={theme.typography.fontWeights.semibold}
           >
             {name}{' '}
             <Typography 
               component="span" 
               color="text.secondary" 
-              fontSize={theme.typography.price.fontSize}
+              fontSize={theme.typography.fontSizes.medium}
             >
               ({price.toFixed(2)}€)
             </Typography>
@@ -87,9 +86,9 @@ const ProductCard: React.FC<Props> = (props: Props) => {
         </CardContent>
 
         <CardActions sx={{ 
-          px: theme.spacing.cardActions.paddingX, 
-          pb: theme.spacing.cardActions.paddingBottom, 
-          pt: theme.spacing.cardActions.paddingTop 
+          px: theme.spacing.md, 
+          pb: theme.spacing.md, 
+          pt: 0 
         }}>
             <Button
               fullWidth
@@ -97,10 +96,10 @@ const ProductCard: React.FC<Props> = (props: Props) => {
               startIcon={<AddIcon />}
               onClick={handleOpenDialog}
               sx={{
-                borderRadius: theme.buttons.addItem.borderRadius,
-                textTransform: theme.buttons.addItem.textTransform,
-                fontSize: theme.buttons.addItem.fontSize,
-                py: theme.buttons.addItem.paddingY,
+                borderRadius: theme.borderRadius.large,
+                textTransform: 'none',
+                fontSize: theme.typography.fontSizes.medium,
+                py: theme.spacing.sm,
                 borderColor: theme.colors.border,
                 color: 'text.primary',
                 '&:hover': {

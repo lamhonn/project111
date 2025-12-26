@@ -13,7 +13,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { useSetAtom } from 'jotai';
-import { productDialogTheme } from '../../theme/componentThemes';
+import { theme } from '../../theme/theme';
 import { addOrderItemAtom, Topping as OrderTopping } from '../../context/orderStore';
 
 // Temporary interfaces
@@ -41,7 +41,6 @@ interface ProductDialogProps {
 const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose }) => {
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedToppings, setSelectedToppings] = useState<Record<string, number>>({});
-  const theme = productDialogTheme;
   const addItem = useSetAtom(addOrderItemAtom);
 
   const handleAddToOrder = (): void => {
@@ -127,8 +126,8 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose 
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: theme.dialog.borderRadius,
-          maxHeight: theme.dialog.maxHeight,
+          borderRadius: theme.borderRadius.xlarge,
+          maxHeight: '90vh',
         }
       }}
     >
@@ -140,18 +139,18 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose 
           alt={product.name}
           sx={{
             width: '100%',
-            height: theme.headerImage.height,
-            objectFit: theme.headerImage.objectFit,
+            height: 192,
+            objectFit: 'cover',
           }}
         />
         <IconButton
           onClick={onClose}
           sx={{
             position: 'absolute',
-            top: theme.closeButton.top,
-            right: theme.closeButton.right,
-            backgroundColor: theme.colors.white,
-            boxShadow: theme.closeButton.boxShadow,
+            top: "24px",
+            right: "24px",
+            backgroundColor: theme.colors.brandWhite,
+            boxShadow: theme.shadows.md,
             '&:hover': {
               backgroundColor: 'grey.100',
             },
@@ -162,28 +161,28 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose 
       </Box>
 
       {/* Scrollable Content */}
-      <DialogContent sx={{ pb: theme.spacing.contentBottom }}>
-        <Typography variant={theme.typography.title.variant} fontWeight={theme.typography.title.fontWeight} gutterBottom>
+      <DialogContent sx={{ pb: 0 }}>
+        <Typography variant="h5" fontWeight={theme.typography.fontWeights.bold} gutterBottom>
           {product.name}
         </Typography>
-        <Typography variant={theme.typography.price.variant} color={theme.colors.textSecondary} sx={{ mb: theme.spacing.section }}>
+        <Typography variant="h6" color={theme.colors.text} sx={{ mb: theme.spacing.lg }}>
           €{product.price.toFixed(2)}
         </Typography>
 
         {product.description && (
-          <Typography color={theme.colors.textPrimary} sx={{ mb: theme.spacing.section }}>
+          <Typography color={theme.colors.text} sx={{ mb: theme.spacing.lg }}>
             {product.description}
           </Typography>
         )}
 
         {/* Toppings */}
         {product.toppings && product.toppings.length > 0 && (
-          <Box sx={{ mb: theme.spacing.section }}>
+          <Box sx={{ mb: theme.spacing.lg }}>
             <Typography 
-              variant={theme.typography.sectionHeader.variant}
-              fontWeight={theme.typography.sectionHeader.fontWeight}
-              color={theme.colors.textSecondary}
-              sx={{ mb: theme.spacing.sectionHeaderBottom, display: 'block' }}
+              variant="caption"
+              fontWeight={theme.typography.fontWeights.bold}
+              color={theme.colors.text}
+              sx={{ mb: 1.5, display: 'block' }}
             >
               TOPPINGS
             </Typography>
@@ -198,20 +197,20 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose 
                     variant="outlined"
                     onClick={() => handleToppingToggle(topping.id)}
                     sx={{
-                      borderRadius: theme.optionCard.borderRadius,
-                      borderColor: isSelected ? theme.optionCard.borderColor.selected : theme.optionCard.borderColor.default,
-                      backgroundColor: isSelected ? theme.optionCard.backgroundColor.selected : theme.optionCard.backgroundColor.default,
+                      borderRadius: theme.borderRadius.medium,
+                      borderColor: isSelected ? theme.colors.primary : 'grey.300',
+                      backgroundColor: isSelected ? theme.colors.primaryLight : 'transparent',
                       cursor: 'pointer',
-                      transition: theme.optionCard.transition,
+                      transition: theme.transitions.normal,
                       '&:hover': {
-                        backgroundColor: isSelected ? theme.optionCard.backgroundColor.selected : 'grey.50',
+                        backgroundColor: isSelected ? theme.colors.primaryLight : 'grey.50',
                       },
                     }}
                   >
                     <CardContent 
                       sx={{ 
-                        p: theme.optionCard.padding,
-                        '&:last-child': { pb: theme.optionCard.padding },
+                        p: 1.5,
+                        '&:last-child': { pb: 1.5 },
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
@@ -222,12 +221,12 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose 
                           {topping.name}
                         </Typography>
                         {topping.price > 0 && (
-                          <Typography component="span" color={theme.colors.textSecondary} sx={{ ml: 1 }}>
+                          <Typography component="span" color={theme.colors.text} sx={{ ml: 1 }}>
                             +€{topping.price.toFixed(2)}
                           </Typography>
                         )}
                         {count > 0 && (
-                          <Typography component="span" color={theme.colors.textSecondary} sx={{ ml: 1 }}>
+                          <Typography component="span" color={theme.colors.text} sx={{ ml: 1 }}>
                             ×{count}
                           </Typography>
                         )}
@@ -242,7 +241,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose 
                             size="small"
                             onClick={(e) => handleToppingDecrement(topping.id, e)}
                             sx={{
-                              color: theme.colors.error,
+                              color: 'error.main',
                               '&:hover': {
                                 backgroundColor: 'error.light',
                               },
@@ -254,7 +253,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose 
                             size="small"
                             onClick={(e) => handleToppingIncrement(topping.id, e)}
                             sx={{
-                              color: theme.colors.textSecondary,
+                              color: theme.colors.text,
                               '&:hover': {
                                 backgroundColor: 'success.light',
                               },
@@ -276,18 +275,18 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose 
       {/* Footer with Quantity and Add Button */}
       <Box 
         sx={{ 
-          backgroundColor: theme.footer.backgroundColor,
-          p: theme.footer.padding,
+          backgroundColor: theme.colors.primary,
+          p: theme.spacing.md,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: theme.footer.gap,
+          gap: theme.spacing.md,
         }}
       >
         <Box 
           sx={{ 
-            backgroundColor: theme.colors.white,
-            borderRadius: theme.quantityControl.container.borderRadius,
+            backgroundColor: theme.colors.brandWhite,
+            borderRadius: '50px',
             display: 'flex',
             alignItems: 'center',
           }}
@@ -303,9 +302,9 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose 
             <RemoveIcon />
           </IconButton>
           <Typography sx={{ 
-            px: theme.quantityControl.text.paddingX, 
-            fontWeight: theme.quantityControl.text.fontWeight, 
-            fontSize: theme.quantityControl.text.fontSize 
+            px: theme.spacing.md, 
+            fontWeight: theme.typography.fontWeights.bold, 
+            fontSize: '1.125rem' 
           }}>
             {quantity}
           </Typography>
@@ -326,14 +325,14 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose 
           onClick={handleAddToOrder}
           sx={{
             flex: 1,
-            backgroundColor: theme.colors.white,
-            color: theme.colors.textPrimary,
-            fontWeight: theme.buttons.addToCart.fontWeight,
-            py: theme.buttons.addToCart.paddingY,
-            px: theme.buttons.addToCart.paddingX,
-            borderRadius: theme.buttons.addToCart.borderRadius,
-            fontSize: theme.buttons.addToCart.fontSize,
-            textTransform: theme.buttons.addToCart.textTransform,
+            backgroundColor: theme.colors.brandWhite,
+            color: theme.colors.text,
+            fontWeight: theme.typography.fontWeights.bold,
+            py: 1.5,
+            px: theme.spacing.lg,
+            borderRadius: '50px',
+            fontSize: '1.125rem',
+            textTransform: 'none',
             '&:hover': {
               backgroundColor: 'grey.100',
             },

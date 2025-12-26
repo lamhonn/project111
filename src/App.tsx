@@ -1,7 +1,10 @@
 import React from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { Provider } from 'jotai';
 import MenuView from './views/menu/MenuView';
+import ErrorBoundary from './components/common/ErrorBoundary';
+import { store } from './context/store';
 // import './App.css';
 
 // Create a MUI theme with brand colors
@@ -38,10 +41,14 @@ const muiTheme = createTheme({
 
 function App() {
   return (
-    <ThemeProvider theme={muiTheme}>
-      <CssBaseline />
-      <MenuView />
-    </ThemeProvider>
+    <Provider store={store}>
+      <ThemeProvider theme={muiTheme}>
+        <CssBaseline />
+        <ErrorBoundary>
+          <MenuView />
+        </ErrorBoundary>
+      </ThemeProvider>
+    </Provider>
   );
 }
 
