@@ -1,0 +1,75 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "total": "Total",
+    "table": "Table"
+  },
+  "actionBar": {
+    "callForService": "Call for service",
+    "showOrder": "Show order"
+  },
+  "header": {
+    "restaurant": "Restaurant"
+  },
+  "orderStatus": {
+    "received": "Received",
+    "preparing": "Preparing"
+  },
+  "productCard": {
+    "addItem": "Add Item"
+  },
+  "productDialog": {
+    "toppings": "TOPPINGS",
+    "addToOrder": "Add to order"
+  },
+  "orderSummaryDialog": {
+    "title": "Order's Summary",
+    "totalItems": "Total Items",
+    "paymentSummary": "Payment Summary",
+    "priceBeforeVat": "Price before VAT",
+    "vat": "VAT",
+    "placeOrder": "Place Order"
+  },
+  "totalOrderSummaryDialog": {
+    "title": "Total Receipt",
+    "allItems": "All Items",
+    "noOrders": "No orders yet",
+    "placeFirstOrder": "Place your first order to see it here",
+    "paymentSummary": "Payment Summary",
+    "priceBeforeVat": "Price before VAT",
+    "vat": "VAT",
+    "askForBill": "Ask for Bill"
+  },
+  "thankYouDialog": {
+    "title": "Bill is coming! 🧾",
+    "message": "Thank you for dining with us. Your bill will be brought to your table shortly.",
+    "enjoyedMeal": "We hope you enjoyed your meal!",
+    "startNewSession": "Start New Session"
+  },
+  "confirmDialog": {
+    "callService": {
+      "title": "Call for service?",
+      "message": "A waiter will be notified and come to assist you shortly."
+    },
+    "placeOrder": {
+      "title": "Place order?",
+      "message": "Your order will be processed and prepared shortly."
+    },
+    "askForBill": {
+      "title": "Ask for bill?",
+      "message": "Your bill will be prepared and brought to your table shortly."
+    }
+  },
+  "toaster": {
+    "serviceCalledSuccess": "Service called successfully! A waiter will assist you shortly."
+  },
+  "errorDialog": {
+    "title": "Oops! Something went wrong",
+    "defaultMessage": "Something went wrong",
+    "callForService": "Call for Service",
+    "serviceCalledWait": "Service called - Wait {{seconds}}s",
+    "canCallAgain": "You can call for service again if needed",
+    "waiterWillAssist": "A waiter will assist you shortly"
+  }
+}

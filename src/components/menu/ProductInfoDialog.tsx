@@ -13,6 +13,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { useSetAtom } from 'jotai';
+import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
 import { addOrderItemAtom, Topping as OrderTopping } from '../../context/orderStore';
 
@@ -39,6 +40,7 @@ interface ProductDialogProps {
 }
 
 const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose }) => {
+  const { t } = useTranslation();
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedToppings, setSelectedToppings] = useState<Record<string, number>>({});
   const addItem = useSetAtom(addOrderItemAtom);
@@ -184,7 +186,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose 
               color={theme.colors.text}
               sx={{ mb: 1.5, display: 'block' }}
             >
-              TOPPINGS
+              {t('productDialog.toppings')}
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               {product.toppings.map((topping) => {
@@ -338,7 +340,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose 
             },
           }}
         >
-          Add to order €{calculateTotal().toFixed(2)}
+          {t('productDialog.addToOrder')} €{calculateTotal().toFixed(2)}
         </Button>
       </Box>
     </Dialog>

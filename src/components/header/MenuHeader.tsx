@@ -14,6 +14,7 @@ import {
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import LanguageIcon from '@mui/icons-material/Language';
 import { useAtom } from 'jotai';
+import { useTranslation } from 'react-i18next';
 import { languageAtom } from '../../context/orderStore';
 import { theme } from '../../theme/theme';
 
@@ -54,6 +55,7 @@ const MenuHeader: React.FC<MenuHeaderProps> = ({
   onTotalClick,
   orderStatus,
 }) => {
+  const { t, i18n } = useTranslation();
   const [animateStatus, setAnimateStatus] = useState(false);
   const [prevStatus, setPrevStatus] = useState<OrderStatus | null>(orderStatus ?? null);
   const [language, setLanguage] = useAtom(languageAtom);
@@ -69,6 +71,7 @@ const MenuHeader: React.FC<MenuHeaderProps> = ({
 
   const handleLanguageSelect = (lang: string) => {
     setLanguage(lang);
+    i18n.changeLanguage(lang);
     handleLanguageClose();
   };
 
@@ -77,6 +80,21 @@ const MenuHeader: React.FC<MenuHeaderProps> = ({
     { code: 'fi', label: 'FI' },
     { code: 'sv', label: 'SV' },
   ];
+
+  // Sync i18n language with language atom on mount
+  useEffect(() => {
+    // Initialize language atom from i18n on first mount
+    if (i18n.language && i18n.language !== language) {
+      setLanguage(i18n.language);
+    }
+  }, []);
+
+  // Sync i18n when language atom changes
+  useEffect(() => {
+    if (language && i18n.language !== language) {
+      i18n.changeLanguage(language);
+    }
+  }, [language, i18n]);
 
   useEffect(() => {
     if (orderStatus && orderStatus !== prevStatus) {
@@ -234,7 +252,7 @@ const MenuHeader: React.FC<MenuHeaderProps> = ({
                     fontSize: { xs: '0.875rem', sm: '0.875rem' },
                   }}
                 >
-                  Table
+                  {t('common.table')}
                 </Typography>
                 <Typography
                   variant="body2"
@@ -265,7 +283,7 @@ const MenuHeader: React.FC<MenuHeaderProps> = ({
                         fontSize: { xs: '0.875rem', sm: '0.875rem' },
                       }}
                     >
-                      {orderStatus}
+                      {t(`orderStatus.${orderStatus.toLowerCase()}`)}
                     </Typography>
                   </>
                 )}
@@ -291,7 +309,7 @@ const MenuHeader: React.FC<MenuHeaderProps> = ({
               }}
             >
               <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                Total
+                {t('common.total')}
               </Box>
             </Button>
           </Box>

@@ -2,21 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { Box, Typography, Button, IconButton } from '@mui/material';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import CloseIcon from '@mui/icons-material/Close';
+import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
 
 interface ErrorDialogProps {
   isOpen: boolean;
-  errorMessage?: string;
   onCallService: () => void;
   onClose: () => void;
 }
 
 const ErrorDialog: React.FC<ErrorDialogProps> = ({ 
   isOpen, 
-  errorMessage = 'Something went wrong',
   onCallService,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const [serviceCalled, setServiceCalled] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
@@ -132,11 +132,11 @@ const ErrorDialog: React.FC<ErrorDialogProps> = ({
         </Box>
 
         <Typography variant="h5" fontWeight={theme.typography.fontWeights.bold} gutterBottom>
-          Oops! Something went wrong
+          {t('errorDialog.title')}
         </Typography>
 
         <Typography variant="body1" color="text.secondary" sx={{ mt: 2, mb: 3 }}>
-          {errorMessage}
+          {t('errorDialog.defaultMessage')}
         </Typography>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -162,17 +162,17 @@ const ErrorDialog: React.FC<ErrorDialogProps> = ({
           >
             {serviceCalled 
               ? countdown > 0 
-                ? `Service called - Wait ${countdown}s` 
-                : 'Call for Service'
-              : 'Call for Service'
+                ? t('errorDialog.serviceCalledWait', { seconds: countdown })
+                : t('errorDialog.callForService')
+              : t('errorDialog.callForService')
             }
           </Button>
         </Box>
 
         <Typography variant="caption" color="text.secondary" sx={{ mt: 3, display: 'block' }}>
           {serviceCalled && countdown === 0 
-            ? 'You can call for service again if needed'
-            : 'A waiter will assist you shortly'
+            ? t('errorDialog.canCallAgain')
+            : t('errorDialog.waiterWillAssist')
           }
         </Typography>
       </Box>

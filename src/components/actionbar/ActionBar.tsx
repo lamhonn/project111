@@ -8,6 +8,7 @@ import {
 import PersonIcon from '@mui/icons-material/Person';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { useAtomValue, useSetAtom } from 'jotai';
+import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
 import Toaster from '../common/Toaster';
 import OrderSummaryDialog from '../order/OrderSummaryDialog';
@@ -19,6 +20,7 @@ interface ActionBarProps {
 }
 
 const ActionBar: React.FC<ActionBarProps> = () => {
+  const { t } = useTranslation();
   const orderCount = useAtomValue(orderCountAtom);
   const totalPrice = useAtomValue(totalPriceAtom);
   const openConfirmDialog = useSetAtom(openConfirmDialogAtom);
@@ -35,10 +37,10 @@ const ActionBar: React.FC<ActionBarProps> = () => {
 
   const handleCallService = (): void => {
     openConfirmDialog({
-      title: 'Call for service?',
-      message: 'A waiter will be notified and come to assist you shortly.',
-      cancelText: 'Cancel',
-      confirmText: 'Confirm',
+      title: t('confirmDialog.callService.title'),
+      message: t('confirmDialog.callService.message'),
+      cancelText: t('common.cancel'),
+      confirmText: t('common.confirm'),
       onConfirm: () => {
         console.log('Service called');
         // Add your call service logic here
@@ -93,7 +95,7 @@ const ActionBar: React.FC<ActionBarProps> = () => {
             },
           }}
         >
-          Call for service
+          {t('actionBar.callForService')}
         </Button>
 
         {/* Show Order Button */}
@@ -121,7 +123,7 @@ const ActionBar: React.FC<ActionBarProps> = () => {
             },
           }}
         >
-          <Typography component="span">Show order</Typography>
+          <Typography component="span">{t('actionBar.showOrder')}</Typography>
           <Badge
             badgeContent={orderCount}
             sx={{
@@ -148,7 +150,7 @@ const ActionBar: React.FC<ActionBarProps> = () => {
       <Toaster
         open={showToaster}
         onClose={handleCloseToaster}
-        message="Service called successfully! A waiter will assist you shortly."
+        message={t('toaster.serviceCalledSuccess')}
         severity="success"
       />
 

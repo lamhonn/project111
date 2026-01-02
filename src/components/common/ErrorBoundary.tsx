@@ -1,7 +1,5 @@
 import React, { Component, ReactNode } from 'react';
 import ErrorDialog from '../common/ErrorDialog';
-import { openConfirmDialogAtom } from '../../context/confirmDialogStore';
-import { store } from '../../context/store';
 
 interface Props {
   children: ReactNode;
@@ -9,7 +7,6 @@ interface Props {
 
 interface State {
   hasError: boolean;
-  errorMessage: string;
 }
 
 class ErrorBoundary extends Component<Props, State> {
@@ -17,14 +14,12 @@ class ErrorBoundary extends Component<Props, State> {
     super(props);
     this.state = {
       hasError: false,
-      errorMessage: '',
     };
   }
 
   static getDerivedStateFromError(error: Error): State {
     return {
       hasError: true,
-      errorMessage: error.message || 'An unexpected error occurred',
     };
   }
 
@@ -40,7 +35,6 @@ class ErrorBoundary extends Component<Props, State> {
   handleCloseError = (): void => {
     this.setState({
       hasError: false,
-      errorMessage: '',
     });
   };
 
@@ -51,7 +45,6 @@ class ErrorBoundary extends Component<Props, State> {
           {this.props.children}
           <ErrorDialog
             isOpen={this.state.hasError}
-            errorMessage={this.state.errorMessage}
             onCallService={this.handleCallService}
             onClose={this.handleCloseError}
           />

@@ -15,6 +15,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import { useAtomValue, useSetAtom } from 'jotai';
+import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
 import {
   orderItemsAtom,
@@ -35,6 +36,7 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
   isOpen,
   onClose,
 }) => {
+  const { t } = useTranslation();
   
   // Use Jotai atoms
   const orderItems = useAtomValue(orderItemsAtom);
@@ -64,10 +66,10 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
 
   const handlePlaceOrder = (): void => {
     openConfirmDialog({
-        title: 'Place order?',
-        message: 'Your order will be processed and prepared shortly.',
-        cancelText: 'Cancel',
-        confirmText: 'Confirm',
+        title: t('confirmDialog.placeOrder.title'),
+        message: t('confirmDialog.placeOrder.message'),
+        cancelText: t('common.cancel'),
+        confirmText: t('common.confirm'),
         onConfirm: () => {
             submitOrderToTotal();
             onClose();
@@ -114,7 +116,7 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
             variant="h6"
             fontWeight={theme.typography.fontWeights.bold}
           >
-            Order's Summary
+            {t('orderSummaryDialog.title')}
           </Typography>
           <Typography 
             variant="body2"
@@ -144,7 +146,7 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
           fontWeight={theme.typography.fontWeights.semibold}
           sx={{ mb: theme.spacing.md }}
         >
-          Total Items ({orderCount})
+          {t('orderSummaryDialog.totalItems')} ({orderCount})
         </Typography>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.md }}>
@@ -281,13 +283,13 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
             fontWeight={theme.typography.fontWeights.semibold}
             sx={{ mb: theme.spacing.md }}
           >
-            Payment Summary
+            {t('orderSummaryDialog.paymentSummary')}
           </Typography>
           
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.sm }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="body2" color="text.secondary">
-                Price before VAT
+                {t('orderSummaryDialog.priceBeforeVat')}
               </Typography>
               <Typography 
                 variant="body2"
@@ -298,7 +300,7 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
             </Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography variant="body2" color="text.secondary">
-                VAT
+                {t('orderSummaryDialog.vat')}
               </Typography>
               <Typography 
                 variant="body2"
@@ -324,7 +326,7 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
                 variant="body1"
                 fontWeight={theme.typography.fontWeights.semibold}
               >
-                Total
+                {t('common.total')}
               </Typography>
               <Typography 
                 variant="h6"
@@ -364,7 +366,7 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
             },
           }}
         >
-          Place Order
+          {t('orderSummaryDialog.placeOrder')}
         </Button>
       </DialogActions>
     </Dialog>

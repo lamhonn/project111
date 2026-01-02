@@ -6,16 +6,11 @@ import {
   CardActions,
   Typography,
   Button,
-  IconButton,
-  Box,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { useSetAtom } from 'jotai';
+import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
 import ProductDialog from './ProductInfoDialog';
-import { addOrderItemAtom } from '../../context/orderStore';
 
 interface Props {
   id: string;
@@ -33,7 +28,7 @@ interface Props {
 
 const ProductCard: React.FC<Props> = (props: Props) => {
   const { id, image, name, price, initialQuantity = 0, description, toppings } = props;
-  const addItem = useSetAtom(addOrderItemAtom);
+  const { t } = useTranslation();
 
   const [quantity, setQuantity] = useState<number>(initialQuantity);
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
@@ -108,7 +103,7 @@ const ProductCard: React.FC<Props> = (props: Props) => {
                 },
               }}
             >
-              Add Item
+              {t('productCard.addItem')}
             </Button>
         </CardActions>
       </Card>

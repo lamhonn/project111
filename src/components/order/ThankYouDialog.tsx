@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Box, Typography, Button } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
 
 interface ThankYouDialogProps {
@@ -8,6 +9,7 @@ interface ThankYouDialogProps {
 }
 
 const ThankYouDialog: React.FC<ThankYouDialogProps> = ({ isOpen, onReset }) => {
+  const { t } = useTranslation();
   if (!isOpen) return null;
 
   useEffect(() => {
@@ -72,13 +74,13 @@ const ThankYouDialog: React.FC<ThankYouDialogProps> = ({ isOpen, onReset }) => {
         }}
       >
         <Typography variant="h5" fontWeight="bold" gutterBottom>
-          Bill is coming! 🧾
+          {t('thankYouDialog.title')}
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mt: 2 }}>
-          Thank you for dining with us. Your bill will be brought to your table shortly.
+          {t('thankYouDialog.message')}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-          We hope you enjoyed your meal!
+          {t('thankYouDialog.enjoyedMeal')}
         </Typography>
 
         <Button
@@ -98,7 +100,7 @@ const ThankYouDialog: React.FC<ThankYouDialogProps> = ({ isOpen, onReset }) => {
             },
           }}
         >
-          Start New Session
+          {t('thankYouDialog.startNewSession')}
         </Button>
       </Box>
     </Box>

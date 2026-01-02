@@ -1,0 +1,75 @@
+{
+  "common": {
+    "cancel": "Avbryt",
+    "confirm": "Bekräfta",
+    "total": "Totalt",
+    "table": "Bord"
+  },
+  "actionBar": {
+    "callForService": "Ring efter service",
+    "showOrder": "Visa beställning"
+  },
+  "header": {
+    "restaurant": "Restaurang"
+  },
+  "orderStatus": {
+    "received": "Mottagen",
+    "preparing": "Förbereder"
+  },
+  "productCard": {
+    "addItem": "Lägg till artikel"
+  },
+  "productDialog": {
+    "toppings": "TILLBEHÖR",
+    "addToOrder": "Lägg till beställning"
+  },
+  "orderSummaryDialog": {
+    "title": "Beställningssammanfattning",
+    "totalItems": "Totalt antal artiklar",
+    "paymentSummary": "Betalningssammanfattning",
+    "priceBeforeVat": "Pris före moms",
+    "vat": "Moms",
+    "placeOrder": "Gör beställning"
+  },
+  "totalOrderSummaryDialog": {
+    "title": "Total kvitto",
+    "allItems": "Alla artiklar",
+    "noOrders": "Inga beställningar ännu",
+    "placeFirstOrder": "Gör din första beställning för att se den här",
+    "paymentSummary": "Betalningssammanfattning",
+    "priceBeforeVat": "Pris före moms",
+    "vat": "Moms",
+    "askForBill": "Be om nota"
+  },
+  "thankYouDialog": {
+    "title": "Notan kommer! 🧾",
+    "message": "Tack för att du åt med oss. Din nota kommer att levereras till ditt bord inom kort.",
+    "enjoyedMeal": "Vi hoppas du njöt av din måltid!",
+    "startNewSession": "Starta ny session"
+  },
+  "confirmDialog": {
+    "callService": {
+      "title": "Ring efter service?",
+      "message": "En servitör kommer att meddelas och komma för att hjälpa dig inom kort."
+    },
+    "placeOrder": {
+      "title": "Gör beställning?",
+      "message": "Din beställning kommer att behandlas och förberedas inom kort."
+    },
+    "askForBill": {
+      "title": "Be om nota?",
+      "message": "Din nota kommer att förberedas och levereras till ditt bord inom kort."
+    }
+  },
+  "toaster": {
+    "serviceCalledSuccess": "Service har ringts! En servitör kommer att hjälpa dig inom kort."
+  },
+  "errorDialog": {
+    "title": "Hoppsan! Något gick fel",
+    "defaultMessage": "Något gick fel",
+    "callForService": "Ring efter service",
+    "serviceCalledWait": "Service ringd - Vänta {{seconds}}s",
+    "canCallAgain": "Du kan ringa efter service igen om det behövs",
+    "waiterWillAssist": "En servitör kommer att hjälpa dig inom kort"
+  }
+}

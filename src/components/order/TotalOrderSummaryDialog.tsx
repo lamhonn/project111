@@ -13,6 +13,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import { useAtomValue, useSetAtom } from 'jotai';
+import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
 import {
   totalOrderItemsAtom,
@@ -31,6 +32,7 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
   isOpen,
   onClose,
 }) => {
+  const { t } = useTranslation();
   
   // Use Jotai atoms
   const totalOrderItems = useAtomValue(totalOrderItemsAtom);
@@ -41,10 +43,10 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
 
   const handleAskForBill = (): void => {
     openConfirmDialog({
-      title: 'Ask for bill?',
-      message: 'Your bill will be prepared and brought to your table shortly.',
-      cancelText: 'Cancel',
-      confirmText: 'Confirm',
+      title: t('confirmDialog.askForBill.title'),
+      message: t('confirmDialog.askForBill.message'),
+      cancelText: t('common.cancel'),
+      confirmText: t('common.confirm'),
       onConfirm: () => {
         setBillRequested(true);
         onClose();
@@ -89,7 +91,7 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
             variant="h6"
             fontWeight={theme.typography.fontWeights.bold}
           >
-            Total Receipt
+            {t('totalOrderSummaryDialog.title')}
           </Typography>
           {/* <Typography 
             variant="body2"
@@ -127,10 +129,10 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
           >
             <ReceiptLongIcon sx={{ fontSize: 64, mb: 2, opacity: 0.3 }} />
             <Typography variant="h6" color="text.secondary">
-              No orders yet
+              {t('totalOrderSummaryDialog.noOrders')}
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              Place your first order to see it here
+              {t('totalOrderSummaryDialog.placeFirstOrder')}
             </Typography>
           </Box>
         ) : (
@@ -140,7 +142,7 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
               fontWeight={theme.typography.fontWeights.semibold}
               sx={{ mb: theme.spacing.md }}
             >
-              All Items ({totalOrderCount})
+              {t('totalOrderSummaryDialog.allItems')} ({totalOrderCount})
             </Typography>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.md }}>
@@ -224,13 +226,13 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                 fontWeight={theme.typography.fontWeights.semibold}
                 sx={{ mb: theme.spacing.md }}
               >
-                Payment Summary
+                {t('totalOrderSummaryDialog.paymentSummary')}
               </Typography>
               
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.sm }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="body2" color="text.secondary">
-                    Price before VAT
+                    {t('totalOrderSummaryDialog.priceBeforeVat')}
                   </Typography>
                   <Typography 
                     variant="body2"
@@ -241,7 +243,7 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="body2" color="text.secondary">
-                    VAT
+                    {t('totalOrderSummaryDialog.vat')}
                   </Typography>
                   <Typography 
                     variant="body2"
@@ -256,7 +258,7 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                     variant="body1"
                     fontWeight={theme.typography.fontWeights.semibold}
                   >
-                    Total
+                    {t('common.total')}
                   </Typography>
                   <Typography 
                     variant="h6"
@@ -298,7 +300,7 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
             },
           }}
         >
-          Ask for Bill
+          {t('totalOrderSummaryDialog.askForBill')}
         </Button>
       </DialogActions>
     </Dialog>

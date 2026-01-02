@@ -1,0 +1,76 @@
+{
+  "common": {
+    "cancel": "Peruuta",
+    "confirm": "Vahvista",
+    "total": "Kuitti",
+    "table": "Pöytä"
+  },
+  "actionBar": {
+    "callForService": "Kutsu tarjoilija",
+    "showOrder": "Näytä tilaus"
+  },
+  "header": {
+    "restaurant": "Ravintola"
+  },
+  "orderStatus": {
+    "received": "Vastaanotettu",
+    "preparing": "Valmistetaan"
+  },
+  "productCard": {
+    "addItem": "Lisää tuote"
+  },
+  "productDialog": {
+    "toppings": "TÄYTTEET",
+    "addToOrder": "Lisää tilaukseen"
+  },
+  "orderSummaryDialog": {
+    "title": "Tilauksen yhteenveto",
+    "totalItems": "Tuotteet yhteensä",
+    "paymentSummary": "Maksuyhteenveto",
+    "priceBeforeVat": "Hinta ilman ALVia",
+    "vat": "ALV",
+    "placeOrder": "Tee tilaus"
+  },
+  "totalOrderSummaryDialog": {
+    "title": "Koko kuitti",
+    "allItems": "Kaikki tuotteet",
+    "noOrders": "Ei tilauksia vielä",
+    "placeFirstOrder": "Tee ensimmäinen tilauksesi nähdäksesi sen täällä",
+    "paymentSummary": "Maksuyhteenveto",
+    "priceBeforeVat": "Hinta ilman ALVia",
+    "vat": "ALV",
+    "askForBill": "Pyydä lasku"
+  },
+  "thankYouDialog": {
+    "title": "Lasku on tulossa! 🧾",
+    "message": "Kiitos kun ateroit kanssamme. Laskunne tuodaan pöytään pian.",
+    "enjoyedMeal": "Toivottavasti nautit ateriasta!",
+    "startNewSession": "Aloita uusi istunto"
+  },
+  "confirmDialog": {
+    "callService": {
+      "title": "Kutsu tarjoilija?",
+      "message": "Tarjoilija tulee palvelemaan teitä mahdollisimman pian."
+    },
+    "placeOrder": {
+      "title": "Tee tilaus?",
+      "message": "Tilauksesi käsitellään ja valmistetaan mahdollisimman pian."
+    },
+    "askForBill": {
+      "title": "Pyydä lasku?",
+      "message": "Laskusi käsitellään ja tuodaan mahdollisimman pian."
+    }
+  },
+  "toaster": {
+    "serviceCalledSuccess": "Tarjoilija kutsuttu onnistuneesti! Tarjoilija avustaa pian."
+  },
+  "errorDialog": {
+    "title": "Hups! Jokin meni pieleen",
+    "defaultMessage": "Jokin meni pieleen",
+    "callForService": "Kutsu tarjoilija",
+    "serviceCalledWait": "Tarjoilija kutsuttu - Odota {{seconds}}s",
+    "canCallAgain": "Voit kutsua tarjoilijan uudelleen tarvittaessa",
+    "waiterWillAssist": "Tarjoilija palvelee teitä pian"
+  }
+}
+
