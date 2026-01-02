@@ -47,6 +47,18 @@
     "enjoyedMeal": "Toivottavasti nautit ateriasta!",
     "startNewSession": "Aloita uusi istunto"
   },
+  "splitBillDialog": {
+    "title": "Jaa lasku",
+    "allItems": "Kaikki tuotteet",
+    "bills": "Laskut",
+    "addBill": "Lisää lasku",
+    "save": "Tallenna",
+    "dragItemsHere": "Vedä tuotteet tähän",
+    "allItemsAssigned": "Kaikki tuotteet on jaettu laskuihin",
+    "item": "tuote",
+    "items": "tuotteet",
+    "primaryBill": "Päälasku"
+  },
   "confirmDialog": {
     "callService": {
       "title": "Kutsu tarjoilija?",

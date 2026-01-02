@@ -47,6 +47,18 @@
     "enjoyedMeal": "We hope you enjoyed your meal!",
     "startNewSession": "Start New Session"
   },
+  "splitBillDialog": {
+    "title": "Split Bill",
+    "allItems": "All Items",
+    "bills": "Bills",
+    "addBill": "Add Bill",
+    "save": "Save",
+    "dragItemsHere": "Drag items here",
+    "allItemsAssigned": "All items have been assigned to bills",
+    "item": "item",
+    "items": "items",
+    "primaryBill": "Primary Bill"
+  },
   "confirmDialog": {
     "callService": {
       "title": "Call for service?",

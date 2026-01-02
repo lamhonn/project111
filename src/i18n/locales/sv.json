@@ -47,6 +47,18 @@
     "enjoyedMeal": "Vi hoppas du njöt av din måltid!",
     "startNewSession": "Starta ny session"
   },
+  "splitBillDialog": {
+    "title": "Dela nota",
+    "allItems": "Alla artiklar",
+    "bills": "Notor",
+    "addBill": "Lägg till nota",
+    "save": "Spara",
+    "dragItemsHere": "Dra artiklar hit",
+    "allItemsAssigned": "Alla artiklar har tilldelats notor",
+    "item": "artikel",
+    "items": "artiklar",
+    "primaryBill": "Primär nota"
+  },
   "confirmDialog": {
     "callService": {
       "title": "Ring efter service?",

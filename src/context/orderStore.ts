@@ -57,6 +57,37 @@ export const billRequestedAtom = atom<boolean>(false);
 
 export const languageAtom = atom<string>('en'); // ISO language codes: 'en', 'fi', 'sv'
 
+// Split Bill Types and State
+export interface SplitBill {
+  id: string;
+  name: string;
+  items: OrderItem[];
+}
+
+export interface BillSplitConfiguration {
+  bills: SplitBill[];
+  unsplitItems: OrderItem[]; // Items not assigned to any bill
+}
+
+// State for split bills configuration
+export const billSplitConfigurationAtom = atom<BillSplitConfiguration | null>(null);
+
+// Atom to save bill split configuration
+export const saveBillSplitAtom = atom(
+  null,
+  (get, set, config: BillSplitConfiguration) => {
+    set(billSplitConfigurationAtom, config);
+  }
+);
+
+// Atom to clear bill split configuration
+export const clearBillSplitAtom = atom(
+  null,
+  (get, set) => {
+    set(billSplitConfigurationAtom, null);
+  }
+);
+
 // Atom to reset all state back to initial values
 export const resetAppStateAtom = atom(
   null,
@@ -66,6 +97,7 @@ export const resetAppStateAtom = atom(
     set(orderStatusAtom, null);
     set(billRequestedAtom, false);
     set(languageAtom, 'en');
+    set(billSplitConfigurationAtom, null);
   }
 );
 
