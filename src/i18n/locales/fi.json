@@ -2,8 +2,10 @@
   "common": {
     "cancel": "Peruuta",
     "confirm": "Vahvista",
-    "total": "Kuitti",
-    "table": "Pöytä"
+    "bill": "Lasku",
+    "total": "Loppusumma",
+    "table": "Pöytä",
+    "campaigns": "Kampanjat"
   },
   "actionBar": {
     "callForService": "Kutsu tarjoilija",
@@ -51,13 +53,17 @@
     "title": "Jaa lasku",
     "allItems": "Kaikki tuotteet",
     "bills": "Laskut",
+    "bill": "Kuitti",
     "addBill": "Lisää lasku",
     "save": "Tallenna",
     "dragItemsHere": "Vedä tuotteet tähän",
+    "clickToMoveHere": "Siirrä tähän",
     "allItemsAssigned": "Kaikki tuotteet on jaettu laskuihin",
     "item": "tuote",
-    "items": "tuotteet",
-    "primaryBill": "Päälasku"
+    "items": "tuotetta",
+    "primaryBill": "Päälasku",
+    "howManyItems": "Kuinka monta siirretään?",
+    "selectQuantity": "Valitse kuinka monta siirretään (max: {{max}})"
   },
   "confirmDialog": {
     "callService": {

@@ -60,7 +60,6 @@ export const languageAtom = atom<string>('en'); // ISO language codes: 'en', 'fi
 // Split Bill Types and State
 export interface SplitBill {
   id: string;
-  name: string;
   items: OrderItem[];
 }
 
@@ -75,7 +74,7 @@ export const billSplitConfigurationAtom = atom<BillSplitConfiguration | null>(nu
 // Atom to save bill split configuration
 export const saveBillSplitAtom = atom(
   null,
-  (get, set, config: BillSplitConfiguration) => {
+  (get, set, config: BillSplitConfiguration | null) => {
     set(billSplitConfigurationAtom, config);
   }
 );

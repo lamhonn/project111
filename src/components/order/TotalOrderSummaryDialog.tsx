@@ -185,7 +185,7 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                             variant="body1"
                             fontWeight={theme.typography.fontWeights.semibold}
                           >
-                            {bill.name}
+                            {t('splitBillDialog.bill')} {bill.id}
                           </Typography>
                           <Chip
                             label={`${bill.items.length} ${bill.items.length === 1 ? t('splitBillDialog.item') : t('splitBillDialog.items')}`}

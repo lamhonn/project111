@@ -2,8 +2,10 @@
   "common": {
     "cancel": "Avbryt",
     "confirm": "Bekräfta",
+    "bill": "Totalt",
     "total": "Totalt",
-    "table": "Bord"
+    "table": "Bord",
+    "campaigns": "Kampanjer"
   },
   "actionBar": {
     "callForService": "Ring efter service",
@@ -50,14 +52,18 @@
   "splitBillDialog": {
     "title": "Dela nota",
     "allItems": "Alla artiklar",
-    "bills": "Notor",
+    "bills": "Kvittor",
+    "bill": "Kvitto",
     "addBill": "Lägg till nota",
     "save": "Spara",
     "dragItemsHere": "Dra artiklar hit",
+    "clickToMoveHere": "Flytta hit",
     "allItemsAssigned": "Alla artiklar har tilldelats notor",
     "item": "artikel",
     "items": "artiklar",
-    "primaryBill": "Primär nota"
+    "primaryBill": "Primär nota",
+    "howManyItems": "Hur många artiklar?",
+    "selectQuantity": "Välj hur många som ska flyttas (max: {{max}})"
   },
   "confirmDialog": {
     "callService": {

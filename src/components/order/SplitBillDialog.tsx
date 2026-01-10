@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
@@ -37,9 +38,7 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
   const saveBillSplit = useSetAtom(saveBillSplitAtom);
 
   // State for bills
-  const [bills, setBills] = useState<SplitBill[]>([
-    { id: '1', name: 'Bill 1', items: [] },
-  ]);
+  const [bills, setBills] = useState<SplitBill[]>([]);
 
   // State for items that haven't been assigned to any bill yet
   const [unassignedItems, setUnassignedItems] = useState<OrderItem[]>([]);
@@ -63,9 +62,9 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
         setBills(existingBillSplit.bills);
         setUnassignedItems([...existingBillSplit.unsplitItems, ...newItems]);
       } else {
-        // Otherwise, initialize with all items unassigned
+        // Otherwise, initialize with all items unassigned and one empty bill
         setUnassignedItems([...totalOrderItems]);
-        setBills([{ id: '1', name: 'Bill 1', items: [] }]);
+        setBills([{ id: '1', items: [] }]);
       }
     }
   }, [isOpen, totalOrderItems, existingBillSplit]);
@@ -74,9 +73,33 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
   const [draggedItem, setDraggedItem] = useState<OrderItem | null>(null);
   const [draggedFromBillId, setDraggedFromBillId] = useState<string | null>(null);
 
+  // Click-based selection (fallback for drag-and-drop)
+  const [selectedItem, setSelectedItem] = useState<OrderItem | null>(null);
+  const [selectedFromBillId, setSelectedFromBillId] = useState<string | null>(null);
+
+  // Quantity selection dialog
+  const [showQuantityDialog, setShowQuantityDialog] = useState<boolean>(false);
+  const [pendingMove, setPendingMove] = useState<{
+    item: OrderItem;
+    fromBillId: string | null;
+    toBillId: string | null; // null means moving to unassigned
+  } | null>(null);
+  const [moveQuantity, setMoveQuantity] = useState<number>(1);
+
   const handleDragStart = (item: OrderItem, fromBillId?: string): void => {
     setDraggedItem(item);
     setDraggedFromBillId(fromBillId || null);
+  };
+
+  const handleItemClick = (item: OrderItem, fromBillId?: string): void => {
+    // Toggle selection
+    if (selectedItem?.id === item.id) {
+      setSelectedItem(null);
+      setSelectedFromBillId(null);
+    } else {
+      setSelectedItem(item);
+      setSelectedFromBillId(fromBillId || null);
+    }
   };
 
   const handleDragOver = (e: React.DragEvent): void => {
@@ -133,12 +156,192 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
     setDraggedFromBillId(null);
   };
 
+  const handleBillAreaClick = (billId: string): void => {
+    if (!selectedItem) return;
+
+    // Check if item has quantity > 1
+    if (selectedItem.quantity > 1) {
+      setPendingMove({
+        item: selectedItem,
+        fromBillId: selectedFromBillId,
+        toBillId: billId,
+      });
+      setMoveQuantity(1);
+      setShowQuantityDialog(true);
+      return;
+    }
+
+    // Move the entire item
+    moveItemToDestination(selectedItem, selectedFromBillId, billId, selectedItem.quantity);
+
+    // Clear selection
+    setSelectedItem(null);
+    setSelectedFromBillId(null);
+  };
+
+  const handleUnassignedAreaClick = (): void => {
+    if (!selectedItem || !selectedFromBillId) return;
+
+    // Check if item has quantity > 1
+    if (selectedItem.quantity > 1) {
+      setPendingMove({
+        item: selectedItem,
+        fromBillId: selectedFromBillId,
+        toBillId: null, // null means unassigned
+      });
+      setMoveQuantity(1);
+      setShowQuantityDialog(true);
+      return;
+    }
+
+    // Move the entire item
+    moveItemToDestination(selectedItem, selectedFromBillId, null, selectedItem.quantity);
+
+    // Clear selection
+    setSelectedItem(null);
+    setSelectedFromBillId(null);
+  };
+
+  const moveItemToDestination = (item: OrderItem, fromBillId: string | null, toBillId: string | null, quantity: number): void => {
+    const isMovingAll = quantity === item.quantity;
+
+    // Remove from source
+    if (fromBillId) {
+      // Remove from a bill
+      setBills(prevBills =>
+        prevBills.map(bill => {
+          if (bill.id === fromBillId) {
+            if (isMovingAll) {
+              // Remove entire item
+              return { ...bill, items: bill.items.filter(i => i.id !== item.id) };
+            } else {
+              // Reduce quantity
+              return {
+                ...bill,
+                items: bill.items.map(i =>
+                  i.id === item.id ? { ...i, quantity: i.quantity - quantity } : i
+                ),
+              };
+            }
+          }
+          return bill;
+        })
+      );
+    } else {
+      // Remove from unassigned
+      setUnassignedItems(prev => {
+        if (isMovingAll) {
+          return prev.filter(i => i.id !== item.id);
+        } else {
+          return prev.map(i =>
+            i.id === item.id ? { ...i, quantity: i.quantity - quantity } : i
+          );
+        }
+      });
+    }
+
+    // Create the item to add with the specified quantity
+    const itemToAdd = { ...item, quantity };
+
+    // Add to destination
+    if (toBillId) {
+      // Add to a bill
+      setBills(prevBills =>
+        prevBills.map(bill => {
+          if (bill.id === toBillId) {
+            // Check if item already exists in this bill
+            const existingItem = bill.items.find(i => i.id === item.id);
+            if (existingItem) {
+              // Merge quantities
+              return {
+                ...bill,
+                items: bill.items.map(i =>
+                  i.id === item.id ? { ...i, quantity: i.quantity + quantity } : i
+                ),
+              };
+            } else {
+              // Add new item
+              return { ...bill, items: [...bill.items, itemToAdd] };
+            }
+          }
+          return bill;
+        })
+      );
+    } else {
+      // Add to unassigned
+      setUnassignedItems(prev => {
+        const existingItem = prev.find(i => i.id === item.id);
+        if (existingItem) {
+          // Merge quantities
+          return prev.map(i =>
+            i.id === item.id ? { ...i, quantity: i.quantity + quantity } : i
+          );
+        } else {
+          // Add new item
+          return [...prev, itemToAdd];
+        }
+      });
+    }
+  };
+
+  const handleQuantityConfirm = (): void => {
+    if (!pendingMove || moveQuantity < 1) return;
+
+    moveItemToDestination(
+      pendingMove.item,
+      pendingMove.fromBillId,
+      pendingMove.toBillId,
+      moveQuantity
+    );
+
+    // Clear selection and dialog
+    setSelectedItem(null);
+    setSelectedFromBillId(null);
+    setShowQuantityDialog(false);
+    setPendingMove(null);
+  };
+
+  const handleQuantityCancel = (): void => {
+    setShowQuantityDialog(false);
+    setPendingMove(null);
+  };
+
   const handleAddBill = (): void => {
     const newBillNumber = bills.length + 1;
     setBills(prev => [
       ...prev,
-      { id: String(newBillNumber), name: `Bill ${newBillNumber}`, items: [] },
+      { id: String(newBillNumber), items: [] },
     ]);
+  };
+
+  const handleDeleteBill = (billId: string): void => {
+    // Don't allow deleting if it's the only bill
+    if (bills.length <= 1) return;
+
+    // Find the bill to delete
+    const billToDelete = bills.find(bill => bill.id === billId);
+    if (!billToDelete) return;
+
+    // Move all items from this bill back to unassigned
+    if (billToDelete.items.length > 0) {
+      setUnassignedItems(prev => [...prev, ...billToDelete.items]);
+    }
+
+    // Remove the bill and renumber subsequent bills
+    setBills(prev => {
+      const filtered = prev.filter(bill => bill.id !== billId);
+      // Renumber all bills sequentially
+      return filtered.map((bill, index) => ({
+        ...bill,
+        id: String(index + 1),
+      }));
+    });
+
+    // Clear selection if the deleted bill's item was selected
+    if (selectedFromBillId === billId) {
+      setSelectedItem(null);
+      setSelectedFromBillId(null);
+    }
   };
 
   const calculateBillTotal = (items: OrderItem[]): number => {
@@ -152,11 +355,26 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
   };
 
   const handleSave = (): void => {
-    // Save the bill split configuration to global state
-    saveBillSplit({
-      bills: bills,
-      unsplitItems: unassignedItems,
-    });
+    // Filter out empty bills and renumber the remaining ones
+    const nonEmptyBills = bills
+      .filter(bill => bill.items.length > 0)
+      .map((bill, index) => ({
+        ...bill,
+        id: String(index + 1),
+      }));
+
+    // Check if all items are unassigned (no bills with items)
+    if (nonEmptyBills.length === 0) {
+      // Clear the split bill configuration - revert to normal "All products" view
+      saveBillSplit(null);
+    } else {
+      // Save the bill split configuration to global state with only non-empty bills
+      saveBillSplit({
+        bills: nonEmptyBills,
+        unsplitItems: unassignedItems,
+      });
+    }
+    
     onClose();
   };
 
@@ -228,6 +446,7 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
             onDragOver={handleDragOver}
             onDrop={handleDropToUnassigned}
             sx={{
+              position: 'relative',
               display: 'flex',
               flexDirection: 'column',
               gap: theme.spacing.md,
@@ -235,8 +454,48 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
               p: theme.spacing.sm,
               borderRadius: theme.borderRadius.medium,
               backgroundColor: unassignedItems.length === 0 ? 'grey.50' : 'transparent',
+              border: selectedItem && selectedFromBillId ? `2px dashed ${theme.colors.primary}` : 'none',
+              transition: 'all 0.2s ease',
             }}
           >
+            {/* Overlay for clicking when item is selected */}
+            {selectedItem && selectedFromBillId && (
+              <Box
+                onClick={handleUnassignedAreaClick}
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                  borderRadius: theme.borderRadius.medium,
+                  cursor: 'pointer',
+                  zIndex: 10,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  '&:hover': {
+                    backgroundColor: 'rgba(33, 150, 243, 0.15)',
+                  },
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  fontWeight={theme.typography.fontWeights.semibold}
+                  sx={{
+                    color: theme.colors.primary,
+                    backgroundColor: 'white',
+                    px: theme.spacing.lg,
+                    py: theme.spacing.md,
+                    borderRadius: theme.borderRadius.medium,
+                    boxShadow: 1,
+                  }}
+                >
+                  {t('splitBillDialog.clickToMoveHere')}
+                </Typography>
+              </Box>
+            )}
             {unassignedItems.length === 0 ? (
               <Box sx={{
                 display: 'flex',
@@ -257,19 +516,32 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                   : 0;
                 const itemTotalPrice = itemBasePrice + toppingsTotalPrice;
 
+                const isSelected = selectedItem?.id === item.id;
+
                 return (
                   <Card
                     key={item.id}
                     draggable
                     onDragStart={() => handleDragStart(item)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleItemClick(item);
+                    }}
                     sx={{
-                      cursor: 'grab',
+                      cursor: 'pointer',
                       borderRadius: theme.borderRadius.medium,
+                      border: isSelected ? `2px solid ${theme.colors.primary}` : '1px solid transparent',
+                      backgroundColor: isSelected ? theme.colors.primaryLight : 'white',
+                      transform: isSelected ? 'scale(0.98)' : 'scale(1)',
+                      transition: 'all 0.2s ease',
+                      pointerEvents: (selectedItem && !isSelected) ? 'none' : 'auto',
+                      opacity: (selectedItem && !isSelected) ? 0.5 : 1,
                       '&:active': {
                         cursor: 'grabbing',
                       },
                       '&:hover': {
                         boxShadow: 2,
+                        transform: isSelected ? 'scale(0.98)' : 'scale(1.02)',
                       },
                     }}
                   >
@@ -374,13 +646,53 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                   onDragOver={handleDragOver}
                   onDrop={() => handleDropToBill(bill.id)}
                   sx={{
-                    border: `2px dashed ${theme.colors.border}`,
+                    position: 'relative',
+                    border: `2px dashed ${selectedItem ? theme.colors.primary : theme.colors.border}`,
                     borderRadius: theme.borderRadius.medium,
                     p: theme.spacing.md,
-                    backgroundColor: 'grey.50',
+                    backgroundColor: selectedItem ? theme.colors.primaryLight : 'grey.50',
                     minHeight: 120,
+                    transition: 'all 0.2s ease',
                   }}
                 >
+                  {/* Overlay for clicking when item is selected */}
+                  {selectedItem && (
+                    <Box
+                      onClick={() => handleBillAreaClick(bill.id)}
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                        borderRadius: theme.borderRadius.medium,
+                        cursor: 'pointer',
+                        zIndex: 10,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        '&:hover': {
+                          backgroundColor: 'rgba(33, 150, 243, 0.15)',
+                        },
+                      }}
+                    >
+                      <Typography
+                        variant="body2"
+                        fontWeight={theme.typography.fontWeights.semibold}
+                        sx={{
+                          color: theme.colors.primary,
+                          backgroundColor: 'white',
+                          px: theme.spacing.lg,
+                          py: theme.spacing.md,
+                          borderRadius: theme.borderRadius.medium,
+                          boxShadow: 1,
+                        }}
+                      >
+                        {t('splitBillDialog.clickToMoveHere')}
+                      </Typography>
+                    </Box>
+                  )}
                   <Box sx={{
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -392,15 +704,39 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                       fontWeight={theme.typography.fontWeights.semibold}
                       color="primary"
                     >
-                      {bill.name}
+                      {t('splitBillDialog.bill')} {bill.id}
                     </Typography>
-                    <Typography
-                      variant="body1"
-                      fontWeight={theme.typography.fontWeights.bold}
-                      color="primary"
-                    >
-                      €{total.toFixed(2)}
-                    </Typography>
+                    <Box sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: theme.spacing.sm,
+                    }}>
+                      <Typography
+                        variant="body1"
+                        fontWeight={theme.typography.fontWeights.bold}
+                        color="primary"
+                      >
+                        €{total.toFixed(2)}
+                      </Typography>
+                      {bills.length > 1 && (
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteBill(bill.id);
+                          }}
+                          sx={{
+                            color: 'error.main',
+                            ml: theme.spacing.sm,
+                            '&:hover': {
+                              backgroundColor: 'error.light',
+                            },
+                          }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      )}
+                    </Box>
                   </Box>
 
                   {bill.items.length === 0 ? (
@@ -428,17 +764,31 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                           : 0;
                         const itemTotalPrice = itemBasePrice + toppingsTotalPrice;
 
+                        const isSelected = selectedItem?.id === item.id;
+
                         return (
                           <Card
                             key={item.id}
                             draggable
                             onDragStart={() => handleDragStart(item, bill.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleItemClick(item, bill.id);
+                            }}
                             sx={{
-                              cursor: 'grab',
+                              cursor: 'pointer',
                               borderRadius: theme.borderRadius.small,
-                              backgroundColor: 'white',
+                              backgroundColor: isSelected ? theme.colors.primaryLight : 'white',
+                              border: isSelected ? `2px solid ${theme.colors.primary}` : '1px solid transparent',
+                              transform: isSelected ? 'scale(0.98)' : 'scale(1)',
+                              transition: 'all 0.2s ease',
+                              pointerEvents: (selectedItem && !isSelected) ? 'none' : 'auto',
+                              opacity: (selectedItem && !isSelected) ? 0.5 : 1,
                               '&:active': {
                                 cursor: 'grabbing',
+                              },
+                              '&:hover': {
+                                transform: isSelected ? 'scale(0.98)' : 'scale(1.02)',
                               },
                             }}
                           >
@@ -485,6 +835,128 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
           </Box>
         </Box>
       </Box>
+
+      {/* Quantity Selection Dialog */}
+      <Dialog
+        open={showQuantityDialog}
+        onClose={handleQuantityCancel}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: theme.borderRadius.xlarge,
+          }
+        }}
+      >
+        <Box sx={{ p: theme.spacing.lg }}>
+          <Typography
+            variant="h6"
+            fontWeight={theme.typography.fontWeights.bold}
+            sx={{ mb: theme.spacing.md }}
+          >
+            {t('splitBillDialog.howManyItems')}
+          </Typography>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ mb: theme.spacing.lg }}
+          >
+            {t('splitBillDialog.selectQuantity', { max: pendingMove?.item.quantity || 1 })}
+          </Typography>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: theme.spacing.md,
+              mb: theme.spacing.lg,
+            }}
+          >
+            <Button
+              variant="outlined"
+              onClick={() => setMoveQuantity(Math.max(1, moveQuantity - 1))}
+              disabled={moveQuantity <= 1}
+              sx={{
+                minWidth: 48,
+                height: 48,
+                borderRadius: theme.borderRadius.medium,
+                fontSize: theme.typography.fontSizes.xlarge,
+                fontWeight: theme.typography.fontWeights.bold,
+              }}
+            >
+              −
+            </Button>
+            <Box
+              sx={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: 56,
+                border: `2px solid ${theme.colors.border}`,
+                borderRadius: theme.borderRadius.medium,
+                fontSize: theme.typography.fontSizes.xlarge,
+                fontWeight: theme.typography.fontWeights.bold,
+              }}
+            >
+              {moveQuantity}
+            </Box>
+            <Button
+              variant="outlined"
+              onClick={() => setMoveQuantity(Math.min(pendingMove?.item.quantity || 1, moveQuantity + 1))}
+              disabled={moveQuantity >= (pendingMove?.item.quantity || 1)}
+              sx={{
+                minWidth: 48,
+                height: 48,
+                borderRadius: theme.borderRadius.medium,
+                fontSize: theme.typography.fontSizes.xlarge,
+                fontWeight: theme.typography.fontWeights.bold,
+              }}
+            >
+              +
+            </Button>
+          </Box>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: theme.spacing.md,
+              justifyContent: 'flex-end',
+            }}
+          >
+            <Button
+              onClick={handleQuantityCancel}
+              variant="outlined"
+              sx={{
+                borderRadius: theme.borderRadius.large,
+                textTransform: 'none',
+                fontSize: theme.typography.fontSizes.medium,
+                py: theme.spacing.md,
+                px: theme.spacing.lg,
+              }}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button
+              onClick={handleQuantityConfirm}
+              variant="contained"
+              sx={{
+                backgroundColor: theme.colors.primary,
+                color: theme.colors.brandWhite,
+                borderRadius: theme.borderRadius.large,
+                py: theme.spacing.md,
+                px: theme.spacing.lg,
+                textTransform: 'none',
+                fontWeight: theme.typography.fontWeights.semibold,
+                fontSize: theme.typography.fontSizes.medium,
+                '&:hover': {
+                  backgroundColor: theme.colors.primaryHover,
+                },
+              }}
+            >
+              {t('common.confirm')}
+            </Button>
+          </Box>
+        </Box>
+      </Dialog>
 
       {/* Footer Actions */}
       <Box sx={{ 

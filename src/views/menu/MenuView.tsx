@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, Container, Typography } from '@mui/material';
 import { useAtomValue, useSetAtom } from 'jotai';
+import { useTranslation } from 'react-i18next';
 import ProductCard from '../../components/menu/ProductCard';
 import ActionBar from '../../components/actionbar/ActionBar';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
@@ -10,8 +11,45 @@ import TotalOrderSummaryDialog from '../../components/order/TotalOrderSummaryDia
 import ThankYouDialog from '../../components/order/ThankYouDialog';
 import { orderStatusAtom, billRequestedAtom, resetAppStateAtom } from '../../context/orderStore';
 
-// Categories
-const categories = ['Pizzas', 'Burgers', 'Sides', 'Drinks'];
+// Categories (base categories, Campaigns is added conditionally)
+const baseCategories = ['Pizzas', 'Burgers', 'Sides', 'Drinks'];
+
+// Sample campaign product data
+const sampleCampaignProducts = [
+  {
+    id: 'c1',
+    campaignId: 'camp1',
+    productId: '1',
+    category: -1, // Special category index for campaigns
+    image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400',
+    name: 'Margherita Pizza - Special Offer',
+    price: 9.99,
+    originalPrice: 12.99,
+    description: 'Classic pizza with tomato sauce, mozzarella, and fresh basil - 25% off!',
+    toppings: [
+      { id: 't1', name: 'Extra Cheese', price: 2.0 },
+      { id: 't2', name: 'Mushrooms', price: 1.5 },
+      { id: 't3', name: 'Olives', price: 1.0 },
+      { id: 't4', name: 'Pepperoni', price: 2.5 },
+    ],
+  },
+  {
+    id: 'c2',
+    campaignId: 'camp1',
+    productId: '7',
+    category: -1,
+    image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400',
+    name: 'Classic Burger - Happy Hour',
+    price: 7.49,
+    originalPrice: 9.99,
+    description: 'Beef patty with lettuce, tomato, onion, and pickles - Limited time offer!',
+    toppings: [
+      { id: 't11', name: 'Bacon', price: 2.0 },
+      { id: 't12', name: 'Extra Patty', price: 3.5 },
+      { id: 't1', name: 'Cheese', price: 1.5 },
+    ],
+  },
+];
 
 // Sample product data
 const sampleProducts = [
@@ -194,6 +232,7 @@ const sampleProducts = [
 ];
 
 const MenuView: React.FC = () => {
+  const { t } = useTranslation();
   const [activeCategory, setActiveCategory] = useState<number>(0);
   const [showCategoryBar, setShowCategoryBar] = useState<boolean>(true);
   const [showTotalDialog, setShowTotalDialog] = useState<boolean>(false);
@@ -203,6 +242,12 @@ const MenuView: React.FC = () => {
   const orderStatus = useAtomValue(orderStatusAtom);
   const billRequested = useAtomValue(billRequestedAtom);
   const resetAppState = useSetAtom(resetAppStateAtom);
+
+  // Check if campaigns exist
+  const hasCampaigns = sampleCampaignProducts.length > 0;
+  
+  // Build categories array with Campaigns at top if they exist
+  const categories = hasCampaigns ? [t('common.campaigns'), ...baseCategories] : baseCategories;
 
   const handleResetSession = () => {
     resetAppState();
@@ -225,9 +270,15 @@ const MenuView: React.FC = () => {
   }, [billRequested]);
 
   // Group products by category
-  const productsByCategory = categories.map((_, index) =>
-    sampleProducts.filter(product => product.category === index)
-  );
+  const productsByCategory = categories.map((categoryName, index) => {
+    if (hasCampaigns && index === 0) {
+      // First category is Campaigns if they exist
+      return sampleCampaignProducts;
+    }
+    // Adjust category index for regular products based on whether campaigns exist
+    const productCategoryIndex = hasCampaigns ? index - 1 : index;
+    return sampleProducts.filter(product => product.category === productCategoryIndex);
+  });
 
   // Scroll to category
   const handleCategoryClick = (index: number): void => {

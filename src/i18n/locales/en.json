@@ -2,8 +2,10 @@
   "common": {
     "cancel": "Cancel",
     "confirm": "Confirm",
+    "bill": "Bill",
     "total": "Total",
-    "table": "Table"
+    "table": "Table",
+    "campaigns": "Campaigns"
   },
   "actionBar": {
     "callForService": "Call for service",
@@ -51,13 +53,17 @@
     "title": "Split Bill",
     "allItems": "All Items",
     "bills": "Bills",
+    "bill": "Bill",
     "addBill": "Add Bill",
     "save": "Save",
     "dragItemsHere": "Drag items here",
+    "clickToMoveHere": "Move here",
     "allItemsAssigned": "All items have been assigned to bills",
     "item": "item",
     "items": "items",
-    "primaryBill": "Primary Bill"
+    "primaryBill": "Primary Bill",
+    "howManyItems": "How many items?",
+    "selectQuantity": "Select how many to move (max: {{max}})"
   },
   "confirmDialog": {
     "callService": {

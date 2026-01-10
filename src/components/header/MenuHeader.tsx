@@ -309,7 +309,7 @@ const MenuHeader: React.FC<MenuHeaderProps> = ({
               }}
             >
               <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                {t('common.total')}
+                {t('common.bill')}
               </Box>
             </Button>
           </Box>
