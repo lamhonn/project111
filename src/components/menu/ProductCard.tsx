@@ -19,15 +19,10 @@ interface Props {
   price: number;
   initialQuantity?: number;
   description?: string;
-  toppings?: Array<{
-    id: string;
-    name: string;
-    price: number;
-  }>;
 }
 
 const ProductCard: React.FC<Props> = (props: Props) => {
-  const { id, image, name, price, initialQuantity = 0, description, toppings } = props;
+  const { id, image, name, price, initialQuantity = 0, description } = props;
   const { t } = useTranslation();
 
   const [quantity, setQuantity] = useState<number>(initialQuantity);
@@ -109,13 +104,13 @@ const ProductCard: React.FC<Props> = (props: Props) => {
       </Card>
 
       <ProductDialog
+        productId={id}
         product={{
           id,
           image,
           name,
           price,
           description,
-          toppings,
         }}
         isOpen={dialogOpen}
         onClose={handleCloseDialog}

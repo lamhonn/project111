@@ -16,51 +16,48 @@ import { useSetAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
 import { addOrderItemAtom, Topping as OrderTopping } from '../../context/orderStore';
+import { useGetProductToppings } from '../../api/hooks/topping.hooks';
 
 // Temporary interfaces
-interface Topping {
-  id: string;
-  name: string;
-  price: number;
-}
-
 interface Product {
   id: string;
   image: string;
   name: string;
   price: number;
   description?: string;
-  toppings?: Topping[];
 }
 
 interface ProductDialogProps {
+  productId: string;
   product: Product;
   isOpen: boolean;
   onClose: () => void;
 }
 
-const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose }) => {
+const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpen, onClose }) => {
   const { t } = useTranslation();
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedToppings, setSelectedToppings] = useState<Record<string, number>>({});
   const addItem = useSetAtom(addOrderItemAtom);
+  
+  // Fetch toppings from API
+  const { data: toppingsData } = useGetProductToppings(productId);
+  const toppings = toppingsData?.toppings || [];
 
   const handleAddToOrder = (): void => {
     // Convert selected toppings to array format
     const toppingsArray: OrderTopping[] = [];
-    if (product.toppings) {
-      product.toppings.forEach(topping => {
-        const toppingQuantity = selectedToppings[topping.id] || 0;
-        if (toppingQuantity > 0) {
-          toppingsArray.push({
-            id: topping.id,
-            name: topping.name,
-            price: topping.price,
-            quantity: toppingQuantity,
-          });
-        }
-      });
-    }
+    toppings.forEach(topping => {
+      const toppingQuantity = selectedToppings[topping.Id] || 0;
+      if (toppingQuantity > 0) {
+        toppingsArray.push({
+          id: topping.Id,
+          name: topping.Name,
+          price: topping.PriceIncrement,
+          quantity: toppingQuantity,
+        });
+      }
+    });
 
     // Add item to order
     addItem({
@@ -110,12 +107,10 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose 
 
   const calculateTotal = (): number => {
     let total = product.price * quantity;
-    if (product.toppings) {
-      product.toppings.forEach(topping => {
-        const count = selectedToppings[topping.id] || 0;
-        total += topping.price * count;
-      });
-    }
+    toppings.forEach(topping => {
+      const count = selectedToppings[topping.Id] || 0;
+      total += topping.PriceIncrement * count;
+    });
     return total;
   };
 
@@ -178,7 +173,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose 
         )}
 
         {/* Toppings */}
-        {product.toppings && product.toppings.length > 0 && (
+        {toppings && toppings.length > 0 && (
           <Box sx={{ mb: theme.spacing.lg }}>
             <Typography 
               variant="caption"
@@ -189,15 +184,15 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose 
               {t('productDialog.toppings')}
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {product.toppings.map((topping) => {
-                const count = selectedToppings[topping.id] || 0;
+              {toppings.map((topping) => {
+                const count = selectedToppings[topping.Id] || 0;
                 const isSelected = count > 0;
 
                 return (
                   <Card
-                    key={topping.id}
+                    key={topping.Id}
                     variant="outlined"
-                    onClick={() => handleToppingToggle(topping.id)}
+                    onClick={() => handleToppingToggle(topping.Id)}
                     sx={{
                       borderRadius: theme.borderRadius.medium,
                       borderColor: isSelected ? theme.colors.primary : 'grey.300',
@@ -220,11 +215,11 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose 
                     >
                       <Box>
                         <Typography component="span" fontWeight="medium">
-                          {topping.name}
+                          {topping.Name}
                         </Typography>
-                        {topping.price > 0 && (
+                        {topping.PriceIncrement > 0 && (
                           <Typography component="span" color={theme.colors.text} sx={{ ml: 1 }}>
-                            +€{topping.price.toFixed(2)}
+                            +€{topping.PriceIncrement.toFixed(2)}
                           </Typography>
                         )}
                         {count > 0 && (
@@ -241,7 +236,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose 
                         >
                           <IconButton
                             size="small"
-                            onClick={(e) => handleToppingDecrement(topping.id, e)}
+                            onClick={(e) => handleToppingDecrement(topping.Id, e)}
                             sx={{
                               color: 'error.main',
                               '&:hover': {
@@ -253,7 +248,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ product, isOpen, onClose 
                           </IconButton>
                           <IconButton
                             size="small"
-                            onClick={(e) => handleToppingIncrement(topping.id, e)}
+                            onClick={(e) => handleToppingIncrement(topping.Id, e)}
                             sx={{
                               color: theme.colors.text,
                               '&:hover': {

@@ -10,7 +10,6 @@ interface ThankYouDialogProps {
 
 const ThankYouDialog: React.FC<ThankYouDialogProps> = ({ isOpen, onReset }) => {
   const { t } = useTranslation();
-  if (!isOpen) return null;
 
   useEffect(() => {
     if (isOpen) {
@@ -26,6 +25,8 @@ const ThankYouDialog: React.FC<ThankYouDialogProps> = ({ isOpen, onReset }) => {
         document.body.style.position = 'unset';
     };
   }, [isOpen]);
+
+  if (!isOpen) return null;
 
   return (
     <Box

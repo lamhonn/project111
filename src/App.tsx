@@ -4,6 +4,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { Provider } from 'jotai';
 import MenuView from './views/menu/MenuView';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import AuthGuard from './components/auth/AuthGuard';
 import { store } from './context/store';
 // import './App.css';
 
@@ -45,7 +46,9 @@ function App() {
       <ThemeProvider theme={muiTheme}>
         <CssBaseline />
         <ErrorBoundary>
-          <MenuView />
+          <AuthGuard>
+            <MenuView />
+          </AuthGuard>
         </ErrorBoundary>
       </ThemeProvider>
     </Provider>

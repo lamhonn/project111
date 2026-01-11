@@ -63,6 +63,7 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
   const newItems = getNewItems();
   const primaryBillItems = billSplitConfig ? [...billSplitConfig.unsplitItems, ...newItems] : [];
 
+  // FIXME: error state when sent a split bill
   const handleAskForBill = (): void => {
     openConfirmDialog({
       title: t('confirmDialog.askForBill.title'),
