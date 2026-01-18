@@ -23,6 +23,8 @@
   },
   "productDialog": {
     "toppings": "TILLBEHÖR",
+    "ingredients": "INGREDIENSER",
+    "ageVerification": "Åldersbegränsad. Din ålder kan verifieras av personalen",
     "addToOrder": "Lägg till beställning"
   },
   "orderSummaryDialog": {

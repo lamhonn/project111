@@ -23,6 +23,8 @@
   },
   "productDialog": {
     "toppings": "TÄYTTEET",
+    "ingredients": "AINESOSAT",
+    "ageVerification": "Ikärajoitettu tuote. Voit joutua todistamaan ikäsi henkilökunnalle",
     "addToOrder": "Lisää tilaukseen"
   },
   "orderSummaryDialog": {

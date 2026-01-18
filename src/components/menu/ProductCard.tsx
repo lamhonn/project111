@@ -6,11 +6,14 @@ import {
   CardActions,
   Typography,
   Button,
+  Box,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import FastfoodIcon from '@mui/icons-material/Fastfood';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
 import ProductDialog from './ProductInfoDialog';
+import { getLocalizedProductName, getLocalizedDescription } from '../../api/utils/multilingualName.utils';
 
 interface Props {
   id: string;
@@ -19,14 +22,22 @@ interface Props {
   price: number;
   initialQuantity?: number;
   description?: string;
+  toppings?: string;
+  ingredients?: string;
+  ageRestricted?: boolean;
 }
 
 const ProductCard: React.FC<Props> = (props: Props) => {
-  const { id, image, name, price, initialQuantity = 0, description } = props;
-  const { t } = useTranslation();
+  const { id, image, name, price, initialQuantity = 0, description, toppings, ingredients, ageRestricted } = props;
+  const { t, i18n } = useTranslation();
+
+  // Get localized product name and description
+  const localizedName = getLocalizedProductName(name, i18n.language);
+  const localizedDescription = getLocalizedDescription(description, i18n.language);
 
   const [quantity, setQuantity] = useState<number>(initialQuantity);
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+  const [imageError, setImageError] = useState<boolean>(false);
   const isSelected: boolean = quantity > 0;
 
   const handleOpenDialog = (): void => {
@@ -50,13 +61,28 @@ const ProductCard: React.FC<Props> = (props: Props) => {
           cursor: 'pointer',
         }}
       >
-        <CardMedia
-          component="img"
-          height={200}
-          image={image}
-          alt={name}
-          sx={{ objectFit: 'cover' }}
-        />
+        {!imageError ? (
+          <CardMedia
+            component="img"
+            height={200}
+            image={image}
+            alt={localizedName}
+            onError={() => setImageError(true)}
+            sx={{ objectFit: 'cover' }}
+          />
+        ) : (
+          <Box
+            sx={{
+              height: 200,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'grey.200',
+            }}
+          >
+            <FastfoodIcon sx={{ fontSize: 80, color: 'grey.500' }} />
+          </Box>
+        )}
         
         <CardContent sx={{ pb: theme.spacing.sm }}>
           <Typography 
@@ -64,7 +90,7 @@ const ProductCard: React.FC<Props> = (props: Props) => {
             component="div" 
             fontWeight={theme.typography.fontWeights.semibold}
           >
-            {name}{' '}
+            {localizedName}{' '}
             <Typography 
               component="span" 
               color="text.secondary" 
@@ -108,9 +134,12 @@ const ProductCard: React.FC<Props> = (props: Props) => {
         product={{
           id,
           image,
-          name,
+          name: localizedName,
           price,
-          description,
+          description: localizedDescription,
+          toppings,
+          ingredients,
+          ageRestricted,
         }}
         isOpen={dialogOpen}
         onClose={handleCloseDialog}

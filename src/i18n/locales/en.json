@@ -23,6 +23,8 @@
   },
   "productDialog": {
     "toppings": "TOPPINGS",
+    "ingredients": "INGREDIENTS",
+    "ageVerification": "Age restricted. Your age might be verified by the staff",
     "addToOrder": "Add to order"
   },
   "orderSummaryDialog": {

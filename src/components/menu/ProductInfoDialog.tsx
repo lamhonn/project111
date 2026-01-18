@@ -12,11 +12,14 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import FastfoodIcon from '@mui/icons-material/Fastfood';
 import { useSetAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
 import { addOrderItemAtom, Topping as OrderTopping } from '../../context/orderStore';
-import { useGetProductToppings } from '../../api/hooks/topping.hooks';
+import { parseToppings } from '../../api/utils/toppings.utils';
+import { getLocalizedIngredients } from '../../api/utils/multilingualName.utils';
 
 // Temporary interfaces
 interface Product {
@@ -25,6 +28,9 @@ interface Product {
   name: string;
   price: number;
   description?: string;
+  toppings?: string;
+  ingredients?: string;
+  ageRestricted?: boolean;
 }
 
 interface ProductDialogProps {
@@ -35,23 +41,26 @@ interface ProductDialogProps {
 }
 
 const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpen, onClose }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [quantity, setQuantity] = useState<number>(1);
-  const [selectedToppings, setSelectedToppings] = useState<Record<string, number>>({});
+  const [selectedToppings, setSelectedToppings] = useState<Record<number, number>>({});
+  const [imageError, setImageError] = useState<boolean>(false);
   const addItem = useSetAtom(addOrderItemAtom);
   
-  // Fetch toppings from API
-  const { data: toppingsData } = useGetProductToppings(productId);
-  const toppings = toppingsData?.toppings || [];
+  // Parse toppings from embedded product data
+  const toppings = parseToppings(product.toppings);
+  
+  // Get localized ingredients
+  const localizedIngredients = getLocalizedIngredients(product.ingredients, i18n.language);
 
   const handleAddToOrder = (): void => {
     // Convert selected toppings to array format
     const toppingsArray: OrderTopping[] = [];
-    toppings.forEach(topping => {
-      const toppingQuantity = selectedToppings[topping.Id] || 0;
+    toppings.forEach((topping, index) => {
+      const toppingQuantity = selectedToppings[index] || 0;
       if (toppingQuantity > 0) {
         toppingsArray.push({
-          id: topping.Id,
+          id: topping.Name,
           name: topping.Name,
           price: topping.PriceIncrement,
           quantity: toppingQuantity,
@@ -76,30 +85,30 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
     onClose();
   };
 
-  const handleToppingToggle = (toppingId: string): void => {
+  const handleToppingToggle = (toppingIndex: number): void => {
     setSelectedToppings(prev => {
-      const current = prev[toppingId] || 0;
+      const current = prev[toppingIndex] || 0;
       if (current === 0) {
-        return { ...prev, [toppingId]: 1 };
+        return { ...prev, [toppingIndex]: 1 };
       }
-      return { ...prev, [toppingId]: 0 };
+      return { ...prev, [toppingIndex]: 0 };
     });
   };
 
-  const handleToppingIncrement = (toppingId: string, e: React.MouseEvent): void => {
+  const handleToppingIncrement = (toppingIndex: number, e: React.MouseEvent): void => {
     e.stopPropagation();
     setSelectedToppings(prev => ({
       ...prev,
-      [toppingId]: (prev[toppingId] || 0) + 1
+      [toppingIndex]: (prev[toppingIndex] || 0) + 1
     }));
   };
 
-  const handleToppingDecrement = (toppingId: string, e: React.MouseEvent): void => {
+  const handleToppingDecrement = (toppingIndex: number, e: React.MouseEvent): void => {
     e.stopPropagation();
     setSelectedToppings(prev => {
-      const current = prev[toppingId] || 0;
+      const current = prev[toppingIndex] || 0;
       if (current > 0) {
-        return { ...prev, [toppingId]: current - 1 };
+        return { ...prev, [toppingIndex]: current - 1 };
       }
       return prev;
     });
@@ -107,8 +116,8 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
 
   const calculateTotal = (): number => {
     let total = product.price * quantity;
-    toppings.forEach(topping => {
-      const count = selectedToppings[topping.Id] || 0;
+    toppings.forEach((topping, index) => {
+      const count = selectedToppings[index] || 0;
       total += topping.PriceIncrement * count;
     });
     return total;
@@ -130,16 +139,32 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
     >
       {/* Header Image */}
       <Box sx={{ position: 'relative' }}>
-        <Box
-          component="img"
-          src={product.image}
-          alt={product.name}
-          sx={{
-            width: '100%',
-            height: 192,
-            objectFit: 'cover',
-          }}
-        />
+        {!imageError ? (
+          <Box
+            component="img"
+            src={product.image}
+            alt={product.name}
+            onError={() => setImageError(true)}
+            sx={{
+              width: '100%',
+              height: 192,
+              objectFit: 'cover',
+            }}
+          />
+        ) : (
+          <Box
+            sx={{
+              width: '100%',
+              height: 192,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'grey.200',
+            }}
+          >
+            <FastfoodIcon sx={{ fontSize: 100, color: 'grey.500' }} />
+          </Box>
+        )}
         <IconButton
           onClick={onClose}
           sx={{
@@ -166,6 +191,29 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
           €{product.price.toFixed(2)}
         </Typography>
 
+        {/* Age Restriction Warning */}
+        {product.ageRestricted && (
+          <Box 
+            sx={{ 
+              mb: theme.spacing.lg,
+              p: theme.spacing.md,
+              backgroundColor: 'error.light',
+              borderRadius: theme.borderRadius.medium,
+              border: '1px solid',
+              borderColor: 'error.main',
+            }}
+          >
+            <Typography 
+              variant="body2"
+              fontWeight={theme.typography.fontWeights.semibold}
+              color="error.dark"
+              sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+            >
+              <ErrorOutlineIcon fontSize="small" /> {t('productDialog.ageVerification')}
+            </Typography>
+          </Box>
+        )}
+
         {product.description && (
           <Typography color={theme.colors.text} sx={{ mb: theme.spacing.lg }}>
             {product.description}
@@ -184,15 +232,15 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
               {t('productDialog.toppings')}
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {toppings.map((topping) => {
-                const count = selectedToppings[topping.Id] || 0;
+              {toppings.map((topping, index) => {
+                const count = selectedToppings[index] || 0;
                 const isSelected = count > 0;
 
                 return (
                   <Card
-                    key={topping.Id}
+                    key={index}
                     variant="outlined"
-                    onClick={() => handleToppingToggle(topping.Id)}
+                    onClick={() => handleToppingToggle(index)}
                     sx={{
                       borderRadius: theme.borderRadius.medium,
                       borderColor: isSelected ? theme.colors.primary : 'grey.300',
@@ -236,7 +284,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
                         >
                           <IconButton
                             size="small"
-                            onClick={(e) => handleToppingDecrement(topping.Id, e)}
+                            onClick={(e) => handleToppingDecrement(index, e)}
                             sx={{
                               color: 'error.main',
                               '&:hover': {
@@ -248,7 +296,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
                           </IconButton>
                           <IconButton
                             size="small"
-                            onClick={(e) => handleToppingIncrement(topping.Id, e)}
+                            onClick={(e) => handleToppingIncrement(index, e)}
                             sx={{
                               color: theme.colors.text,
                               '&:hover': {
@@ -265,6 +313,29 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
                 );
               })}
             </Box>
+          </Box>
+        )}
+
+        {/* Ingredients */}
+        {localizedIngredients && (
+          <Box sx={{ mb: theme.spacing.lg }}>
+            <Typography 
+              variant="caption"
+              fontWeight={theme.typography.fontWeights.bold}
+              color={theme.colors.text}
+              sx={{ mb: 1, display: 'block' }}
+            >
+              {t('productDialog.ingredients')}
+            </Typography>
+            <Typography 
+              color={theme.colors.text}
+              sx={{ 
+                fontStyle: 'italic',
+                fontSize: theme.typography.fontSizes.small,
+              }}
+            >
+              {localizedIngredients}
+            </Typography>
           </Box>
         )}
     </DialogContent>

@@ -13,9 +13,10 @@ import { orderStatusAtom, billRequestedAtom, resetAppStateAtom } from '../../con
 import { useGetProducts } from '../../api/hooks/product.hooks';
 import { useGetActiveCampaignProducts } from '../../api/hooks/campaignProduct.hooks';
 import { MOCK_CATEGORIES } from '../../api/mockData/products.mock';
+import { getLocalizedCategoryName } from '../../api/utils/multilingualName.utils';
 
 const MenuView: React.FC = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   
   // Fetch data from API hooks
   // TODO: Get organizationId and menuId from context/URL params
@@ -40,7 +41,9 @@ const MenuView: React.FC = () => {
   const hasCampaigns = campaignProducts.length > 0;
   
   // Build categories array with Campaigns at top if they exist
-  const categories = hasCampaigns ? [t('common.campaigns'), ...MOCK_CATEGORIES] : MOCK_CATEGORIES;
+  // Localize category names based on current language
+  const localizedCategories = MOCK_CATEGORIES.map(cat => getLocalizedCategoryName(cat, i18n.language));
+  const categories = hasCampaigns ? [t('common.campaigns'), ...localizedCategories] : localizedCategories;
 
   const handleResetSession = () => {
     resetAppState();
@@ -212,6 +215,8 @@ const MenuView: React.FC = () => {
                   ? (product as any).CampaignPrice || 0 
                   : (product as any).Price;
                 const name = product.Name || '';
+                const ingredients = product.Ingredients || undefined;
+                const ageRestricted = (product as any).AgeRestrictied || false;
                 
                 return (
                   <ProductCard
@@ -221,6 +226,9 @@ const MenuView: React.FC = () => {
                     name={name}
                     price={price}
                     description={product.Description}
+                    toppings={product.Toppings}
+                    ingredients={ingredients}
+                    ageRestricted={ageRestricted}
                   />
                 );
               })}
