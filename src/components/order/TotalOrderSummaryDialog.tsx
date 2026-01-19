@@ -14,6 +14,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import SplitBillDialog from './SplitBillDialog';
+import BillRequestOptionsDialog from './BillRequestOptionsDialog';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
@@ -24,6 +25,8 @@ import {
   billRequestedAtom,
   billSplitConfigurationAtom,
   OrderItem,
+  markBillsAsRequestedAtom,
+  BillStatus,
 } from '../../context/orderStore';
 import { openConfirmDialogAtom } from '../../context/confirmDialogStore';
 
@@ -38,6 +41,7 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
 }) => {
   const { t } = useTranslation();
   const [isSplitBillOpen, setIsSplitBillOpen] = useState(false);
+  const [isBillRequestOptionsOpen, setIsBillRequestOptionsOpen] = useState(false);
   
   // Use Jotai atoms
   const totalOrderItems = useAtomValue(totalOrderItemsAtom);
@@ -46,6 +50,7 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
   const openConfirmDialog = useSetAtom(openConfirmDialogAtom);
   const setBillRequested = useSetAtom(billRequestedAtom);
   const billSplitConfig = useAtomValue(billSplitConfigurationAtom);
+  const markBillsAsRequested = useSetAtom(markBillsAsRequestedAtom);
 
   // Calculate new items that weren't in the original split
   const getNewItems = (): OrderItem[] => {
@@ -63,18 +68,64 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
   const newItems = getNewItems();
   const primaryBillItems = billSplitConfig ? [...billSplitConfig.unsplitItems, ...newItems] : [];
 
-  // FIXME: error state when sent a split bill
+  // Filter active bills for checking if we should show split bill options
+  const activeBills = billSplitConfig ? billSplitConfig.bills.filter(bill => bill.status === BillStatus.Active) : [];
+
+  // Check if there are active split bills
+  const hasSplitBills = activeBills.length > 0;
+
+  // Handle ask for bill - show options dialog if there are split bills
   const handleAskForBill = (): void => {
-    openConfirmDialog({
-      title: t('confirmDialog.askForBill.title'),
-      message: t('confirmDialog.askForBill.message'),
-      cancelText: t('common.cancel'),
-      confirmText: t('common.confirm'),
-      onConfirm: () => {
-        setBillRequested(true);
-        onClose();
-      },
-    });
+    if (hasSplitBills) {
+      setIsBillRequestOptionsOpen(true);
+    } else {
+      // No split bills, proceed with normal confirmation
+      openConfirmDialog({
+        title: t('confirmDialog.askForBill.title'),
+        message: t('confirmDialog.askForBill.message'),
+        cancelText: t('common.cancel'),
+        confirmText: t('common.confirm'),
+        onConfirm: () => {
+          setBillRequested(true);
+          onClose();
+        },
+      });
+    }
+  };
+
+  // Handle requesting all bills
+  const handleRequestAllBills = (): void => {
+    // TODO: Implement API call to request all bills
+    // Mark all active bills as requested (don't re-request already requested ones)
+    markBillsAsRequested(activeBills.map(bill => bill.id));
+    // End session - request all remaining bills
+    setBillRequested(true);
+    onClose();
+  };
+
+  // Handle requesting selected bills
+  const handleRequestSelectedBills = (selectedBillIds: string[], includePrimary: boolean): void => {
+    // TODO: Implement API call to request specific bills
+    // selectedBillIds contains the IDs of bills to request
+    // includePrimary indicates if the primary bill should be included
+    console.log('Requesting bills:', { selectedBillIds, includePrimary });
+    
+    // Mark selected bills as requested
+    markBillsAsRequested(selectedBillIds);
+    
+    // Check if this was the final bill request
+    // Final bill = all active bills are requested AND (primary bill included OR no primary items exist)
+    const remainingActiveBills = activeBills.filter(bill => !selectedBillIds.includes(bill.id));
+    const noPrimaryItemsLeft = primaryBillItems.length === 0 || includePrimary;
+    const isFinalBill = remainingActiveBills.length === 0 && noPrimaryItemsLeft;
+    
+    if (isFinalBill) {
+      // This was the final bill - end session
+      setBillRequested(true);
+    }
+    
+    // Session continues if there are still active bills or primary items remaining
+    onClose();
   };
 
   // Helper function to calculate total for items
@@ -168,13 +219,14 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
             {/* Show bill splits if they exist */}
             {billSplitConfig ? (
               <>
-                {/* Show each split bill */}
+                {/* Show all split bills, gray out requested ones */}
                 {billSplitConfig.bills.map((bill, index) => {
                   if (bill.items.length === 0) return null;
+                  const isRequested = bill.status === BillStatus.Requested;
                   const billTotal = calculateItemsTotal(bill.items);
 
                   return (
-                    <Box key={bill.id} sx={{ mb: theme.spacing.lg }}>
+                    <Box key={bill.id} sx={{ mb: theme.spacing.lg, opacity: isRequested ? 0.6 : 1 }}>
                       <Box sx={{ 
                         display: 'flex', 
                         justifyContent: 'space-between',
@@ -185,15 +237,28 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                           <Typography 
                             variant="body1"
                             fontWeight={theme.typography.fontWeights.semibold}
+                            color={isRequested ? 'text.secondary' : 'text.primary'}
                           >
                             {t('splitBillDialog.bill')} {bill.id}
                           </Typography>
+                          {isRequested && (
+                            <Chip 
+                              label={t('splitBillDialog.requested')} 
+                              size="small"
+                              sx={{
+                                backgroundColor: 'grey.400',
+                                color: 'white',
+                                fontWeight: theme.typography.fontWeights.semibold,
+                                fontSize: '0.7rem',
+                              }}
+                            />
+                          )}
                           <Chip
                             label={`${bill.items.length} ${bill.items.length === 1 ? t('splitBillDialog.item') : t('splitBillDialog.items')}`}
                             size="small"
                             sx={{
-                              bgcolor: theme.colors.primaryLight,
-                              color: theme.colors.primary,
+                              bgcolor: isRequested ? 'grey.200' : theme.colors.primaryLight,
+                              color: isRequested ? 'text.secondary' : theme.colors.primary,
                               fontWeight: theme.typography.fontWeights.medium,
                               fontSize: theme.typography.fontSizes.small,
                             }}
@@ -202,7 +267,7 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                         <Typography 
                           variant="body1"
                           fontWeight={theme.typography.fontWeights.bold}
-                          color="primary"
+                          color={isRequested ? 'text.secondary' : 'primary'}
                         >
                           €{billTotal.toFixed(2)}
                         </Typography>
@@ -276,7 +341,7 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                         })}
                       </Box>
 
-                      {index < billSplitConfig.bills.filter(b => b.items.length > 0).length - 1 + (billSplitConfig.unsplitItems.length > 0 ? 1 : 0) && (
+                      {index < billSplitConfig.bills.filter(b => b.items.length > 0).length - 1 + (primaryBillItems.length > 0 ? 1 : 0) && (
                         <Divider sx={{ mt: theme.spacing.lg }} />
                       )}
                     </Box>
@@ -590,6 +655,16 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
       <SplitBillDialog 
         isOpen={isSplitBillOpen} 
         onClose={() => setIsSplitBillOpen(false)} 
+      />
+
+      {/* Bill Request Options Dialog */}
+      <BillRequestOptionsDialog
+        isOpen={isBillRequestOptionsOpen}
+        onClose={() => setIsBillRequestOptionsOpen(false)}
+        bills={billSplitConfig?.bills || []}
+        primaryBillItems={primaryBillItems}
+        onRequestAll={handleRequestAllBills}
+        onRequestSelected={handleRequestSelectedBills}
       />
     </Dialog>
   );

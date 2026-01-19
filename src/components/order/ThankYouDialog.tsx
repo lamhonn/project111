@@ -56,7 +56,7 @@ const ThankYouDialog: React.FC<ThankYouDialogProps> = ({ isOpen, onReset }) => {
       <Box
         sx={{
           backgroundColor: 'white',
-          borderRadius: 3,
+          borderRadius: theme.borderRadius.large,
           p: 4,
           maxWidth: 400,
           textAlign: 'center',

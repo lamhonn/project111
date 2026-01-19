@@ -8,6 +8,7 @@ import {
   CardContent,
   Dialog,
   Avatar,
+  Chip,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
@@ -21,6 +22,7 @@ import {
   saveBillSplitAtom,
   billSplitConfigurationAtom,
   SplitBill,
+  BillStatus,
 } from '../../context/orderStore';
 
 interface SplitBillDialogProps {
@@ -64,7 +66,7 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
       } else {
         // Otherwise, initialize with all items unassigned and one empty bill
         setUnassignedItems([...totalOrderItems]);
-        setBills([{ id: '1', items: [] }]);
+        setBills([{ id: '1', items: [], status: BillStatus.Active }]);
       }
     }
   }, [isOpen, totalOrderItems, existingBillSplit]);
@@ -310,7 +312,7 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
     const newBillNumber = bills.length + 1;
     setBills(prev => [
       ...prev,
-      { id: String(newBillNumber), items: [] },
+      { id: String(newBillNumber), items: [], status: BillStatus.Active },
     ]);
   };
 
@@ -639,24 +641,26 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
           }}>
             {bills.map((bill) => {
               const total = calculateBillTotal(bill.items);
+              const isRequested = bill.status === BillStatus.Requested;
 
               return (
                 <Box
                   key={bill.id}
-                  onDragOver={handleDragOver}
-                  onDrop={() => handleDropToBill(bill.id)}
+                  onDragOver={!isRequested ? handleDragOver : undefined}
+                  onDrop={!isRequested ? () => handleDropToBill(bill.id) : undefined}
                   sx={{
                     position: 'relative',
-                    border: `2px dashed ${selectedItem ? theme.colors.primary : theme.colors.border}`,
+                    border: `2px dashed ${isRequested ? theme.colors.border : (selectedItem ? theme.colors.primary : theme.colors.border)}`,
                     borderRadius: theme.borderRadius.medium,
                     p: theme.spacing.md,
-                    backgroundColor: selectedItem ? theme.colors.primaryLight : 'grey.50',
+                    backgroundColor: isRequested ? 'grey.200' : (selectedItem ? theme.colors.primaryLight : 'grey.50'),
                     minHeight: 120,
                     transition: 'all 0.2s ease',
+                    opacity: isRequested ? 0.6 : 1,
                   }}
                 >
                   {/* Overlay for clicking when item is selected */}
-                  {selectedItem && (
+                  {selectedItem && !isRequested && (
                     <Box
                       onClick={() => handleBillAreaClick(bill.id)}
                       sx={{
@@ -699,13 +703,27 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                     alignItems: 'center',
                     mb: theme.spacing.md,
                   }}>
-                    <Typography
-                      variant="body1"
-                      fontWeight={theme.typography.fontWeights.semibold}
-                      color="primary"
-                    >
-                      {t('splitBillDialog.bill')} {bill.id}
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography
+                        variant="body1"
+                        fontWeight={theme.typography.fontWeights.semibold}
+                        color={isRequested ? "text.secondary" : "primary"}
+                      >
+                        {t('splitBillDialog.bill')} {bill.id}
+                      </Typography>
+                      {isRequested && (
+                        <Chip 
+                          label={t('splitBillDialog.requested')} 
+                          size="small"
+                          sx={{
+                            backgroundColor: 'grey.400',
+                            color: 'white',
+                            fontWeight: theme.typography.fontWeights.semibold,
+                            fontSize: '0.7rem',
+                          }}
+                        />
+                      )}
+                    </Box>
                     <Box sx={{
                       display: 'flex',
                       alignItems: 'center',
@@ -714,11 +732,11 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                       <Typography
                         variant="body1"
                         fontWeight={theme.typography.fontWeights.bold}
-                        color="primary"
+                        color={isRequested ? "text.secondary" : "primary"}
                       >
                         €{total.toFixed(2)}
                       </Typography>
-                      {bills.length > 1 && (
+                      {bills.length > 1 && !isRequested && (
                         <IconButton
                           size="small"
                           onClick={(e) => {
@@ -748,7 +766,7 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                       color: 'text.secondary',
                     }}>
                       <Typography variant="caption" color="text.secondary">
-                        {t('splitBillDialog.dragItemsHere')}
+                        {isRequested ? t('splitBillDialog.billRequested') : t('splitBillDialog.dragItemsHere')}
                       </Typography>
                     </Box>
                   ) : (
@@ -769,16 +787,16 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                         return (
                           <Card
                             key={item.id}
-                            draggable
-                            onDragStart={() => handleDragStart(item, bill.id)}
-                            onClick={(e) => {
+                            draggable={!isRequested}
+                            onDragStart={!isRequested ? () => handleDragStart(item, bill.id) : undefined}
+                            onClick={!isRequested ? (e) => {
                               e.stopPropagation();
                               handleItemClick(item, bill.id);
-                            }}
+                            } : undefined}
                             sx={{
-                              cursor: 'pointer',
+                              cursor: isRequested ? 'default' : 'pointer',
                               borderRadius: theme.borderRadius.small,
-                              backgroundColor: isSelected ? theme.colors.primaryLight : 'white',
+                              backgroundColor: isRequested ? 'grey.100' : (isSelected ? theme.colors.primaryLight : 'white'),
                               border: isSelected ? `2px solid ${theme.colors.primary}` : '1px solid transparent',
                               transform: isSelected ? 'scale(0.98)' : 'scale(1)',
                               transition: 'all 0.2s ease',

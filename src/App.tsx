@@ -1,11 +1,13 @@
 import React from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import { Provider } from 'jotai';
+import { Provider, useAtomValue, useSetAtom } from 'jotai';
 import MenuView from './views/menu/MenuView';
+import WelcomeView from './views/welcome/WelcomeView';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import AuthGuard from './components/auth/AuthGuard';
 import { store } from './context/store';
+import { sessionStateAtom, SessionState, startSessionAtom } from './context/orderStore';
 // import './App.css';
 
 // Create a MUI theme with brand colors
@@ -40,6 +42,25 @@ const muiTheme = createTheme({
   },
 });
 
+// Main app content component - handles session state
+const AppContent: React.FC = () => {
+  const sessionState = useAtomValue(sessionStateAtom);
+  const startSession = useSetAtom(startSessionAtom);
+
+  const handleStartSession = () => {
+    startSession();
+  };
+
+  // Show Welcome screen if session state is Welcome
+  if (sessionState === SessionState.Welcome) {
+    // TODO: Replace backgroundImage URL with an API call to fetch from settings
+    return <WelcomeView onStartSession={handleStartSession} backgroundImage='https://images.pexels.com/photos/2130134/pexels-photo-2130134.jpeg'/>;
+  }
+
+  // Otherwise show the main menu view
+  return <MenuView />;
+};
+
 function App() {
   return (
     <Provider store={store}>
@@ -47,7 +68,7 @@ function App() {
         <CssBaseline />
         <ErrorBoundary>
           <AuthGuard>
-            <MenuView />
+            <AppContent />
           </AuthGuard>
         </ErrorBoundary>
       </ThemeProvider>

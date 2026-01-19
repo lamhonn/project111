@@ -55,12 +55,27 @@ export const orderStatusAtom = atom<OrderStatus | null>(null);
 
 export const billRequestedAtom = atom<boolean>(false);
 
+// Session state tracking
+export enum SessionState {
+  Welcome = 'welcome',      // Initial welcome screen
+  Active = 'active',        // Session is active (dining/ordering)
+  Ended = 'ended',          // Session ended (showing thank you)
+}
+
+export const sessionStateAtom = atom<SessionState>(SessionState.Welcome);
+
 export const languageAtom = atom<string>('en'); // ISO language codes: 'en', 'fi', 'sv'
 
 // Split Bill Types and State
+export enum BillStatus {
+  Active = 'active',      // Bill is active and can be modified
+  Requested = 'requested', // Bill has been requested/sent to waiter
+}
+
 export interface SplitBill {
   id: string;
   items: OrderItem[];
+  status: BillStatus;
 }
 
 export interface BillSplitConfiguration {
@@ -87,6 +102,26 @@ export const clearBillSplitAtom = atom(
   }
 );
 
+// Atom to mark bills as requested
+export const markBillsAsRequestedAtom = atom(
+  null,
+  (get, set, billIds: string[]) => {
+    const currentConfig = get(billSplitConfigurationAtom);
+    if (!currentConfig) return;
+
+    const updatedBills = currentConfig.bills.map(bill =>
+      billIds.includes(bill.id)
+        ? { ...bill, status: BillStatus.Requested }
+        : bill
+    );
+
+    set(billSplitConfigurationAtom, {
+      ...currentConfig,
+      bills: updatedBills,
+    });
+  }
+);
+
 // Atom to reset all state back to initial values
 export const resetAppStateAtom = atom(
   null,
@@ -97,6 +132,15 @@ export const resetAppStateAtom = atom(
     set(billRequestedAtom, false);
     set(languageAtom, 'en');
     set(billSplitConfigurationAtom, null);
+    set(sessionStateAtom, SessionState.Welcome); // Reset to welcome screen
+  }
+);
+
+// Atom to start a new session
+export const startSessionAtom = atom(
+  null,
+  (get, set) => {
+    set(sessionStateAtom, SessionState.Active);
   }
 );
 

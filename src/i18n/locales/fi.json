@@ -6,8 +6,11 @@
     "total": "Loppusumma",
     "table": "Pöytä",
     "campaigns": "Kampanjat"
-  },
-  "actionBar": {
+  },  "welcome": {
+    "title": "Tervetuloa!",
+    "description": "Valmis aloittamaan ruokailukokemuksesi? Napauta alla olevaa painiketta aloittaaksesi.",
+    "startButton": "Aloita"
+  },  "actionBar": {
     "callForService": "Kutsu tarjoilija",
     "showOrder": "Näytä tilaus"
   },
@@ -65,9 +68,19 @@
     "items": "tuotetta",
     "primaryBill": "Päälasku",
     "howManyItems": "Kuinka monta siirretään?",
-    "selectQuantity": "Valitse kuinka monta siirretään (max: {{max}})"
-  },
-  "confirmDialog": {
+    "selectQuantity": "Valitse kuinka monta siirretään (max: {{max}})",
+    "requested": "Laskutettu",
+    "billRequested": "Lasku pyydetty"
+  },  "billRequestDialog": {
+    "title": "Pyydä lasku",
+    "description": "Sinulla on jaettuja laskuja. Haluatko pyytää kaikki vai pyytää tietyt laskut?",
+    "requestAllBills": "Pyydä kaikki laskut",
+    "selectSpecificBills": "Valitse tietyt laskut",
+    "selectBillsTitle": "Valitse pyydettävät laskut",
+    "selectDescription": "Valitse mitkä laskut haluat pyytää. Valitut laskut valmistellaan ja tuodaan pöytääsi.",
+    "primaryBill": "Päälasku",
+    "requestSelected": "Pyydä valitut"
+  },  "confirmDialog": {
     "callService": {
       "title": "Kutsu tarjoilija?",
       "message": "Tarjoilija tulee palvelemaan teitä mahdollisimman pian."

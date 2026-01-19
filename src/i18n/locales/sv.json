@@ -6,8 +6,11 @@
     "total": "Totalt",
     "table": "Bord",
     "campaigns": "Kampanjer"
-  },
-  "actionBar": {
+  },  "welcome": {
+    "title": "Välkommen!",
+    "description": "Redo att börja din matupplevelse? Tryck på knappen nedan för att börja.",
+    "startButton": "Börja"
+  },  "actionBar": {
     "callForService": "Ring efter service",
     "showOrder": "Visa beställning"
   },
@@ -65,9 +68,19 @@
     "items": "artiklar",
     "primaryBill": "Primär nota",
     "howManyItems": "Hur många artiklar?",
-    "selectQuantity": "Välj hur många som ska flyttas (max: {{max}})"
-  },
-  "confirmDialog": {
+    "selectQuantity": "Välj hur många som ska flyttas (max: {{max}})",
+    "requested": "Begärd",
+    "billRequested": "Nota begärd"
+  },  "billRequestDialog": {
+    "title": "Begär nota",
+    "description": "Du har delade notor. Vill du begära alla notor eller välja specifika?",
+    "requestAllBills": "Begär alla notor",
+    "selectSpecificBills": "Välj specifika notor",
+    "selectBillsTitle": "Välj notor att begära",
+    "selectDescription": "Välj vilka notor du vill begära. Valda notor kommer att förberedas och bringas till ditt bord.",
+    "primaryBill": "Primär nota",
+    "requestSelected": "Begär valda"
+  },  "confirmDialog": {
     "callService": {
       "title": "Ring efter service?",
       "message": "En servitör kommer att meddelas och komma för att hjälpa dig inom kort."

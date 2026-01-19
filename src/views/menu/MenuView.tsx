@@ -132,7 +132,7 @@ const MenuView: React.FC = () => {
     <Box sx={{ pb: 10 }}>
       {/* Fixed Menu Header */}
       <MenuHeader
-        restaurantName="Penan pizza"
+        restaurantName="Penan Bistro"
         tableNumber={5}
         orderStatus={orderStatus}
         onTotalClick={() => setShowTotalDialog(true)}

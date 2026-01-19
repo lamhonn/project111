@@ -7,6 +7,11 @@
     "table": "Table",
     "campaigns": "Campaigns"
   },
+  "welcome": {
+    "title": "Welcome!",
+    "description": "Ready to start your dining experience? Tap the button below to begin.",
+    "startButton": "Start"
+  },
   "actionBar": {
     "callForService": "Call for service",
     "showOrder": "Show order"
@@ -65,7 +70,19 @@
     "items": "items",
     "primaryBill": "Primary Bill",
     "howManyItems": "How many items?",
-    "selectQuantity": "Select how many to move (max: {{max}})"
+    "selectQuantity": "Select how many to move (max: {{max}})",
+    "requested": "Requested",
+    "billRequested": "Bill requested"
+  },
+  "billRequestDialog": {
+    "title": "Request Bill",
+    "description": "You have split bills. Would you like to request all bills or request specific ones?",
+    "requestAllBills": "Request All Bills",
+    "selectSpecificBills": "Select Specific Bills",
+    "selectBillsTitle": "Select Bills to Request",
+    "selectDescription": "Choose which bills you want to request. Selected bills will be prepared and brought to your table.",
+    "primaryBill": "Primary Bill",
+    "requestSelected": "Request Selected"
   },
   "confirmDialog": {
     "callService": {
