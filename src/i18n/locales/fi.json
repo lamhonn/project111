@@ -25,8 +25,9 @@
     "addItem": "Lisää tuote"
   },
   "productDialog": {
-    "toppings": "TÄYTTEET",
+    "toppings": "LISÄÄ TÄYTTEITÄ",
     "ingredients": "AINESOSAT",
+    "excludables": "POISTA AINESOSIA",
     "ageVerification": "Ikärajoitettu tuote. Voit joutua todistamaan ikäsi henkilökunnalle",
     "addToOrder": "Lisää tilaukseen"
   },

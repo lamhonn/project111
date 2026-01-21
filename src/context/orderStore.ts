@@ -16,19 +16,22 @@ export interface OrderItem {
   price: number;
   quantity: number;
   toppings?: Topping[];
+  excludables?: string[]; // Array of excluded ingredient names
 }
 
-// Helper function to generate unique ID for items with toppings
-const generateItemId = (productId: string, toppings?: Topping[]): string => {
-  if (!toppings || toppings.length === 0) {
+// Helper function to generate unique ID for items with toppings and excludables
+const generateItemId = (productId: string, toppings?: Topping[], excludables?: string[]): string => {
+  if ((!toppings || toppings.length === 0) && (!excludables || excludables.length === 0)) {
     return productId; // Vanilla items use just product ID
   }
-  // Create a unique ID based on product and toppings
+  // Create a unique ID based on product, toppings, and excludables
   const toppingSignature = toppings
-    .map(t => `${t.id}:${t.quantity}`)
-    .sort()
-    .join('|');
-  return `${productId}_${toppingSignature}`;
+    ? toppings.map(t => `${t.id}:${t.quantity}`).sort().join('|')
+    : '';
+  const excludablesSignature = excludables
+    ? excludables.sort().join('|')
+    : '';
+  return `${productId}_${toppingSignature}_${excludablesSignature}`;
 };
 
 // Helper function to check if two topping arrays are the same
@@ -166,11 +169,11 @@ export const addOrderItemAtom = atom(
   null,
   (get, set, item: OrderItem) => {
     const currentItems = get(orderItemsAtom);
-    const itemId = generateItemId(item.productId, item.toppings);
+    const itemId = generateItemId(item.productId, item.toppings, item.excludables);
     const existingItemIndex = currentItems.findIndex(i => i.id === itemId);
     
     if (existingItemIndex >= 0) {
-      // Item with same product and toppings exists, update quantity
+      // Item with same product, toppings, and excludables exists, update quantity
       const updatedItems = [...currentItems];
       updatedItems[existingItemIndex] = {
         ...updatedItems[existingItemIndex],
@@ -178,7 +181,7 @@ export const addOrderItemAtom = atom(
       };
       set(orderItemsAtom, updatedItems);
     } else {
-      // New item (or same product with different toppings), add to array
+      // New item (or same product with different toppings/excludables), add to array
       const newItem = {
         ...item,
         id: itemId,

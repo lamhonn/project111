@@ -8,18 +8,20 @@ import {
   Button,
   Card,
   CardContent,
+  Checkbox,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import FastfoodIcon from '@mui/icons-material/Fastfood';
 import { useSetAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
 import { addOrderItemAtom, Topping as OrderTopping } from '../../context/orderStore';
 import { parseToppings } from '../../api/utils/toppings.utils';
-import { getLocalizedIngredients } from '../../api/utils/multilingualName.utils';
+import { getLocalizedIngredients, parseExcludables, getLocalizedExcludable } from '../../api/utils/multilingualName.utils';
 
 // Temporary interfaces
 interface Product {
@@ -30,6 +32,7 @@ interface Product {
   description?: string;
   toppings?: string;
   ingredients?: string;
+  excludables?: string;
   ageRestricted?: boolean;
 }
 
@@ -44,11 +47,15 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
   const { t, i18n } = useTranslation();
   const [quantity, setQuantity] = useState<number>(1);
   const [selectedToppings, setSelectedToppings] = useState<Record<number, number>>({});
+  const [selectedExcludables, setSelectedExcludables] = useState<Set<number>>(new Set());
   const [imageError, setImageError] = useState<boolean>(false);
   const addItem = useSetAtom(addOrderItemAtom);
   
   // Parse toppings from embedded product data
   const toppings = parseToppings(product.toppings);
+  
+  // Parse excludables from embedded product data
+  const excludables = parseExcludables(product.excludables);
   
   // Get localized ingredients
   const localizedIngredients = getLocalizedIngredients(product.ingredients, i18n.language);
@@ -68,6 +75,15 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
       }
     });
 
+    // Convert selected excludables to array format
+    const excludablesArray: string[] = [];
+    selectedExcludables.forEach((index) => {
+      const excludableName = getLocalizedExcludable(excludables[index], i18n.language);
+      if (excludableName) {
+        excludablesArray.push(excludableName);
+      }
+    });
+
     // Add item to order
     addItem({
       id: product.id,
@@ -77,11 +93,13 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
       price: product.price,
       quantity: quantity,
       toppings: toppingsArray.length > 0 ? toppingsArray : undefined,
+      excludables: excludablesArray.length > 0 ? excludablesArray : undefined,
     });
 
     // Reset and close
     setQuantity(1);
     setSelectedToppings({});
+    setSelectedExcludables(new Set());
     onClose();
   };
 
@@ -111,6 +129,18 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
         return { ...prev, [toppingIndex]: current - 1 };
       }
       return prev;
+    });
+  };
+
+  const handleExcludableToggle = (excludableIndex: number): void => {
+    setSelectedExcludables(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(excludableIndex)) {
+        newSet.delete(excludableIndex);
+      } else {
+        newSet.add(excludableIndex);
+      }
+      return newSet;
     });
   };
 
@@ -193,25 +223,18 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
 
         {/* Age Restriction Warning */}
         {product.ageRestricted && (
-          <Box 
+          <Typography 
+            variant="body2"
             sx={{ 
               mb: theme.spacing.lg,
-              p: theme.spacing.md,
-              backgroundColor: 'error.light',
-              borderRadius: theme.borderRadius.medium,
-              border: '1px solid',
-              borderColor: 'error.main',
+              color: '#b45309',
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: 0.5 
             }}
           >
-            <Typography 
-              variant="body2"
-              fontWeight={theme.typography.fontWeights.semibold}
-              color="error.dark"
-              sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-            >
-              <ErrorOutlineIcon fontSize="small" /> {t('productDialog.ageVerification')}
-            </Typography>
-          </Box>
+            <ErrorOutlineIcon fontSize="small" sx={{ color: '#b45309' }} /> {t('productDialog.ageVerification')}
+          </Typography>
         )}
 
         {product.description && (
@@ -259,6 +282,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
+                        maxHeight: '48px',
                       }}
                     >
                       <Box>
@@ -308,6 +332,74 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
                           </IconButton>
                         </Box>
                       )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </Box>
+          </Box>
+        )}
+
+        {/* Excludables */}
+        {excludables && excludables.length > 0 && (
+          <Box sx={{ mb: theme.spacing.lg }}>
+            <Typography 
+              variant="caption"
+              fontWeight={theme.typography.fontWeights.bold}
+              color={theme.colors.text}
+              sx={{ mb: 1.5, display: 'block' }}
+            >
+              {t('productDialog.excludables')}
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {excludables.map((excludable, index) => {
+                const isExcluded = selectedExcludables.has(index);
+                const localizedName = getLocalizedExcludable(excludable, i18n.language);
+
+                return (
+                  <Card
+                    key={index}
+                    variant="outlined"
+                    onClick={() => handleExcludableToggle(index)}
+                    sx={{
+                      borderRadius: theme.borderRadius.medium,
+                      borderColor: isExcluded ? '#dc2626' : 'grey.300',
+                      backgroundColor: isExcluded ? '#fee2e2' : 'transparent',
+                      cursor: 'pointer',
+                      transition: theme.transitions.normal,
+                      '&:hover': {
+                        backgroundColor: isExcluded ? '#fee2e2' : 'grey.50',
+                      },
+                    }}
+                  >
+                    <CardContent 
+                      sx={{ 
+                        p: 1.5,
+                        '&:last-child': { pb: 1.5 },
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Checkbox
+                          checked={isExcluded}
+                          onChange={() => handleExcludableToggle(index)}
+                          icon={<RemoveCircleOutlineIcon />}
+                          checkedIcon={<RemoveCircleOutlineIcon />}
+                          sx={{
+                            color: '#dc2626',
+                            '&.Mui-checked': {
+                              color: '#dc2626',
+                            },
+                            p: 0,
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <Typography component="span" fontWeight="medium">
+                          {localizedName}
+                        </Typography>
+                      </Box>
                     </CardContent>
                   </Card>
                 );

@@ -24,11 +24,12 @@ interface Props {
   description?: string;
   toppings?: string;
   ingredients?: string;
+  excludables?: string;
   ageRestricted?: boolean;
 }
 
 const ProductCard: React.FC<Props> = (props: Props) => {
-  const { id, image, name, price, initialQuantity = 0, description, toppings, ingredients, ageRestricted } = props;
+  const { id, image, name, price, initialQuantity = 0, description, toppings, ingredients, excludables, ageRestricted } = props;
   const { t, i18n } = useTranslation();
 
   // Get localized product name and description
@@ -139,6 +140,7 @@ const ProductCard: React.FC<Props> = (props: Props) => {
           description: localizedDescription,
           toppings,
           ingredients,
+          excludables,
           ageRestricted,
         }}
         isOpen={dialogOpen}

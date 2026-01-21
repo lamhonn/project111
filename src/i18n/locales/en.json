@@ -27,8 +27,9 @@
     "addItem": "Add Item"
   },
   "productDialog": {
-    "toppings": "TOPPINGS",
+    "toppings": "ADD TOPPINGS",
     "ingredients": "INGREDIENTS",
+    "excludables": "EXCLUDE INGREDIENTS",
     "ageVerification": "Age restricted. Your age might be verified by the staff",
     "addToOrder": "Add to order"
   },

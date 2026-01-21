@@ -328,6 +328,20 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                                   </Box>
                                 )}
                                 
+                                {item.excludables && item.excludables.length > 0 && (
+                                  <Box sx={{ mt: 0.5 }}>
+                                    {item.excludables.map((excludable, index) => (
+                                      <Typography
+                                        key={index}
+                                        variant="caption"
+                                        sx={{ display: 'block', lineHeight: 1.4, color: '#dc2626' }}
+                                      >
+                                        − {excludable}
+                                      </Typography>
+                                    ))}
+                                  </Box>
+                                )}
+                                
                                 <Typography 
                                   variant="body2"
                                   color="text.secondary"
@@ -439,6 +453,20 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                                 </Box>
                               )}
                               
+                              {item.excludables && item.excludables.length > 0 && (
+                                <Box sx={{ mt: 0.5 }}>
+                                  {item.excludables.map((excludable, index) => (
+                                    <Typography
+                                      key={index}
+                                      variant="caption"
+                                      sx={{ display: 'block', lineHeight: 1.4, color: '#dc2626' }}
+                                    >
+                                      − {excludable}
+                                    </Typography>
+                                  ))}
+                                </Box>
+                              )}
+                              
                               <Typography 
                                 variant="body2"
                                 color="text.secondary"
@@ -516,6 +544,21 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                                   sx={{ display: 'block', lineHeight: 1.4 }}
                                 >
                                   + {topping.quantity > 1 && `${topping.quantity}x `}{topping.name} (€{topping.price.toFixed(2)})
+                                </Typography>
+                              ))}
+                            </Box>
+                          )}
+                          
+                          {/* Show excludables if present */}
+                          {item.excludables && item.excludables.length > 0 && (
+                            <Box sx={{ mt: 0.5 }}>
+                              {item.excludables.map((excludable, index) => (
+                                <Typography
+                                  key={index}
+                                  variant="caption"
+                                  sx={{ display: 'block', lineHeight: 1.4, color: '#dc2626' }}
+                                >
+                                  − {excludable}
                                 </Typography>
                               ))}
                             </Box>

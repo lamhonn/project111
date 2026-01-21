@@ -206,6 +206,21 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
                     </Box>
                   )}
                   
+                  {/* Show excludables if present */}
+                  {item.excludables && item.excludables.length > 0 && (
+                    <Box sx={{ mt: 0.5 }}>
+                      {item.excludables.map((excludable, index) => (
+                        <Typography
+                          key={index}
+                          variant="caption"
+                          sx={{ display: 'block', lineHeight: 1.4, color: '#dc2626' }}
+                        >
+                          − {excludable}
+                        </Typography>
+                      ))}
+                    </Box>
+                  )}
+                  
                   <Typography 
                     variant="body2"
                     color="text.secondary"

@@ -228,6 +228,7 @@ const MenuView: React.FC = () => {
                     description={product.Description}
                     toppings={product.Toppings}
                     ingredients={ingredients}
+                    excludables={product.Excludables}
                     ageRestricted={ageRestricted}
                   />
                 );

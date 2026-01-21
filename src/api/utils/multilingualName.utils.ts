@@ -241,3 +241,73 @@ export const getLocalizedDescription = (
   // No translation available
   return '';
 };
+
+/**
+ * Parses excludables string which is a JSON array of multilingual ingredient objects
+ * Each item has multilingual names (en, fi, sv)
+ * 
+ * @param excludablesString - The excludables string from the product
+ * @returns An array of multilingual ingredient objects
+ */
+export const parseExcludables = (excludablesString?: string): MultilingualName[] => {
+  if (!excludablesString || excludablesString.trim() === '') {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(excludablesString);
+    
+    // Validate it's an array
+    if (Array.isArray(parsed)) {
+      // Validate each item is an object with at least one language key
+      return parsed.filter(
+        (item): item is MultilingualName =>
+          typeof item === 'object' &&
+          item !== null &&
+          (item.en !== undefined || item.fi !== undefined || item.sv !== undefined)
+      );
+    }
+  } catch (error) {
+    console.warn('Failed to parse excludables JSON:', error);
+  }
+
+  return [];
+};
+
+/**
+ * Gets a localized name for an excludable ingredient with smart fallback logic:
+ * 1. Try to get the requested language
+ * 2. Fall back to English if available
+ * 3. Fall back to any available language
+ * 4. Return empty string if nothing is available
+ * 
+ * @param excludableItem - The multilingual excludable item object
+ * @param language - The desired language code (en, fi, sv)
+ * @returns The excludable name in the appropriate language
+ */
+export const getLocalizedExcludable = (
+  excludableItem: MultilingualName,
+  language: string = 'en'
+): string => {
+  // Try requested language
+  if (excludableItem[language as keyof MultilingualName]) {
+    return excludableItem[language as keyof MultilingualName]!;
+  }
+
+  // Fall back to English
+  if (excludableItem.en) {
+    return excludableItem.en;
+  }
+
+  // Fall back to any available language
+  const availableLanguages = ['fi', 'sv', 'en'];
+  for (const lang of availableLanguages) {
+    const name = excludableItem[lang as keyof MultilingualName];
+    if (name) {
+      return name;
+    }
+  }
+
+  // No translation available
+  return '';
+};

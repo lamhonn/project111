@@ -11,4 +11,5 @@ export type Product = {
     Created: Date,
     AgeRestrictied: boolean,
     Toppings?: string, // JSON string array of topping objects
+    Excludables?: string, // JSON string array of multilingual excludable ingredient objects
 }

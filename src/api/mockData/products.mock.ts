@@ -106,6 +106,7 @@ export const MOCK_PRODUCTS: ProductWithCategory[] = [
     AgeRestrictied: false,
     Category: 1,
     Toppings: '[{"Name":"Bacon","PriceIncrement":1.50},{"Name":"Extra Cheese","PriceIncrement":1.00},{"Name":"Fried Egg","PriceIncrement":1.25},{"Name":"Avocado","PriceIncrement":2.00}]',
+    Excludables: '[{"en":"Lettuce","fi":"Salaatti","sv":"Sallad"},{"en":"Tomato","fi":"Tomaatti","sv":"Tomat"},{"en":"Onion","fi":"Sipuli","sv":"Lök"},{"en":"Pickles","fi":"Suolakurkku","sv":"Pickles"}]',
   },
   {
     Id: '8',
@@ -120,6 +121,7 @@ export const MOCK_PRODUCTS: ProductWithCategory[] = [
     AgeRestrictied: false,
     Category: 1,
     Toppings: '[{"Name":"Extra Patty","PriceIncrement":3.00},{"Name":"Bacon","PriceIncrement":1.50},{"Name":"Onion Rings","PriceIncrement":1.75}]',
+    Excludables: '[{"en":"Cheese","fi":"Juusto","sv":"Ost"},{"en":"Lettuce","fi":"Salaatti","sv":"Sallad"},{"en":"Tomato","fi":"Tomaatti","sv":"Tomat"},{"en":"Onion","fi":"Sipuli","sv":"Lök"}]',
   },
   {
     Id: '9',
@@ -134,6 +136,7 @@ export const MOCK_PRODUCTS: ProductWithCategory[] = [
     AgeRestrictied: false,
     Category: 1,
     Toppings: '[{"Name":"Extra Bacon","PriceIncrement":2.00},{"Name":"Cheddar Cheese","PriceIncrement":1.00},{"Name":"Caramelized Onions","PriceIncrement":1.25},{"Name":"Mushrooms","PriceIncrement":1.00}]',
+    Excludables: '[{"en":"Bacon"},{"en":"Cheese"},{"en":"Lettuce"},{"en":"Tomato"},{"en":"BBQ Sauce"}]',
   },
   // Sides (Category 2)
   {

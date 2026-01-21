@@ -580,6 +580,14 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                             {item.toppings.map(t => `+ ${t.name}`).join(', ')}
                           </Typography>
                         )}
+                        {item.excludables && item.excludables.length > 0 && (
+                          <Typography
+                            variant="caption"
+                            sx={{ display: 'block', mt: 0.5, color: '#dc2626' }}
+                          >
+                            {item.excludables.map(e => `− ${e}`).join(', ')}
+                          </Typography>
+                        )}
                       </Box>
                       <Typography 
                         variant="body2"
@@ -834,6 +842,23 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                                 >
                                   {item.quantity > 1 && `${item.quantity}x `}{item.name}
                                 </Typography>
+                                {item.toppings && item.toppings.length > 0 && (
+                                  <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                    sx={{ display: 'block', fontSize: '0.65rem', mt: 0.25 }}
+                                  >
+                                    {item.toppings.map(t => `+ ${t.name}`).join(', ')}
+                                  </Typography>
+                                )}
+                                {item.excludables && item.excludables.length > 0 && (
+                                  <Typography
+                                    variant="caption"
+                                    sx={{ display: 'block', fontSize: '0.65rem', mt: 0.25, color: '#dc2626' }}
+                                  >
+                                    {item.excludables.map(e => `− ${e}`).join(', ')}
+                                  </Typography>
+                                )}
                               </Box>
                               <Typography 
                                 variant="caption"

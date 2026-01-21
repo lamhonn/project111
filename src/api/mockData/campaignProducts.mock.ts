@@ -7,6 +7,7 @@ export interface CampaignProductWithDetails extends CampaignProduct {
   Category: number; // -1 for campaigns category
   Toppings?: string; // JSON string array of topping objects
   Ingredients?: string; // JSON string with multilingual object
+  Excludables?: string; // JSON string array of multilingual excludable ingredient objects
 }
 
 // Mock campaign product data
@@ -48,5 +49,6 @@ export const MOCK_CAMPAIGN_PRODUCTS: CampaignProductWithDetails[] = [
     Created: new Date(),
     Category: -1,
     Toppings: '[{"Name":"Bacon","PriceIncrement":1.50},{"Name":"Extra Cheese","PriceIncrement":1.00},{"Name":"Fried Egg","PriceIncrement":1.25},{"Name":"Avocado","PriceIncrement":2.00}]',
+    Excludables: '[{"en":"Lettuce","fi":"Salaatti","sv":"Sallad"},{"en":"Tomato","fi":"Tomaatti","sv":"Tomat"},{"en":"Onion","fi":"Sipuli","sv":"Lök"},{"en":"Pickles","fi":"Suolakurkku","sv":"Pickles"}]',
   },
 ];
