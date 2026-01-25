@@ -6,6 +6,12 @@
     "total": "Loppusumma",
     "table": "Pöytä",
     "campaigns": "Kampanjat"
+  },  "dietary": {
+    "glutenFree": "Gluteeniton",
+    "lactoseFree": "Laktoositon",
+    "lowLactose": "Vähälaktoosinen",
+    "vegetarian": "Kasvisruoka",
+    "vegan": "Vegaaninen"
   },  "welcome": {
     "title": "Tervetuloa!",
     "description": "Valmis aloittamaan ruokailukokemuksesi? Napauta alla olevaa painiketta aloittaaksesi.",

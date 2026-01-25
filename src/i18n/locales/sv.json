@@ -6,6 +6,12 @@
     "total": "Totalt",
     "table": "Bord",
     "campaigns": "Kampanjer"
+  },  "dietary": {
+    "glutenFree": "Glutenfri",
+    "lactoseFree": "Laktosfri",
+    "lowLactose": "Låg laktos",
+    "vegetarian": "Vegetarisk",
+    "vegan": "Vegansk"
   },  "welcome": {
     "title": "Välkommen!",
     "description": "Redo att börja din matupplevelse? Tryck på knappen nedan för att börja.",

@@ -22,6 +22,8 @@ import { theme } from '../../theme/theme';
 import { addOrderItemAtom, Topping as OrderTopping } from '../../context/orderStore';
 import { parseToppings } from '../../api/utils/toppings.utils';
 import { getLocalizedIngredients, parseExcludables, getLocalizedExcludable } from '../../api/utils/multilingualName.utils';
+import { getDietaryCodes, getDietaryName } from '../../api/utils/dietary.utils';
+import { Dietary } from '../../api/types/enums';
 
 // Temporary interfaces
 interface Product {
@@ -34,6 +36,7 @@ interface Product {
   ingredients?: string;
   excludables?: string;
   ageRestricted?: boolean;
+  dietaries?: number[];
 }
 
 interface ProductDialogProps {
@@ -214,9 +217,20 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
 
       {/* Scrollable Content */}
       <DialogContent sx={{ pb: 0 }}>
-        <Typography variant="h5" fontWeight={theme.typography.fontWeights.bold} gutterBottom>
-          {product.name}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, flexWrap: 'wrap' }}>
+          <Typography variant="h5" fontWeight={theme.typography.fontWeights.bold}>
+            {product.name}
+          </Typography>
+          {product.dietaries && product.dietaries.length > 0 && (
+            <Typography 
+              variant="h5" 
+              fontWeight={theme.typography.fontWeights.medium}
+              color="text.secondary"
+            >
+              ({getDietaryCodes(product.dietaries as Dietary[]).join(', ')})
+            </Typography>
+          )}
+        </Box>
         <Typography variant="h6" color={theme.colors.text} sx={{ mb: theme.spacing.lg }}>
           €{product.price.toFixed(2)}
         </Typography>
@@ -427,6 +441,32 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
               }}
             >
               {localizedIngredients}
+            </Typography>
+          </Box>
+        )}
+
+        {/* Dietary Definitions */}
+        {product.dietaries && product.dietaries.length > 0 && (
+          <Box sx={{ mb: theme.spacing.md }}>
+            <Typography 
+              variant="caption"
+              color="text.secondary"
+              sx={{ 
+                fontStyle: 'italic',
+                fontSize: theme.typography.fontSizes.small,
+                display: 'block',
+              }}
+            >
+              {product.dietaries.map((dietary, index) => {
+                const code = getDietaryCodes([dietary as Dietary])[0];
+                const name = getDietaryName(dietary as Dietary, t);
+                return (
+                  <span key={dietary}>
+                    {code} = {name}
+                    {index < product.dietaries!.length - 1 ? ', ' : ''}
+                  </span>
+                );
+              })}
             </Typography>
           </Box>
         )}

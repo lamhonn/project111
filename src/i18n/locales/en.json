@@ -7,6 +7,13 @@
     "table": "Table",
     "campaigns": "Campaigns"
   },
+  "dietary": {
+    "glutenFree": "Gluten-free",
+    "lactoseFree": "Lactose-free",
+    "lowLactose": "Low lactose",
+    "vegetarian": "Vegetarian",
+    "vegan": "Vegan"
+  },
   "welcome": {
     "title": "Welcome!",
     "description": "Ready to start your dining experience? Tap the button below to begin.",

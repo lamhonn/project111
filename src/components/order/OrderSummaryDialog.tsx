@@ -20,7 +20,7 @@ import { theme } from '../../theme/theme';
 import {
   orderItemsAtom,
   orderCountAtom,
-  orderNumberAtom,
+  tableNumberAtom,
   removeOrderItemAtom,
   updateOrderItemQuantityAtom,
   submitOrderToTotalAtom,
@@ -41,7 +41,7 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
   // Use Jotai atoms
   const orderItems = useAtomValue(orderItemsAtom);
   const orderCount = useAtomValue(orderCountAtom);
-  const orderNumber = useAtomValue(orderNumberAtom);
+  const tableNumber = useAtomValue(tableNumberAtom);
   const removeItem = useSetAtom(removeOrderItemAtom);
   const updateQuantity = useSetAtom(updateOrderItemQuantityAtom);
   const openConfirmDialog = useSetAtom(openConfirmDialogAtom);
@@ -123,7 +123,7 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
             color="text.secondary"
             sx={{ mt: 0.5 }}
           >
-            {orderNumber}
+            {t('common.table')} {tableNumber}
           </Typography>
         </Box>
         <IconButton

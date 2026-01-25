@@ -8,6 +8,7 @@ export interface CampaignProductWithDetails extends CampaignProduct {
   Toppings?: string; // JSON string array of topping objects
   Ingredients?: string; // JSON string with multilingual object
   Excludables?: string; // JSON string array of multilingual excludable ingredient objects
+  Dietaries?: number[]; // Array of Dietary enum values (integers)
 }
 
 // Mock campaign product data

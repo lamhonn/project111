@@ -21,7 +21,7 @@ import { theme } from '../../theme/theme';
 import {
   totalOrderItemsAtom,
   totalOrderCountAtom,
-  orderNumberAtom,
+  tableNumberAtom,
   billRequestedAtom,
   billSplitConfigurationAtom,
   OrderItem,
@@ -46,7 +46,7 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
   // Use Jotai atoms
   const totalOrderItems = useAtomValue(totalOrderItemsAtom);
   const totalOrderCount = useAtomValue(totalOrderCountAtom);
-  const orderNumber = useAtomValue(orderNumberAtom);
+  const tableNumber = useAtomValue(tableNumberAtom);
   const openConfirmDialog = useSetAtom(openConfirmDialogAtom);
   const setBillRequested = useSetAtom(billRequestedAtom);
   const billSplitConfig = useAtomValue(billSplitConfigurationAtom);
@@ -172,13 +172,13 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
           >
             {t('totalOrderSummaryDialog.title')}
           </Typography>
-          {/* <Typography 
+          <Typography 
             variant="body2"
             color="text.secondary"
             sx={{ mt: 0.5 }}
           >
-            {orderNumber}
-          </Typography> */}
+            {t('common.table')} {tableNumber}
+          </Typography>
         </Box>
         <IconButton
           onClick={onClose}

@@ -54,6 +54,8 @@ export const orderItemsAtom = atom<OrderItem[]>([]);
 
 export const orderNumberAtom = atom<string>('#219021');
 
+export const tableNumberAtom = atom<string | number>('12');
+
 export const orderStatusAtom = atom<OrderStatus | null>(null);
 
 export const billRequestedAtom = atom<boolean>(false);

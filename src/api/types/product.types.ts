@@ -5,7 +5,7 @@ export type Product = {
     Description?: string,
     Price: number,
     Ingredients?: string, // JSON string with multilingual object
-    Dieataries?: string[],
+    Dietaries?: number[], // Array of Dietary enum values (integers)
     ImgUrl?: string,
     Enabled: boolean,
     Created: Date,

@@ -133,7 +133,6 @@ const MenuView: React.FC = () => {
       {/* Fixed Menu Header */}
       <MenuHeader
         restaurantName="Penan Bistro"
-        tableNumber={5}
         orderStatus={orderStatus}
         onTotalClick={() => setShowTotalDialog(true)}
       />
@@ -217,6 +216,7 @@ const MenuView: React.FC = () => {
                 const name = product.Name || '';
                 const ingredients = product.Ingredients || undefined;
                 const ageRestricted = (product as any).AgeRestrictied || false;
+                const dietaries = product.Dietaries || undefined;
                 
                 return (
                   <ProductCard
@@ -230,6 +230,7 @@ const MenuView: React.FC = () => {
                     ingredients={ingredients}
                     excludables={product.Excludables}
                     ageRestricted={ageRestricted}
+                    dietaries={dietaries}
                   />
                 );
               })}

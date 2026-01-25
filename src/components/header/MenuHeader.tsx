@@ -7,12 +7,10 @@ import {
   Container,
   Box,
   keyframes,
-  IconButton,
   Menu,
   MenuItem,
 } from '@mui/material';
 import ReceiptIcon from '@mui/icons-material/Receipt';
-import LanguageIcon from '@mui/icons-material/Language';
 import { useAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import { languageAtom } from '../../context/orderStore';
@@ -26,7 +24,6 @@ export enum OrderStatus {
 
 interface MenuHeaderProps {
   restaurantName?: string;
-  tableNumber?: string | number;
   onTotalClick?: () => void;
   orderStatus?: OrderStatus | null;
 }
@@ -51,7 +48,6 @@ const boingAnimation = keyframes`
 
 const MenuHeader: React.FC<MenuHeaderProps> = ({
   restaurantName = 'Restaurant',
-  tableNumber,
   onTotalClick,
   orderStatus,
 }) => {
@@ -151,37 +147,42 @@ const MenuHeader: React.FC<MenuHeaderProps> = ({
             alignItems: 'center',
           }}
         >
-          {/* Left side - Restaurant Name & Language */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <Typography
-              variant="h6"
-              component="div"
-              sx={{
-                fontWeight: theme.typography.fontWeights.bold,
-                color: 'text.primary',
-                fontSize: { xs: '1.1rem', sm: '1.25rem' },
-              }}
-            >
-              {restaurantName}
-            </Typography>
+          {/* Left side - Restaurant Name */}
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{
+              fontWeight: theme.typography.fontWeights.bold,
+              color: 'text.primary',
+              fontSize: { xs: '1.1rem', sm: '1.25rem' },
+            }}
+          >
+            {restaurantName}
+          </Typography>
 
+          {/* Right side - Language Selector & Bill Button */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             {/* Language Selector */}
-            <IconButton
+            <Button
               onClick={handleLanguageClick}
+              variant="outlined"
               sx={{
                 borderRadius: theme.borderRadius.medium,
-                border: '1px solid',
                 borderColor: theme.colors.border,
-                color: 'text.secondary',
-                padding: theme.spacing.sm,
+                color: 'text.primary',
+                fontWeight: theme.typography.fontWeights.bold,
+                textTransform: 'uppercase',
+                minWidth: '56px',
+                px: theme.spacing.md,
+                py: theme.spacing.sm,
                 '&:hover': {
                   borderColor: theme.colors.primary,
                   backgroundColor: 'primary.light',
                 },
               }}
             >
-              <LanguageIcon sx={{ fontSize: '1.25rem' }} />
-            </IconButton>
+              {languages.find(lang => lang.code === language)?.label || 'EN'}
+            </Button>
 
             <Menu
               anchorEl={anchorEl}
@@ -224,71 +225,6 @@ const MenuHeader: React.FC<MenuHeaderProps> = ({
                 </MenuItem>
               ))}
             </Menu>
-          </Box>
-
-          {/* Right side - Table Number & Total Button */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            {tableNumber && (
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: orderStatus ? 1 : 0.5,
-                  px: orderStatus ? 2 : 1.5,
-                  py: orderStatus ? 0.75 : 0.5,
-                  borderRadius: theme.borderRadius.medium,
-                  backgroundColor: statusColors?.bg || 'grey.100',
-                  border: orderStatus ? '2px solid' : 'none',
-                  borderColor: statusColors?.border,
-                  animation: animateStatus ? `${boingAnimation} 0.6s ease-in-out` : 'none',
-                  transition: 'all 0.3s ease',
-                }}
-              >
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontWeight: theme.typography.fontWeights.medium,
-                    color: orderStatus ? statusColors?.text : 'text.secondary',
-                    fontSize: { xs: '0.875rem', sm: '0.875rem' },
-                  }}
-                >
-                  {t('common.table')}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontWeight: theme.typography.fontWeights.bold,
-                    color: orderStatus ? statusColors?.text : 'text.primary',
-                    fontSize: { xs: '0.875rem', sm: '0.875rem' },
-                  }}
-                >
-                  {tableNumber}
-                </Typography>
-                {orderStatus && (
-                  <>
-                    <Box
-                      sx={{
-                        width: '4px',
-                        height: '4px',
-                        borderRadius: '50%',
-                        backgroundColor: statusColors?.text,
-                        mx: 0.5,
-                      }}
-                    />
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontWeight: theme.typography.fontWeights.bold,
-                        color: statusColors?.text,
-                        fontSize: { xs: '0.875rem', sm: '0.875rem' },
-                      }}
-                    >
-                      {t(`orderStatus.${orderStatus.toLowerCase()}`)}
-                    </Typography>
-                  </>
-                )}
-              </Box>
-            )}
 
             <Button
               onClick={onTotalClick}
