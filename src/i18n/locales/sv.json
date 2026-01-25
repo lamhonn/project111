@@ -60,8 +60,10 @@
     "message": "Tack för att du åt med oss. Din nota kommer att levereras till ditt bord inom kort.",
     "enjoyedMeal": "Vi hoppas du njöt av din måltid!",
     "startNewSession": "Starta ny session"
-  },
-  "splitBillDialog": {
+  },  "lockedDialog": {
+    "title": "Bord låst",
+    "message": "Ditt bord har tillfälligt låsts"
+  },  "splitBillDialog": {
     "title": "Dela nota",
     "allItems": "Alla artiklar",
     "bills": "Kvittor",

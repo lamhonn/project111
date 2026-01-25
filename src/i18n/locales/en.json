@@ -64,6 +64,10 @@
     "enjoyedMeal": "We hope you enjoyed your meal!",
     "startNewSession": "Start New Session"
   },
+  "lockedDialog": {
+    "title": "Table Locked",
+    "message": "Ordering has been temporarily disabled."
+  },
   "splitBillDialog": {
     "title": "Split Bill",
     "allItems": "All Items",

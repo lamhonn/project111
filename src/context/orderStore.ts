@@ -60,6 +60,8 @@ export const orderStatusAtom = atom<OrderStatus | null>(null);
 
 export const billRequestedAtom = atom<boolean>(false);
 
+export const tableLockedAtom = atom<boolean>(false);
+
 // Session state tracking
 export enum SessionState {
   Welcome = 'welcome',      // Initial welcome screen
@@ -135,6 +137,7 @@ export const resetAppStateAtom = atom(
     set(totalOrderItemsAtom, []);
     set(orderStatusAtom, null);
     set(billRequestedAtom, false);
+    set(tableLockedAtom, false);
     set(languageAtom, 'en');
     set(billSplitConfigurationAtom, null);
     set(sessionStateAtom, SessionState.Welcome); // Reset to welcome screen

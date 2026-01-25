@@ -9,9 +9,11 @@ import CategoryPill from '../../components/category/CategoryPill';
 import MenuHeader from '../../components/header/MenuHeader';
 import TotalOrderSummaryDialog from '../../components/order/TotalOrderSummaryDialog';
 import ThankYouDialog from '../../components/order/ThankYouDialog';
-import { orderStatusAtom, billRequestedAtom, resetAppStateAtom } from '../../context/orderStore';
+import LockedDialog from '../../components/order/LockedDialog';
+import { orderStatusAtom, billRequestedAtom, resetAppStateAtom, tableLockedAtom } from '../../context/orderStore';
 import { useGetProducts } from '../../api/hooks/product.hooks';
 import { useGetActiveCampaignProducts } from '../../api/hooks/campaignProduct.hooks';
+import { useTableLockedStatus } from '../../api/hooks/table.hooks';
 import { MOCK_CATEGORIES } from '../../api/mockData/products.mock';
 import { getLocalizedCategoryName } from '../../api/utils/multilingualName.utils';
 
@@ -23,6 +25,10 @@ const MenuView: React.FC = () => {
   const { data: productsData, loading: productsLoading } = useGetProducts('mock-org-1');
   const { data: campaignsData, loading: campaignsLoading } = useGetActiveCampaignProducts('mock-menu-1');
   
+  // Monitor table locked status
+  // TODO: Get actual tableId from context/URL params
+  useTableLockedStatus('mock-table-1');
+  
   const [activeCategory, setActiveCategory] = useState<number>(0);
   const [showCategoryBar, setShowCategoryBar] = useState<boolean>(true);
   const [showTotalDialog, setShowTotalDialog] = useState<boolean>(false);
@@ -31,6 +37,7 @@ const MenuView: React.FC = () => {
   
   const orderStatus = useAtomValue(orderStatusAtom);
   const billRequested = useAtomValue(billRequestedAtom);
+  const tableLocked = useAtomValue(tableLockedAtom);
   const resetAppState = useSetAtom(resetAppStateAtom);
 
   // Get products and campaigns from API
@@ -244,6 +251,9 @@ const MenuView: React.FC = () => {
 
       {/* Thank You Dialog - shown when bill is requested */}
       <ThankYouDialog isOpen={billRequested} onReset={handleResetSession} />
+
+      {/* Locked Dialog - shown when table is locked by staff */}
+      <LockedDialog isOpen={tableLocked} />
 
       {/* Total Order Summary Dialog */}
       <TotalOrderSummaryDialog

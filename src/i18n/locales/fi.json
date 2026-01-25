@@ -61,6 +61,10 @@
     "enjoyedMeal": "Toivottavasti nautit ateriasta!",
     "startNewSession": "Aloita uusi istunto"
   },
+  "lockedDialog": {
+    "title": "Pöytä lukittu",
+    "message": "Tilaaminen on väliaikaisesti lukittu."
+  },
   "splitBillDialog": {
     "title": "Jaa lasku",
     "allItems": "Kaikki tuotteet",
