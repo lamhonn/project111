@@ -1,0 +1,124 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "bill": "Bill",
+    "total": "Total",
+    "table": "Table",
+    "campaigns": "Campaigns"
+  },
+  "dietary": {
+    "glutenFree": "Gluten-free",
+    "lactoseFree": "Lactose-free",
+    "lowLactose": "Low lactose",
+    "vegetarian": "Vegetarian",
+    "vegan": "Vegan"
+  },
+  "welcome": {
+    "title": "Welcome!",
+    "description": "Ready to start your dining experience? Tap the button below to begin.",
+    "startButton": "Start"
+  },
+  "actionBar": {
+    "callForService": "Call for service",
+    "showOrder": "Show order"
+  },
+  "header": {
+    "restaurant": "Restaurant"
+  },
+  "orderStatus": {
+    "received": "Received",
+    "preparing": "Preparing"
+  },
+  "productCard": {
+    "addItem": "Add Item"
+  },
+  "productDialog": {
+    "toppings": "ADD TOPPINGS",
+    "ingredients": "INGREDIENTS",
+    "excludables": "EXCLUDE INGREDIENTS",
+    "ageVerification": "Age restricted. Your age might be verified by the staff",
+    "addToOrder": "Add to order"
+  },
+  "orderSummaryDialog": {
+    "title": "Order's Summary",
+    "totalItems": "Total Items",
+    "paymentSummary": "Payment Summary",
+    "priceBeforeVat": "Price before VAT",
+    "vat": "VAT",
+    "placeOrder": "Place Order"
+  },
+  "totalOrderSummaryDialog": {
+    "title": "Total Receipt",
+    "allItems": "All Items",
+    "noOrders": "No orders yet",
+    "placeFirstOrder": "Place your first order to see it here",
+    "paymentSummary": "Payment Summary",
+    "priceBeforeVat": "Price before VAT",
+    "vat": "VAT",
+    "askForBill": "Ask for Bill"
+  },
+  "thankYouDialog": {
+    "title": "Bill is coming! 🧾",
+    "message": "Thank you for dining with us. Your bill will be brought to your table shortly.",
+    "enjoyedMeal": "We hope you enjoyed your meal!",
+    "startNewSession": "Start New Session"
+  },
+  "lockedDialog": {
+    "title": "Table Locked",
+    "message": "Ordering has been temporarily disabled."
+  },
+  "splitBillDialog": {
+    "title": "Split Bill",
+    "allItems": "All Items",
+    "bills": "Bills",
+    "bill": "Bill",
+    "addBill": "Add Bill",
+    "save": "Save",
+    "dragItemsHere": "Drag items here",
+    "clickToMoveHere": "Move here",
+    "allItemsAssigned": "All items have been assigned to bills",
+    "item": "item",
+    "items": "items",
+    "primaryBill": "Primary Bill",
+    "howManyItems": "How many items?",
+    "selectQuantity": "Select how many to move (max: {{max}})",
+    "requested": "Requested",
+    "billRequested": "Bill requested"
+  },
+  "billRequestDialog": {
+    "title": "Request Bill",
+    "description": "You have split bills. Would you like to request all bills or request specific ones?",
+    "requestAllBills": "Request All Bills",
+    "selectSpecificBills": "Select Specific Bills",
+    "selectBillsTitle": "Select Bills to Request",
+    "selectDescription": "Choose which bills you want to request. Selected bills will be prepared and brought to your table.",
+    "primaryBill": "Primary Bill",
+    "requestSelected": "Request Selected"
+  },
+  "confirmDialog": {
+    "callService": {
+      "title": "Call for service?",
+      "message": "A waiter will be notified and come to assist you shortly."
+    },
+    "placeOrder": {
+      "title": "Place order?",
+      "message": "Your order will be processed and prepared shortly."
+    },
+    "askForBill": {
+      "title": "Ask for bill?",
+      "message": "Your bill will be prepared and brought to your table shortly."
+    }
+  },
+  "toaster": {
+    "serviceCalledSuccess": "Service called successfully! A waiter will assist you shortly."
+  },
+  "errorDialog": {
+    "title": "Oops! Something went wrong",
+    "defaultMessage": "Something went wrong",
+    "callForService": "Call for Service",
+    "serviceCalledWait": "Service called - Wait {{seconds}}s",
+    "canCallAgain": "You can call for service again if needed",
+    "waiterWillAssist": "A waiter will assist you shortly"
+  }
+}

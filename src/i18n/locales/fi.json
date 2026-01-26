@@ -1,0 +1,120 @@
+{
+  "common": {
+    "cancel": "Peruuta",
+    "confirm": "Vahvista",
+    "bill": "Lasku",
+    "total": "Loppusumma",
+    "table": "Pöytä",
+    "campaigns": "Kampanjat"
+  },  "dietary": {
+    "glutenFree": "Gluteeniton",
+    "lactoseFree": "Laktoositon",
+    "lowLactose": "Vähälaktoosinen",
+    "vegetarian": "Kasvisruoka",
+    "vegan": "Vegaaninen"
+  },  "welcome": {
+    "title": "Tervetuloa!",
+    "description": "Valmis aloittamaan ruokailukokemuksesi? Napauta alla olevaa painiketta aloittaaksesi.",
+    "startButton": "Aloita"
+  },  "actionBar": {
+    "callForService": "Kutsu tarjoilija",
+    "showOrder": "Näytä tilaus"
+  },
+  "header": {
+    "restaurant": "Ravintola"
+  },
+  "orderStatus": {
+    "received": "Vastaanotettu",
+    "preparing": "Valmistetaan"
+  },
+  "productCard": {
+    "addItem": "Lisää tuote"
+  },
+  "productDialog": {
+    "toppings": "LISÄÄ TÄYTTEITÄ",
+    "ingredients": "AINESOSAT",
+    "excludables": "POISTA AINESOSIA",
+    "ageVerification": "Ikärajoitettu tuote. Voit joutua todistamaan ikäsi henkilökunnalle",
+    "addToOrder": "Lisää tilaukseen"
+  },
+  "orderSummaryDialog": {
+    "title": "Tilauksen yhteenveto",
+    "totalItems": "Tuotteet yhteensä",
+    "paymentSummary": "Maksuyhteenveto",
+    "priceBeforeVat": "Hinta ilman ALVia",
+    "vat": "ALV",
+    "placeOrder": "Tee tilaus"
+  },
+  "totalOrderSummaryDialog": {
+    "title": "Koko kuitti",
+    "allItems": "Kaikki tuotteet",
+    "noOrders": "Ei tilauksia vielä",
+    "placeFirstOrder": "Tee ensimmäinen tilauksesi nähdäksesi sen täällä",
+    "paymentSummary": "Maksuyhteenveto",
+    "priceBeforeVat": "Hinta ilman ALVia",
+    "vat": "ALV",
+    "askForBill": "Pyydä lasku"
+  },
+  "thankYouDialog": {
+    "title": "Lasku on tulossa! 🧾",
+    "message": "Kiitos kun ateroit kanssamme. Laskunne tuodaan pöytään pian.",
+    "enjoyedMeal": "Toivottavasti nautit ateriasta!",
+    "startNewSession": "Aloita uusi istunto"
+  },
+  "lockedDialog": {
+    "title": "Pöytä lukittu",
+    "message": "Tilaaminen on väliaikaisesti lukittu."
+  },
+  "splitBillDialog": {
+    "title": "Jaa lasku",
+    "allItems": "Kaikki tuotteet",
+    "bills": "Laskut",
+    "bill": "Kuitti",
+    "addBill": "Lisää lasku",
+    "save": "Tallenna",
+    "dragItemsHere": "Vedä tuotteet tähän",
+    "clickToMoveHere": "Siirrä tähän",
+    "allItemsAssigned": "Kaikki tuotteet on jaettu laskuihin",
+    "item": "tuote",
+    "items": "tuotetta",
+    "primaryBill": "Päälasku",
+    "howManyItems": "Kuinka monta siirretään?",
+    "selectQuantity": "Valitse kuinka monta siirretään (max: {{max}})",
+    "requested": "Laskutettu",
+    "billRequested": "Lasku pyydetty"
+  },  "billRequestDialog": {
+    "title": "Pyydä lasku",
+    "description": "Sinulla on jaettuja laskuja. Haluatko pyytää kaikki vai pyytää tietyt laskut?",
+    "requestAllBills": "Pyydä kaikki laskut",
+    "selectSpecificBills": "Valitse tietyt laskut",
+    "selectBillsTitle": "Valitse pyydettävät laskut",
+    "selectDescription": "Valitse mitkä laskut haluat pyytää. Valitut laskut valmistellaan ja tuodaan pöytääsi.",
+    "primaryBill": "Päälasku",
+    "requestSelected": "Pyydä valitut"
+  },  "confirmDialog": {
+    "callService": {
+      "title": "Kutsu tarjoilija?",
+      "message": "Tarjoilija tulee palvelemaan teitä mahdollisimman pian."
+    },
+    "placeOrder": {
+      "title": "Tee tilaus?",
+      "message": "Tilauksesi käsitellään ja valmistetaan mahdollisimman pian."
+    },
+    "askForBill": {
+      "title": "Pyydä lasku?",
+      "message": "Laskusi käsitellään ja tuodaan mahdollisimman pian."
+    }
+  },
+  "toaster": {
+    "serviceCalledSuccess": "Tarjoilija kutsuttu onnistuneesti! Tarjoilija avustaa pian."
+  },
+  "errorDialog": {
+    "title": "Hups! Jokin meni pieleen",
+    "defaultMessage": "Jokin meni pieleen",
+    "callForService": "Kutsu tarjoilija",
+    "serviceCalledWait": "Tarjoilija kutsuttu - Odota {{seconds}}s",
+    "canCallAgain": "Voit kutsua tarjoilijan uudelleen tarvittaessa",
+    "waiterWillAssist": "Tarjoilija palvelee teitä pian"
+  }
+}
+

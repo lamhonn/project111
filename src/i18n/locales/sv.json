@@ -1,0 +1,117 @@
+{
+  "common": {
+    "cancel": "Avbryt",
+    "confirm": "Bekräfta",
+    "bill": "Totalt",
+    "total": "Totalt",
+    "table": "Bord",
+    "campaigns": "Kampanjer"
+  },  "dietary": {
+    "glutenFree": "Glutenfri",
+    "lactoseFree": "Laktosfri",
+    "lowLactose": "Låg laktos",
+    "vegetarian": "Vegetarisk",
+    "vegan": "Vegansk"
+  },  "welcome": {
+    "title": "Välkommen!",
+    "description": "Redo att börja din matupplevelse? Tryck på knappen nedan för att börja.",
+    "startButton": "Börja"
+  },  "actionBar": {
+    "callForService": "Ring efter service",
+    "showOrder": "Visa beställning"
+  },
+  "header": {
+    "restaurant": "Restaurang"
+  },
+  "orderStatus": {
+    "received": "Mottagen",
+    "preparing": "Förbereder"
+  },
+  "productCard": {
+    "addItem": "Lägg till artikel"
+  },
+  "productDialog": {
+    "toppings": "LÄGG TILL TILLBEHÖR",
+    "ingredients": "INGREDIENSER",
+    "excludables": "EXKLUDERA INGREDIENSER",
+    "ageVerification": "Åldersbegränsad. Din ålder kan verifieras av personalen",
+    "addToOrder": "Lägg till beställning"
+  },
+  "orderSummaryDialog": {
+    "title": "Beställningssammanfattning",
+    "totalItems": "Totalt antal artiklar",
+    "paymentSummary": "Betalningssammanfattning",
+    "priceBeforeVat": "Pris före moms",
+    "vat": "Moms",
+    "placeOrder": "Gör beställning"
+  },
+  "totalOrderSummaryDialog": {
+    "title": "Total kvitto",
+    "allItems": "Alla artiklar",
+    "noOrders": "Inga beställningar ännu",
+    "placeFirstOrder": "Gör din första beställning för att se den här",
+    "paymentSummary": "Betalningssammanfattning",
+    "priceBeforeVat": "Pris före moms",
+    "vat": "Moms",
+    "askForBill": "Be om nota"
+  },
+  "thankYouDialog": {
+    "title": "Notan kommer! 🧾",
+    "message": "Tack för att du åt med oss. Din nota kommer att levereras till ditt bord inom kort.",
+    "enjoyedMeal": "Vi hoppas du njöt av din måltid!",
+    "startNewSession": "Starta ny session"
+  },  "lockedDialog": {
+    "title": "Bord låst",
+    "message": "Ditt bord har tillfälligt låsts"
+  },  "splitBillDialog": {
+    "title": "Dela nota",
+    "allItems": "Alla artiklar",
+    "bills": "Kvittor",
+    "bill": "Kvitto",
+    "addBill": "Lägg till nota",
+    "save": "Spara",
+    "dragItemsHere": "Dra artiklar hit",
+    "clickToMoveHere": "Flytta hit",
+    "allItemsAssigned": "Alla artiklar har tilldelats notor",
+    "item": "artikel",
+    "items": "artiklar",
+    "primaryBill": "Primär nota",
+    "howManyItems": "Hur många artiklar?",
+    "selectQuantity": "Välj hur många som ska flyttas (max: {{max}})",
+    "requested": "Begärd",
+    "billRequested": "Nota begärd"
+  },  "billRequestDialog": {
+    "title": "Begär nota",
+    "description": "Du har delade notor. Vill du begära alla notor eller välja specifika?",
+    "requestAllBills": "Begär alla notor",
+    "selectSpecificBills": "Välj specifika notor",
+    "selectBillsTitle": "Välj notor att begära",
+    "selectDescription": "Välj vilka notor du vill begära. Valda notor kommer att förberedas och bringas till ditt bord.",
+    "primaryBill": "Primär nota",
+    "requestSelected": "Begär valda"
+  },  "confirmDialog": {
+    "callService": {
+      "title": "Ring efter service?",
+      "message": "En servitör kommer att meddelas och komma för att hjälpa dig inom kort."
+    },
+    "placeOrder": {
+      "title": "Gör beställning?",
+      "message": "Din beställning kommer att behandlas och förberedas inom kort."
+    },
+    "askForBill": {
+      "title": "Be om nota?",
+      "message": "Din nota kommer att förberedas och levereras till ditt bord inom kort."
+    }
+  },
+  "toaster": {
+    "serviceCalledSuccess": "Service har ringts! En servitör kommer att hjälpa dig inom kort."
+  },
+  "errorDialog": {
+    "title": "Hoppsan! Något gick fel",
+    "defaultMessage": "Något gick fel",
+    "callForService": "Ring efter service",
+    "serviceCalledWait": "Service ringd - Vänta {{seconds}}s",
+    "canCallAgain": "Du kan ringa efter service igen om det behövs",
+    "waiterWillAssist": "En servitör kommer att hjälpa dig inom kort"
+  }
+}
