@@ -20,7 +20,7 @@ import { useSetAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
 import { addOrderItemAtom, Topping as OrderTopping } from '../../context/orderStore';
-import { parseToppings } from '../../api/utils/toppings.utils';
+import { parseToppings, getLocalizedTopping } from '../../api/utils/toppings.utils';
 import { getLocalizedIngredients, parseExcludables, getLocalizedExcludable } from '../../api/utils/multilingualName.utils';
 import { getDietaryCodes, getDietaryName } from '../../api/utils/dietary.utils';
 import { Dietary } from '../../api/types/enums';
@@ -69,9 +69,10 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
     toppings.forEach((topping, index) => {
       const toppingQuantity = selectedToppings[index] || 0;
       if (toppingQuantity > 0) {
+        const localizedName = getLocalizedTopping(topping.Name, i18n.language);
         toppingsArray.push({
-          id: topping.Name,
-          name: topping.Name,
+          id: localizedName,
+          name: localizedName,
           price: topping.PriceIncrement,
           quantity: toppingQuantity,
         });
@@ -272,6 +273,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
               {toppings.map((topping, index) => {
                 const count = selectedToppings[index] || 0;
                 const isSelected = count > 0;
+                const localizedName = getLocalizedTopping(topping.Name, i18n.language);
 
                 return (
                   <Card
@@ -301,7 +303,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
                     >
                       <Box>
                         <Typography component="span" fontWeight="medium">
-                          {topping.Name}
+                          {localizedName}
                         </Typography>
                         {topping.PriceIncrement > 0 && (
                           <Typography component="span" color={theme.colors.text} sx={{ ml: 1 }}>

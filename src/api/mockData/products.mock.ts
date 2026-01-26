@@ -22,7 +22,7 @@ export const MOCK_PRODUCTS: ProductWithCategory[] = [
     Created: new Date(),
     AgeRestrictied: false,
     Category: 0,
-    Toppings: '[{"Name":"Extra Cheese","PriceIncrement":1.50},{"Name":"Mushrooms","PriceIncrement":1.00},{"Name":"Olives","PriceIncrement":0.75}]',
+    Toppings: '[{"Name":{"en":"Extra Cheese","fi":"Lisäjuusto","sv":"Extra Ost"},"PriceIncrement":1.50},{"Name":{"en":"Mushrooms","fi":"Sienet","sv":"Svamp"},"PriceIncrement":1.00},{"Name":{"en":"Olives","fi":"Oliivit","sv":"Oliver"},"PriceIncrement":0.75}]',
   },
   {
     Id: '2',
@@ -37,7 +37,7 @@ export const MOCK_PRODUCTS: ProductWithCategory[] = [
     Created: new Date(),
     AgeRestrictied: false,
     Category: 0,
-    Toppings: '[{"Name":"Extra Pepperoni","PriceIncrement":2.00},{"Name":"Jalapeños","PriceIncrement":0.50},{"Name":"Extra Cheese","PriceIncrement":1.50}]',
+    Toppings: '[{"Name":{"en":"Extra Pepperoni","fi":"Lisä Pepperoni","sv":"Extra Pepperoni"},"PriceIncrement":2.00},{"Name":{"en":"Jalapeños","fi":"Jalapeñot","sv":"Jalapeños"},"PriceIncrement":0.50},{"Name":{"en":"Extra Cheese","fi":"Lisäjuusto","sv":"Extra Ost"},"PriceIncrement":1.50}]',
   },
   {
     Id: '3',
@@ -52,7 +52,7 @@ export const MOCK_PRODUCTS: ProductWithCategory[] = [
     Created: new Date(),
     AgeRestrictied: false,
     Category: 0,
-    Toppings: '[{"Name":"Extra Ham","PriceIncrement":2.00},{"Name":"Extra Pineapple","PriceIncrement":1.00},{"Name":"Bacon","PriceIncrement":1.50}]',
+    Toppings: '[{"Name":{"en":"Extra Ham","fi":"Lisäkinkku","sv":"Extra Skinka"},"PriceIncrement":2.00},{"Name":{"en":"Extra Pineapple","fi":"Lisäananas","sv":"Extra Ananas"},"PriceIncrement":1.00},{"Name":{"en":"Bacon","fi":"Pekoni","sv":"Bacon"},"PriceIncrement":1.50}]',
   },
   {
     Id: '4',
@@ -67,7 +67,7 @@ export const MOCK_PRODUCTS: ProductWithCategory[] = [
     Created: new Date(),
     AgeRestrictied: false,
     Category: 0,
-    Toppings: '[{"Name":"Extra Veggies","PriceIncrement":1.50},{"Name":"Vegan Cheese","PriceIncrement":2.00},{"Name":"Garlic","PriceIncrement":0.50},{"Name":"Sun-dried Tomatoes","PriceIncrement":1.25}]',
+    Toppings: '[{"Name":{"en":"Extra Veggies","fi":"Lisävihannekset","sv":"Extra Grönsaker"},"PriceIncrement":1.50},{"Name":{"en":"Vegan Cheese","fi":"Vegaanijuusto","sv":"Vegansk Ost"},"PriceIncrement":2.00},{"Name":{"en":"Garlic","fi":"Valkosipuli","sv":"Vitlök"},"PriceIncrement":0.50},{"Name":{"en":"Sun-dried Tomatoes","fi":"Auringonkuivatut tomaatit","sv":"Soltorkade Tomater"},"PriceIncrement":1.25}]',
   },
   {
     Id: '5',
@@ -82,22 +82,22 @@ export const MOCK_PRODUCTS: ProductWithCategory[] = [
     Created: new Date(),
     AgeRestrictied: false,
     Category: 0,
-    Toppings: '[{"Name":"Extra Chicken","PriceIncrement":2.50},{"Name":"Bacon","PriceIncrement":1.50},{"Name":"Jalapeños","PriceIncrement":0.75},{"Name":"Ranch Drizzle","PriceIncrement":0.50}]',
+    Toppings: '[{"Name":{"en":"Extra Chicken","fi":"Lisäkana","sv":"Extra Kyckling"},"PriceIncrement":2.50},{"Name":{"en":"Bacon","fi":"Pekoni","sv":"Bacon"},"PriceIncrement":1.50},{"Name":{"en":"Jalapeños","fi":"Jalapeñot","sv":"Jalapeños"},"PriceIncrement":0.75},{"Name":{"en":"Ranch Drizzle","fi":"Ranch-kastike","sv":"Ranch Sås"},"PriceIncrement":0.50}]',
   },
   {
     Id: '6',
     OrganizationId: 'mock-org-1',
-    Name: '{"sv":"Köttälskare Pizza"}',
-    Description: '{"sv":"Fylld med pepperoni, korv, skinka och bacon"}',
+    Name: '{"en":"Meat Lover\'s Pizza", "fi":"Äijävege Pizza", "sv":"Köttälskare Pizza"}',
+    Description: '{"en":"Loaded with pepperoni, sausage, ham, and bacon","fi":"Täynnä pepperonia, makkaraa, kinkkua ja pekonia","sv":"Fylld med pepperoni, korv, skinka och bacon"}',
     Price: 16.99,
-    Ingredients: '{"sv":"mjöl, tomatsås, mozzarellaost, pepperoni, korv, skinka, bacon, olivolja, salt"}',
+    Ingredients: '{"en":"flour, tomato sauce, mozzarella cheese, pepperoni, sausage, ham, bacon, olive oil, salt","fi":"jauho, tomaattikastike, mozzarellajuusto, pepperoni, makkara, kinkku, pekoni, oliiviöljy, suola","sv":"mjöl, tomatsås, mozzarellaost, pepperoni, korv, skinka, bacon, olivolja, salt"}',
     Dietaries: [Dietary.LowLactose],
     ImgUrl: 'https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=400',
     Enabled: true,
     Created: new Date(),
     AgeRestrictied: false,
     Category: 0,
-    Toppings: '[{"Name":"Extra Pepperoni","PriceIncrement":2.00},{"Name":"Ground Beef","PriceIncrement":2.00},{"Name":"Italian Sausage","PriceIncrement":2.00}]',
+    Toppings: '[{"Name":{"en":"Extra Pepperoni","fi":"Lisä Pepperoni","sv":"Extra Pepperoni"},"PriceIncrement":2.00},{"Name":{"en":"Ground Beef","fi":"Jauheliha","sv":"Nötfärs"},"PriceIncrement":2.00},{"Name":{"en":"Italian Sausage","fi":"Italialainen makkara","sv":"Italiensk Korv"},"PriceIncrement":2.00}]',
   },
   // Burgers (Category 1)
   {
@@ -113,7 +113,7 @@ export const MOCK_PRODUCTS: ProductWithCategory[] = [
     Created: new Date(),
     AgeRestrictied: false,
     Category: 1,
-    Toppings: '[{"Name":"Bacon","PriceIncrement":1.50},{"Name":"Extra Cheese","PriceIncrement":1.00},{"Name":"Fried Egg","PriceIncrement":1.25},{"Name":"Avocado","PriceIncrement":2.00}]',
+    Toppings: '[{"Name":{"en":"Bacon","fi":"Pekoni","sv":"Bacon"},"PriceIncrement":1.50},{"Name":{"en":"Extra Cheese","fi":"Lisäjuusto","sv":"Extra Ost"},"PriceIncrement":1.00},{"Name":{"en":"Fried Egg","fi":"Paistettu muna","sv":"Stekt Ägg"},"PriceIncrement":1.25},{"Name":{"en":"Avocado","fi":"Avokado","sv":"Avokado"},"PriceIncrement":2.00}]',
     Excludables: '[{"en":"Lettuce","fi":"Salaatti","sv":"Sallad"},{"en":"Tomato","fi":"Tomaatti","sv":"Tomat"},{"en":"Onion","fi":"Sipuli","sv":"Lök"},{"en":"Pickles","fi":"Suolakurkku","sv":"Pickles"}]',
   },
   {
@@ -129,7 +129,7 @@ export const MOCK_PRODUCTS: ProductWithCategory[] = [
     Created: new Date(),
     AgeRestrictied: false,
     Category: 1,
-    Toppings: '[{"Name":"Extra Patty","PriceIncrement":3.00},{"Name":"Bacon","PriceIncrement":1.50},{"Name":"Onion Rings","PriceIncrement":1.75}]',
+    Toppings: '[{"Name":{"en":"Extra Patty","fi":"Lisäpihvi","sv":"Extra Biff"},"PriceIncrement":3.00},{"Name":{"en":"Bacon","fi":"Pekoni","sv":"Bacon"},"PriceIncrement":1.50},{"Name":{"en":"Onion Rings","fi":"Sipulirenkaat","sv":"Lökringa"},"PriceIncrement":1.75}]',
     Excludables: '[{"en":"Cheese","fi":"Juusto","sv":"Ost"},{"en":"Lettuce","fi":"Salaatti","sv":"Sallad"},{"en":"Tomato","fi":"Tomaatti","sv":"Tomat"},{"en":"Onion","fi":"Sipuli","sv":"Lök"}]',
   },
   {
@@ -145,7 +145,7 @@ export const MOCK_PRODUCTS: ProductWithCategory[] = [
     Created: new Date(),
     AgeRestrictied: false,
     Category: 1,
-    Toppings: '[{"Name":"Extra Bacon","PriceIncrement":2.00},{"Name":"Cheddar Cheese","PriceIncrement":1.00},{"Name":"Caramelized Onions","PriceIncrement":1.25},{"Name":"Mushrooms","PriceIncrement":1.00}]',
+    Toppings: '[{"Name":{"en":"Extra Bacon","fi":"Lisäpekoni","sv":"Extra Bacon"},"PriceIncrement":2.00},{"Name":{"en":"Cheddar Cheese","fi":"Cheddarjuusto","sv":"Cheddarost"},"PriceIncrement":1.00},{"Name":{"en":"Caramelized Onions","fi":"Karamellisoitu sipuli","sv":"Karamelliserad Lök"},"PriceIncrement":1.25},{"Name":{"en":"Mushrooms","fi":"Sienet","sv":"Svamp"},"PriceIncrement":1.00}]',
     Excludables: '[{"en":"Bacon"},{"en":"Cheese"},{"en":"Lettuce"},{"en":"Tomato"},{"en":"BBQ Sauce"}]',
   },
   // Sides (Category 2)
@@ -162,7 +162,7 @@ export const MOCK_PRODUCTS: ProductWithCategory[] = [
     Created: new Date(),
     AgeRestrictied: false,
     Category: 2,
-    Toppings: '[{"Name":"Cheese Sauce","PriceIncrement":1.50},{"Name":"Bacon Bits","PriceIncrement":1.00},{"Name":"Truffle Oil","PriceIncrement":2.00},{"Name":"Chili Flakes","PriceIncrement":0.25}]',
+    Toppings: '[{"Name":{"en":"Cheese Sauce","fi":"Juustokastike","sv":"Ostsås"},"PriceIncrement":1.50},{"Name":{"en":"Bacon Bits","fi":"Pekonipalat","sv":"Baconbitar"},"PriceIncrement":1.00},{"Name":{"en":"Truffle Oil","fi":"Tryffelijöljy","sv":"Tryffelolja"},"PriceIncrement":2.00},{"Name":{"en":"Chili Flakes","fi":"Chililhiutaleet","sv":"Chiliflingor"},"PriceIncrement":0.25}]',
   },
   {
     Id: '11',
@@ -191,7 +191,7 @@ export const MOCK_PRODUCTS: ProductWithCategory[] = [
     Created: new Date(),
     AgeRestrictied: false,
     Category: 2,
-    Toppings: '[{"Name":"Ranch Dip","PriceIncrement":0.50},{"Name":"Garlic Aioli","PriceIncrement":0.75},{"Name":"Spicy Mayo","PriceIncrement":0.50}]',
+    Toppings: '[{"Name":{"en":"Ranch Dip","fi":"Ranch-dippi","sv":"Ranch Dip"},"PriceIncrement":0.50},{"Name":{"en":"Garlic Aioli","fi":"Valkosipuli-aioli","sv":"Vitlöksaioli"},"PriceIncrement":0.75},{"Name":{"en":"Spicy Mayo","fi":"Tulinen majoneesi","sv":"Kryddmajonnäs"},"PriceIncrement":0.50}]',
   },
   // Drinks (Category 3)
   {
