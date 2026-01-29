@@ -1,5 +1,6 @@
 import React from 'react';
 import { Snackbar, Alert, AlertColor } from '@mui/material';
+import { theme } from '../../theme/theme';
 
 interface ToasterProps {
   open: boolean;
@@ -32,7 +33,8 @@ const Toaster: React.FC<ToasterProps> = ({
         onClose={onClose}
         severity={severity}
         variant="filled"
-        sx={{ width: '100%' }}
+        sx={{ width: '100%', borderRadius: theme.borderRadius.xlarge}}
+        icon={false}
       >
         {message}
       </Alert>

@@ -20,7 +20,7 @@
     "startButton": "Start"
   },
   "actionBar": {
-    "callForService": "Call for service",
+    "callForService": "Call service",
     "showOrder": "Show order"
   },
   "header": {
@@ -38,7 +38,9 @@
     "ingredients": "INGREDIENTS",
     "excludables": "EXCLUDE INGREDIENTS",
     "ageVerification": "Age restricted. Your age might be verified by the staff",
-    "addToOrder": "Add to order"
+    "addToOrder": "Add to order",
+    "freeTopping": "free topping",
+    "freeToppings": "free toppings"
   },
   "orderSummaryDialog": {
     "title": "Order's Summary",
@@ -77,6 +79,7 @@
     "save": "Save",
     "dragItemsHere": "Drag items here",
     "clickToMoveHere": "Move here",
+    "placeProductsHere": "Place products here to create a new bill",
     "allItemsAssigned": "All items have been assigned to bills",
     "item": "item",
     "items": "items",
@@ -98,7 +101,7 @@
   },
   "confirmDialog": {
     "callService": {
-      "title": "Call for service?",
+      "title": "Call service?",
       "message": "A waiter will be notified and come to assist you shortly."
     },
     "placeOrder": {
@@ -116,7 +119,7 @@
   "errorDialog": {
     "title": "Oops! Something went wrong",
     "defaultMessage": "Something went wrong",
-    "callForService": "Call for Service",
+    "callForService": "Call Service",
     "serviceCalledWait": "Service called - Wait {{seconds}}s",
     "canCallAgain": "You can call for service again if needed",
     "waiterWillAssist": "A waiter will assist you shortly"
