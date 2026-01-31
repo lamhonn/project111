@@ -42,6 +42,7 @@
   "orderSummaryDialog": {
     "title": "Tilauksen yhteenveto",
     "totalItems": "Tuotteet yhteensä",
+    "forgotSomething": "Unohditko jotain?",
     "paymentSummary": "Maksuyhteenveto",
     "priceBeforeVat": "Hinta ilman ALVia",
     "vat": "ALV",
@@ -109,7 +110,9 @@
     }
   },
   "toaster": {
-    "serviceCalledSuccess": "Tarjoilija kutsuttu onnistuneesti! Tarjoilija avustaa pian."
+    "serviceCalledSuccess": "Tarjoilija kutsuttu onnistuneesti! Tarjoilija avustaa pian.",
+    "orderReceived": "Tilauksesi on vastaanotettu",
+    "orderPreparing": "Tilaustasi valmistellaan"
   },
   "errorDialog": {
     "title": "Hups! Jokin meni pieleen",

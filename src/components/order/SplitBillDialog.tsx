@@ -21,6 +21,7 @@ import {
   billSplitConfigurationAtom,
   SplitBill,
   BillStatus,
+  submittedOrdersAtom,
 } from '../../context/orderStore';
 
 interface SplitBillDialogProps {
@@ -34,8 +35,16 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
 }) => {
   const { t } = useTranslation();
   const totalOrderItems = useAtomValue(totalOrderItemsAtom);
+  const submittedOrders = useAtomValue(submittedOrdersAtom);
   const existingBillSplit = useAtomValue(billSplitConfigurationAtom);
   const saveBillSplit = useSetAtom(saveBillSplitAtom);
+
+  // Combine ready items and items from submitted orders (all available items for splitting)
+  const allAvailableItems = React.useMemo(() => {
+    const readyItems = [...totalOrderItems];
+    const preparingItems = submittedOrders.flatMap(order => order.items);
+    return [...readyItems, ...preparingItems];
+  }, [totalOrderItems, submittedOrders]);
 
   // State for bills
   const [bills, setBills] = useState<SplitBill[]>([]);
@@ -56,18 +65,18 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
         existingBillSplit.unsplitItems.forEach(item => existingItemIds.add(item.id));
 
         // Find new items that weren't in the previous split
-        const newItems = totalOrderItems.filter(item => !existingItemIds.has(item.id));
+        const newItems = allAvailableItems.filter(item => !existingItemIds.has(item.id));
 
         // Restore bills and add new items to unassigned
         setBills(existingBillSplit.bills);
         setUnassignedItems([...existingBillSplit.unsplitItems, ...newItems]);
       } else {
         // Otherwise, initialize with all items unassigned and no bills
-        setUnassignedItems([...totalOrderItems]);
+        setUnassignedItems([...allAvailableItems]);
         setBills([]);
       }
     }
-  }, [isOpen, totalOrderItems, existingBillSplit]);
+  }, [isOpen, allAvailableItems, existingBillSplit]);
 
   // Drag and drop handlers
   const [draggedItem, setDraggedItem] = useState<OrderItem | null>(null);

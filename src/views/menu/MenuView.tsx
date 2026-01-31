@@ -5,12 +5,14 @@ import { useTranslation } from 'react-i18next';
 import ProductCard from '../../components/menu/ProductCard';
 import ActionBar from '../../components/actionbar/ActionBar';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
+import Toaster from '../../components/common/Toaster';
 import CategoryPill from '../../components/category/CategoryPill';
 import MenuHeader from '../../components/header/MenuHeader';
 import TotalOrderSummaryDialog from '../../components/order/TotalOrderSummaryDialog';
 import ThankYouDialog from '../../components/order/ThankYouDialog';
 import LockedDialog from '../../components/order/LockedDialog';
 import { orderStatusAtom, billRequestedAtom, resetAppStateAtom, tableLockedAtom } from '../../context/orderStore';
+import { toasterAtom, hideToasterAtom } from '../../context/toasterStore';
 import { useGetProducts } from '../../api/hooks/product.hooks';
 import { useGetActiveCampaignProducts } from '../../api/hooks/campaignProduct.hooks';
 import { useTableLockedStatus } from '../../api/hooks/table.hooks';
@@ -39,6 +41,8 @@ const MenuView: React.FC = () => {
   const billRequested = useAtomValue(billRequestedAtom);
   const tableLocked = useAtomValue(tableLockedAtom);
   const resetAppState = useSetAtom(resetAppStateAtom);
+  const toasterState = useAtomValue(toasterAtom);
+  const hideToaster = useSetAtom(hideToasterAtom);
 
   // Get products and campaigns from API
   const products = productsData?.products || [];
@@ -264,6 +268,15 @@ const MenuView: React.FC = () => {
 
       {/* Global Confirm Dialog */}
       <ConfirmDialog />
+
+      {/* Global Toaster */}
+      <Toaster
+        open={toasterState.open}
+        onClose={hideToaster}
+        message={toasterState.message}
+        severity={toasterState.severity}
+        duration={toasterState.duration}
+      />
     </Box>
   );
 };

@@ -42,6 +42,7 @@
   "orderSummaryDialog": {
     "title": "Beställningssammanfattning",
     "totalItems": "Totalt antal artiklar",
+    "forgotSomething": "Glömde du något?",
     "paymentSummary": "Betalningssammanfattning",
     "priceBeforeVat": "Pris före moms",
     "vat": "Moms",
@@ -107,7 +108,9 @@
     }
   },
   "toaster": {
-    "serviceCalledSuccess": "Service har ringts! En servitör kommer att hjälpa dig inom kort."
+    "serviceCalledSuccess": "Service har ringts! En servitör kommer att hjälpa dig inom kort.",
+    "orderReceived": "Din beställning har mottagits",
+    "orderPreparing": "Din beställning förbereds"
   },
   "errorDialog": {
     "title": "Hoppsan! Något gick fel",

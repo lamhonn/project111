@@ -17,6 +17,8 @@ export interface OrderItem {
   quantity: number;
   toppings?: Topping[];
   excludables?: string[]; // Array of excluded ingredient names
+  orderStatus?: 'received' | 'preparing' | 'ready'; // Track which order this item belongs to and its status
+  orderId?: string; // Track the source order ID for items in preparing/received state
 }
 
 // Helper function to generate unique ID for items with toppings and excludables
@@ -135,6 +137,7 @@ export const resetAppStateAtom = atom(
   (get, set) => {
     set(orderItemsAtom, []);
     set(totalOrderItemsAtom, []);
+    set(submittedOrdersAtom, []);
     set(orderStatusAtom, null);
     set(billRequestedAtom, false);
     set(tableLockedAtom, false);
@@ -230,22 +233,116 @@ export const clearOrderAtom = atom(
 // State for tracking all submitted orders (for total receipt)
 export const totalOrderItemsAtom = atom<OrderItem[]>([]);
 
-// Derived atom for total order count
+// Individual order with status tracking
+export interface SubmittedOrder {
+  id: string;
+  items: OrderItem[];
+  status: 'received' | 'preparing' | 'ready';
+  timestamp: Date;
+}
+
+// Atom to track all submitted orders with their statuses
+export const submittedOrdersAtom = atom<SubmittedOrder[]>([]);
+
+// Atom to update order status
+export const updateOrderStatusAtom = atom(
+  null,
+  (get, set, { orderId, status }: { orderId: string; status: 'received' | 'preparing' | 'ready' }) => {
+    const orders = get(submittedOrdersAtom);
+    
+    // Update order status in submitted orders
+    const updatedOrders = orders.map(order =>
+      order.id === orderId ? { 
+        ...order, 
+        status,
+        items: order.items.map(item => ({ ...item, orderStatus: status }))
+      } : order
+    );
+    set(submittedOrdersAtom, updatedOrders);
+    
+    // Also update items in bill split configuration if they exist
+    const billSplitConfig = get(billSplitConfigurationAtom);
+    if (billSplitConfig) {
+      const updateItemsStatus = (items: OrderItem[]) => 
+        items.map(item => 
+          item.orderId === orderId ? { ...item, orderStatus: status } : item
+        );
+      
+      const updatedConfig = {
+        ...billSplitConfig,
+        bills: billSplitConfig.bills.map(bill => ({
+          ...bill,
+          items: updateItemsStatus(bill.items),
+        })),
+        unsplitItems: updateItemsStatus(billSplitConfig.unsplitItems),
+      };
+      
+      set(billSplitConfigurationAtom, updatedConfig);
+    }
+    
+    // When an order becomes ready, move its items to totalOrderItems and remove from submittedOrders
+    if (status === 'ready') {
+      const readyOrder = updatedOrders.find(order => order.id === orderId);
+      if (readyOrder) {
+        const currentTotalItems = get(totalOrderItemsAtom);
+        const mergedItems = [...currentTotalItems];
+        
+        // Merge ready order items into total items, removing order tracking
+        readyOrder.items.forEach(item => {
+          const { orderId: _, orderStatus: __, ...itemWithoutOrderTracking } = item;
+          const existingItemIndex = mergedItems.findIndex(i => i.id === itemWithoutOrderTracking.id);
+          if (existingItemIndex >= 0) {
+            mergedItems[existingItemIndex] = {
+              ...mergedItems[existingItemIndex],
+              quantity: mergedItems[existingItemIndex].quantity + itemWithoutOrderTracking.quantity,
+            };
+          } else {
+            mergedItems.push(itemWithoutOrderTracking);
+          }
+        });
+        
+        set(totalOrderItemsAtom, mergedItems);
+        // Remove the ready order from submitted orders
+        set(submittedOrdersAtom, updatedOrders.filter(order => order.id !== orderId));
+      }
+    }
+  }
+);
+
+// Derived atom for total order count (includes both ready items and items in submitted orders)
 export const totalOrderCountAtom = atom((get) => {
-  const items = get(totalOrderItemsAtom);
-  return items.reduce((count, item) => count + item.quantity, 0);
+  const readyItems = get(totalOrderItemsAtom);
+  const submittedOrders = get(submittedOrdersAtom);
+  
+  const readyCount = readyItems.reduce((count, item) => count + item.quantity, 0);
+  const submittedCount = submittedOrders.reduce((total, order) => {
+    return total + order.items.reduce((count, item) => count + item.quantity, 0);
+  }, 0);
+  
+  return readyCount + submittedCount;
 });
 
-// Derived atom for total order price
+// Derived atom for total order price (includes both ready items and items in submitted orders)
 export const totalOrderPriceAtom = atom((get) => {
-  const items = get(totalOrderItemsAtom);
-  return items.reduce((total, item) => {
-    const itemBasePrice = item.price * item.quantity;
-    const toppingsPrice = item.toppings
-      ? item.toppings.reduce((sum, topping) => sum + (topping.price * topping.quantity), 0)
-      : 0;
-    return total + itemBasePrice + toppingsPrice;
+  const readyItems = get(totalOrderItemsAtom);
+  const submittedOrders = get(submittedOrdersAtom);
+  
+  const calculateItemsPrice = (items: OrderItem[]) => {
+    return items.reduce((total, item) => {
+      const itemBasePrice = item.price * item.quantity;
+      const toppingsPrice = item.toppings
+        ? item.toppings.reduce((sum, topping) => sum + (topping.price * topping.quantity), 0)
+        : 0;
+      return total + itemBasePrice + toppingsPrice;
+    }, 0);
+  };
+  
+  const readyPrice = calculateItemsPrice(readyItems);
+  const submittedPrice = submittedOrders.reduce((total, order) => {
+    return total + calculateItemsPrice(order.items);
   }, 0);
+  
+  return readyPrice + submittedPrice;
 });
 
 // Atom to submit current order items to total order
@@ -253,30 +350,36 @@ export const submitOrderToTotalAtom = atom(
   null,
   (get, set) => {
     const currentItems = get(orderItemsAtom);
-    const totalItems = get(totalOrderItemsAtom);
     
-    // Add current order items to total order
-    const updatedTotalItems = [...totalItems];
+    if (currentItems.length === 0) return;
     
-    currentItems.forEach(item => {
-      const existingItemIndex = updatedTotalItems.findIndex(i => i.id === item.id);
-      
-      if (existingItemIndex >= 0) {
-        // Item already exists in total, add quantities
-        updatedTotalItems[existingItemIndex] = {
-          ...updatedTotalItems[existingItemIndex],
-          quantity: updatedTotalItems[existingItemIndex].quantity + item.quantity,
-        };
-      } else {
-        // New item, add to total
-        updatedTotalItems.push({ ...item });
-      }
-    });
+    // Create a new order with unique ID
+    const orderId = `order-${Date.now()}`;
     
-    set(totalOrderItemsAtom, updatedTotalItems);
+    // Mark items with their order ID and status
+    const itemsWithStatus = currentItems.map(item => ({
+      ...item,
+      orderId,
+      orderStatus: 'received' as const,
+    }));
+    
+    const newOrder: SubmittedOrder = {
+      id: orderId,
+      items: itemsWithStatus,
+      status: 'received',
+      timestamp: new Date(),
+    };
+    
+    // Add to submitted orders
+    const currentSubmittedOrders = get(submittedOrdersAtom);
+    set(submittedOrdersAtom, [...currentSubmittedOrders, newOrder]);
+    
     // Clear current order after submitting
     set(orderItemsAtom, []);
     // Set order status to Received
     set(orderStatusAtom, OrderStatus.Received);
+    
+    // Return the order ID so we can track status updates
+    return newOrder.id;
   }
 );

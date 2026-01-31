@@ -44,6 +44,7 @@
   },
   "orderSummaryDialog": {
     "title": "Order's Summary",
+    "forgotSomething": "Forgot something?",
     "totalItems": "Total Items",
     "paymentSummary": "Payment Summary",
     "priceBeforeVat": "Price before VAT",
@@ -114,7 +115,9 @@
     }
   },
   "toaster": {
-    "serviceCalledSuccess": "Service called successfully! A waiter will assist you shortly."
+    "serviceCalledSuccess": "Service called successfully! A waiter will assist you shortly.",
+    "orderReceived": "Your order has been received",
+    "orderPreparing": "Your order is being prepared"
   },
   "errorDialog": {
     "title": "Oops! Something went wrong",
