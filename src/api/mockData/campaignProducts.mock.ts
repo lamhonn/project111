@@ -9,6 +9,7 @@ export interface CampaignProductWithDetails extends CampaignProduct {
   Ingredients?: string; // JSON string with multilingual object
   Excludables?: string; // JSON string array of multilingual excludable ingredient objects
   Dietaries?: number[]; // Array of Dietary enum values (integers)
+  FreeToppings?: number; // Number of toppings that can be added before PriceIncrement starts
 }
 
 // Mock campaign product data
@@ -31,6 +32,7 @@ export const MOCK_CAMPAIGN_PRODUCTS: CampaignProductWithDetails[] = [
     Created: new Date(),
     Category: -1,
     Toppings: '[{"Name":"Extra Cheese","PriceIncrement":1.50},{"Name":"Mushrooms","PriceIncrement":1.00},{"Name":"Olives","PriceIncrement":0.75}]',
+    FreeToppings: 1,
   },
   {
     Id: 'c2',
@@ -51,5 +53,6 @@ export const MOCK_CAMPAIGN_PRODUCTS: CampaignProductWithDetails[] = [
     Category: -1,
     Toppings: '[{"Name":"Bacon","PriceIncrement":1.50},{"Name":"Extra Cheese","PriceIncrement":1.00},{"Name":"Fried Egg","PriceIncrement":1.25},{"Name":"Avocado","PriceIncrement":2.00}]',
     Excludables: '[{"en":"Lettuce","fi":"Salaatti","sv":"Sallad"},{"en":"Tomato","fi":"Tomaatti","sv":"Tomat"},{"en":"Onion","fi":"Sipuli","sv":"Lök"},{"en":"Pickles","fi":"Suolakurkku","sv":"Pickles"}]',
+    FreeToppings: 2,
   },
 ];

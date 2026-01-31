@@ -37,6 +37,7 @@ interface Product {
   excludables?: string;
   ageRestricted?: boolean;
   dietaries?: number[];
+  freeToppings?: number;
 }
 
 interface ProductDialogProps {
@@ -150,10 +151,39 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
 
   const calculateTotal = (): number => {
     let total = product.price * quantity;
-    toppings.forEach((topping, index) => {
-      const count = selectedToppings[index] || 0;
-      total += topping.PriceIncrement * count;
-    });
+    const freeToppingsCount = product.freeToppings || 0;
+    
+    // Calculate total number of selected toppings
+    const totalToppingsSelected = Object.values(selectedToppings).reduce((sum, count) => sum + count, 0);
+    
+    // Calculate how many toppings need to be charged
+    const chargeableToppings = Math.max(0, totalToppingsSelected - freeToppingsCount);
+    
+    // If we have free toppings, we need to apply the price only to the excess toppings
+    if (freeToppingsCount > 0 && chargeableToppings > 0) {
+      // Sort toppings by price (highest first) to maximize free topping value for customer fairness
+      const toppingPrices: number[] = [];
+      toppings.forEach((topping, index) => {
+        const count = selectedToppings[index] || 0;
+        for (let i = 0; i < count; i++) {
+          toppingPrices.push(topping.PriceIncrement);
+        }
+      });
+      toppingPrices.sort((a, b) => b - a); // Sort descending
+      
+      // Add only the chargeable toppings (skip the free ones)
+      for (let i = freeToppingsCount; i < toppingPrices.length; i++) {
+        total += toppingPrices[i];
+      }
+    } else if (freeToppingsCount === 0) {
+      // No free toppings, charge for all
+      toppings.forEach((topping, index) => {
+        const count = selectedToppings[index] || 0;
+        total += topping.PriceIncrement * count;
+      });
+    }
+    // If totalToppingsSelected <= freeToppingsCount, no additional charge
+    
     return total;
   };
 
@@ -162,62 +192,93 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
     <Dialog
       open={isOpen}
       onClose={onClose}
-      maxWidth="sm"
+      maxWidth="lg"
       fullWidth
       PaperProps={{
         sx: {
           borderRadius: theme.borderRadius.xlarge,
-          maxHeight: '90vh',
+          maxHeight: '95vh',
+          height: { xs: 'auto', md: '95vh' },
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
         }
       }}
     >
-      {/* Header Image */}
-      <Box sx={{ position: 'relative' }}>
-        {!imageError ? (
-          <Box
-            component="img"
-            src={product.image}
-            alt={product.name}
-            onError={() => setImageError(true)}
-            sx={{
-              width: '100%',
-              height: 192,
-              objectFit: 'cover',
-            }}
-          />
-        ) : (
-          <Box
-            sx={{
-              width: '100%',
-              height: 192,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'grey.200',
-            }}
-          >
-            <FastfoodIcon sx={{ fontSize: 100, color: 'grey.500' }} />
-          </Box>
-        )}
-        <IconButton
-          onClick={onClose}
-          sx={{
-            position: 'absolute',
-            top: "24px",
-            right: "24px",
-            backgroundColor: theme.colors.brandWhite,
-            boxShadow: theme.shadows.md,
-            '&:hover': {
-              backgroundColor: 'grey.100',
-            },
-          }}
-        >
-          <CloseIcon />
-        </IconButton>
-      </Box>
+      <IconButton
+        onClick={onClose}
+        sx={{
+          position: 'absolute',
+          top: "24px",
+          right: "24px",
+          backgroundColor: theme.colors.brandWhite,
+          boxShadow: theme.shadows.md,
+          zIndex: 1,
+          '&:hover': {
+            backgroundColor: 'grey.100',
+          },
+        }}
+      >
+        <CloseIcon />
+      </IconButton>
 
-      {/* Scrollable Content */}
-      <DialogContent sx={{ pb: 0 }}>
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: { xs: 'column', md: 'row' },
+        position: 'relative',
+        flex: 1,
+        overflow: 'hidden',
+      }}>
+        {/* Image Section */}
+        <Box sx={{ 
+          position: 'relative',
+          width: { xs: '100%', md: '50%' },
+          minHeight: { xs: 192, md: 'auto' },
+          flexShrink: 0,
+        }}>
+          {!imageError ? (
+            <Box
+              component="img"
+              src={product.image}
+              alt={product.name}
+              onError={() => setImageError(true)}
+              sx={{
+                width: '100%',
+                height: { xs: 192, md: '100%' },
+                objectFit: 'cover',
+              }}
+            />
+          ) : (
+            <Box
+              sx={{
+                width: '100%',
+                height: { xs: 192, md: '100%' },
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'grey.200',
+              }}
+            >
+              <FastfoodIcon sx={{ fontSize: 100, color: 'grey.500' }} />
+            </Box>
+          )}
+        </Box>
+
+        {/* Content Section */}
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          flex: 1,
+          minHeight: 0,
+          overflow: 'hidden',
+        }}>
+          {/* Scrollable Content */}
+          <DialogContent sx={{ 
+            pb: 0, 
+            flex: 1, 
+            overflowY: 'auto',
+            overflowX: 'hidden',
+          }}>
         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, flexWrap: 'wrap' }}>
           <Typography variant="h5" fontWeight={theme.typography.fontWeights.bold}>
             {product.name}
@@ -306,9 +367,13 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
                           {localizedName}
                         </Typography>
                         {topping.PriceIncrement > 0 && (
-                          <Typography component="span" color={theme.colors.text} sx={{ ml: 1 }}>
-                            +€{topping.PriceIncrement.toFixed(2)}
-                          </Typography>
+                          product.freeToppings && Object.values(selectedToppings).reduce((sum, cnt) => sum + cnt, 0) < product.freeToppings ? (
+                            <></>
+                            ) : (
+                            <Typography component="span" color={theme.colors.text} sx={{ ml: 1 }}>
+                              +{topping.PriceIncrement.toFixed(2)}€
+                            </Typography>
+                          )
                         )}
                         {count > 0 && (
                           <Typography component="span" color={theme.colors.text} sx={{ ml: 1 }}>
@@ -472,19 +537,20 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
             </Typography>
           </Box>
         )}
-    </DialogContent>
+      </DialogContent>
 
-      {/* Footer with Quantity and Add Button */}
-      <Box 
-        sx={{ 
-          backgroundColor: theme.colors.primary,
-          p: theme.spacing.md,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: theme.spacing.md,
-        }}
-      >
+          {/* Footer with Quantity and Add Button */}
+          <Box 
+            sx={{ 
+              backgroundColor: theme.colors.primary,
+              p: theme.spacing.md,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: theme.spacing.md,
+              flexShrink: 0,
+            }}
+          >
         <Box 
           sx={{ 
             backgroundColor: theme.colors.brandWhite,
@@ -542,6 +608,8 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
         >
           {t('productDialog.addToOrder')} €{calculateTotal().toFixed(2)}
         </Button>
+      </Box>
+        </Box>
       </Box>
     </Dialog>
   );

@@ -35,11 +35,14 @@
     "ingredients": "AINESOSAT",
     "excludables": "POISTA AINESOSIA",
     "ageVerification": "Ikärajoitettu tuote. Voit joutua todistamaan ikäsi henkilökunnalle",
-    "addToOrder": "Lisää tilaukseen"
+    "addToOrder": "Lisää tilaukseen",
+    "freeTopping": "ilmainen täyte",
+    "freeToppings": "ilmaista täytettä"
   },
   "orderSummaryDialog": {
     "title": "Tilauksen yhteenveto",
     "totalItems": "Tuotteet yhteensä",
+    "forgotSomething": "Unohditko jotain?",
     "paymentSummary": "Maksuyhteenveto",
     "priceBeforeVat": "Hinta ilman ALVia",
     "vat": "ALV",
@@ -74,6 +77,7 @@
     "save": "Tallenna",
     "dragItemsHere": "Vedä tuotteet tähän",
     "clickToMoveHere": "Siirrä tähän",
+    "placeProductsHere": "Sijoita tuotteita tähän luodaksesi uuden laskun",
     "allItemsAssigned": "Kaikki tuotteet on jaettu laskuihin",
     "item": "tuote",
     "items": "tuotetta",
@@ -106,7 +110,9 @@
     }
   },
   "toaster": {
-    "serviceCalledSuccess": "Tarjoilija kutsuttu onnistuneesti! Tarjoilija avustaa pian."
+    "serviceCalledSuccess": "Tarjoilija kutsuttu onnistuneesti! Tarjoilija avustaa pian.",
+    "orderReceived": "Tilauksesi on vastaanotettu",
+    "orderPreparing": "Tilaustasi valmistellaan"
   },
   "errorDialog": {
     "title": "Hups! Jokin meni pieleen",

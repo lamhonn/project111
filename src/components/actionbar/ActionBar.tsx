@@ -5,15 +5,14 @@ import {
   Typography,
   Badge,
 } from '@mui/material';
-import PersonIcon from '@mui/icons-material/Person';
+import ReceiptIcon from '@mui/icons-material/Receipt';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtomValue } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
-import Toaster from '../common/Toaster';
 import OrderSummaryDialog from '../order/OrderSummaryDialog';
+import TotalOrderSummaryDialog from '../order/TotalOrderSummaryDialog';
 import { orderCountAtom, totalPriceAtom } from '../../context/orderStore';
-import { openConfirmDialogAtom } from '../../context/confirmDialogStore';
 
 interface ActionBarProps {
   // No props needed, using Jotai atoms
@@ -23,9 +22,8 @@ const ActionBar: React.FC<ActionBarProps> = () => {
   const { t } = useTranslation();
   const orderCount = useAtomValue(orderCountAtom);
   const totalPrice = useAtomValue(totalPriceAtom);
-  const openConfirmDialog = useSetAtom(openConfirmDialogAtom);
-  const [showToaster, setShowToaster] = useState(false);
   const [showOrderDialog, setShowOrderDialog] = useState(false);
+  const [showTotalDialog, setShowTotalDialog] = useState(false);
 
   const handleShowOrder = (): void => {
     setShowOrderDialog(true);
@@ -35,22 +33,12 @@ const ActionBar: React.FC<ActionBarProps> = () => {
     setShowOrderDialog(false);
   };
 
-  const handleCallService = (): void => {
-    openConfirmDialog({
-      title: t('confirmDialog.callService.title'),
-      message: t('confirmDialog.callService.message'),
-      cancelText: t('common.cancel'),
-      confirmText: t('common.confirm'),
-      onConfirm: () => {
-        console.log('Service called');
-        // Add your call service logic here
-        setShowToaster(true);
-      },
-    });
+  const handleBillClick = (): void => {
+    setShowTotalDialog(true);
   };
 
-  const handleCloseToaster = (): void => {
-    setShowToaster(false);
+  const handleCloseTotalDialog = (): void => {
+    setShowTotalDialog(false);
   };
 
   // const hasOrder: boolean = orderCount > 0;
@@ -74,10 +62,10 @@ const ActionBar: React.FC<ActionBarProps> = () => {
           zIndex: 50,
         }}
       >
-        {/* Call for Service Button */}
+        {/* Bill Button */}
         <Button
-          onClick={handleCallService}
-          startIcon={<PersonIcon />}
+          onClick={handleBillClick}
+          startIcon={<ReceiptIcon />}
           sx={{
             flex: 1,
             backgroundColor: theme.colors.brandWhite,
@@ -94,7 +82,7 @@ const ActionBar: React.FC<ActionBarProps> = () => {
             },
           }}
         >
-          {t('actionBar.callForService')}
+          {t('common.bill')}
         </Button>
 
         {/* Show Order Button */}
@@ -145,17 +133,16 @@ const ActionBar: React.FC<ActionBarProps> = () => {
         </Button>
       </Box>
 
-      <Toaster
-        open={showToaster}
-        onClose={handleCloseToaster}
-        message={t('toaster.serviceCalledSuccess')}
-        severity="success"
-      />
-
       {/* Order Summary Dialog */}
       <OrderSummaryDialog
         isOpen={showOrderDialog}
         onClose={handleCloseOrderDialog}
+      />
+
+      {/* Total Order Summary Dialog */}
+      <TotalOrderSummaryDialog
+        isOpen={showTotalDialog}
+        onClose={handleCloseTotalDialog}
       />
     </>
   );

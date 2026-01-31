@@ -10,11 +10,13 @@ import {
   Menu,
   MenuItem,
 } from '@mui/material';
-import ReceiptIcon from '@mui/icons-material/Receipt';
-import { useAtom } from 'jotai';
+import PersonIcon from '@mui/icons-material/Person';
+import { useAtom, useSetAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import { languageAtom } from '../../context/orderStore';
+import { openConfirmDialogAtom } from '../../context/confirmDialogStore';
 import { theme } from '../../theme/theme';
+import Toaster from '../common/Toaster';
 
 // TODO: move to enums file
 export enum OrderStatus {
@@ -56,6 +58,8 @@ const MenuHeader: React.FC<MenuHeaderProps> = ({
   const [prevStatus, setPrevStatus] = useState<OrderStatus | null>(orderStatus ?? null);
   const [language, setLanguage] = useAtom(languageAtom);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const openConfirmDialog = useSetAtom(openConfirmDialogAtom);
+  const [showToaster, setShowToaster] = useState(false);
 
   const handleLanguageClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -69,6 +73,23 @@ const MenuHeader: React.FC<MenuHeaderProps> = ({
     setLanguage(lang);
     i18n.changeLanguage(lang);
     handleLanguageClose();
+  };
+
+  const handleCallService = (): void => {
+    openConfirmDialog({
+      title: t('confirmDialog.callService.title'),
+      message: t('confirmDialog.callService.message'),
+      cancelText: t('common.cancel'),
+      confirmText: t('common.confirm'),
+      onConfirm: () => {
+        console.log('Service called');
+        setShowToaster(true);
+      },
+    });
+  };
+
+  const handleCloseToaster = (): void => {
+    setShowToaster(false);
   };
 
   const languages = [
@@ -227,8 +248,8 @@ const MenuHeader: React.FC<MenuHeaderProps> = ({
             </Menu>
 
             <Button
-              onClick={onTotalClick}
-              startIcon={<ReceiptIcon />}
+              onClick={handleCallService}
+              startIcon={<PersonIcon />}
               variant="outlined"
               sx={{
                 borderColor: theme.colors.border,
@@ -245,12 +266,19 @@ const MenuHeader: React.FC<MenuHeaderProps> = ({
               }}
             >
               <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                {t('common.bill')}
+                {t('actionBar.callForService')}
               </Box>
             </Button>
           </Box>
         </Toolbar>
       </Container>
+
+      <Toaster
+        open={showToaster}
+        onClose={handleCloseToaster}
+        message={t('toaster.serviceCalledSuccess')}
+        severity="success"
+      />
     </AppBar>
   );
 };
