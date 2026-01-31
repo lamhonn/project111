@@ -15,6 +15,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import SplitBillDialog from './SplitBillDialog';
 import BillRequestOptionsDialog from './BillRequestOptionsDialog';
+import StatusPill from '../common/StatusPill';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
@@ -27,6 +28,7 @@ import {
   OrderItem,
   markBillsAsRequestedAtom,
   BillStatus,
+  submittedOrdersAtom,
 } from '../../context/orderStore';
 import { openConfirmDialogAtom } from '../../context/confirmDialogStore';
 
@@ -45,6 +47,7 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
   
   // Use Jotai atoms
   const totalOrderItems = useAtomValue(totalOrderItemsAtom);
+  const submittedOrders = useAtomValue(submittedOrdersAtom);
   const totalOrderCount = useAtomValue(totalOrderCountAtom);
   const tableNumber = useAtomValue(tableNumberAtom);
   const openConfirmDialog = useSetAtom(openConfirmDialogAtom);
@@ -195,7 +198,7 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
 
       {/* Order Items */}
       <DialogContent sx={{ p: theme.spacing.lg }}>
-        {totalOrderItems.length === 0 ? (
+        {totalOrderItems.length === 0 && submittedOrders.length === 0 ? (
           <Box
             sx={{
               display: 'flex',
@@ -216,6 +219,139 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
           </Box>
         ) : (
           <>
+            {/* Show submitted orders in boxes */}
+            {submittedOrders.map((order) => {
+              const orderTotal = calculateItemsTotal(order.items);
+              const statusLabel = order.status === 'received' 
+                ? t('orderStatus.received')
+                : order.status === 'preparing'
+                ? t('orderStatus.preparing')
+                : 'Ready';
+
+              return (
+                <Box
+                  key={order.id}
+                  sx={{
+                    mb: theme.spacing.lg,
+                    border: `2px solid ${order.status === 'received' ? '#22c55e' : '#eab308'}`,
+                    borderRadius: theme.borderRadius.medium,
+                    p: theme.spacing.md,
+                    backgroundColor: order.status === 'received' ? '#f0fdf4' : '#fefce8',
+                  }}
+                >
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    mb: theme.spacing.md,
+                  }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <StatusPill status={order.status} label={statusLabel} />
+                      <Chip
+                        label={`${order.items.length} ${order.items.length === 1 ? t('splitBillDialog.item') : t('splitBillDialog.items')}`}
+                        size="small"
+                        sx={{
+                          bgcolor: 'white',
+                          color: 'text.secondary',
+                          fontWeight: theme.typography.fontWeights.medium,
+                          fontSize: theme.typography.fontSizes.small,
+                        }}
+                      />
+                    </Box>
+                    <Typography 
+                      variant="body1"
+                      fontWeight={theme.typography.fontWeights.bold}
+                      color="primary"
+                    >
+                      €{orderTotal.toFixed(2)}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.md }}>
+                    {order.items.map((item) => {
+                      const itemBasePrice = item.price * item.quantity;
+                      const toppingsTotalPrice = item.toppings
+                        ? item.toppings.reduce((sum, topping) => sum + (topping.price * topping.quantity), 0)
+                        : 0;
+                      const itemTotalPrice = itemBasePrice + toppingsTotalPrice;
+
+                      return (
+                        <Box
+                          key={item.id}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: theme.spacing.sm,
+                            pb: theme.spacing.md,
+                            borderBottom: '1px solid #e5e7eb',
+                            '&:last-child': {
+                              borderBottom: 'none',
+                            },
+                          }}
+                        >
+                          <Avatar
+                            src={item.image}
+                            alt={item.name}
+                            variant="rounded"
+                            sx={{
+                              width: 64,
+                              height: 64,
+                              borderRadius: theme.borderRadius.medium,
+                            }}
+                          />
+                          <Box sx={{ flex: 1 }}>
+                            <Typography 
+                              variant="body1"
+                              fontWeight={theme.typography.fontWeights.semibold}
+                            >
+                              {item.quantity > 1 && `${item.quantity}x `}{item.name}
+                            </Typography>
+                            
+                            {item.toppings && item.toppings.length > 0 && (
+                              <Box sx={{ mt: 0.5 }}>
+                                {item.toppings.map((topping) => (
+                                  <Typography
+                                    key={topping.id}
+                                    variant="caption"
+                                    color="text.secondary"
+                                    sx={{ display: 'block', lineHeight: 1.4 }}
+                                  >
+                                    + {topping.quantity > 1 && `${topping.quantity}x `}{topping.name} (€{topping.price.toFixed(2)})
+                                  </Typography>
+                                ))}
+                              </Box>
+                            )}
+                            
+                            {item.excludables && item.excludables.length > 0 && (
+                              <Box sx={{ mt: 0.5 }}>
+                                {item.excludables.map((excludable, index) => (
+                                  <Typography
+                                    key={index}
+                                    variant="caption"
+                                    sx={{ display: 'block', lineHeight: 1.4, color: '#dc2626' }}
+                                  >
+                                    − {excludable}
+                                  </Typography>
+                                ))}
+                              </Box>
+                            )}
+                            
+                            <Typography 
+                              variant="body2"
+                              color="text.secondary"
+                              sx={{ mt: 0.5 }}
+                            >
+                              €{itemTotalPrice.toFixed(2)}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      );
+                    })}
+                  </Box>
+                </Box>
+              );
+            })}
+            
             {/* Show bill splits if they exist */}
             {billSplitConfig ? (
               <>
@@ -274,85 +410,214 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                       </Box>
 
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.md }}>
-                        {bill.items.map((item) => {
-                          const itemBasePrice = item.price * item.quantity;
-                          const toppingsTotalPrice = item.toppings
-                            ? item.toppings.reduce((sum, topping) => sum + (topping.price * topping.quantity), 0)
-                            : 0;
-                          const itemTotalPrice = itemBasePrice + toppingsTotalPrice;
+                        {/* Group items by order status */}
+                        {(() => {
+                          // Separate items that are still being prepared from ready items
+                          const preparingItems = bill.items.filter(item => 
+                            item.orderStatus === 'received' || item.orderStatus === 'preparing'
+                          );
+                          const readyItems = bill.items.filter(item => 
+                            !item.orderStatus || item.orderStatus === 'ready'
+                          );
+                          
+                          // Group preparing items by orderId to show them in separate boxes
+                          const itemsByOrder = new Map<string, OrderItem[]>();
+                          preparingItems.forEach(item => {
+                            const orderId = item.orderId || 'unknown';
+                            if (!itemsByOrder.has(orderId)) {
+                              itemsByOrder.set(orderId, []);
+                            }
+                            itemsByOrder.get(orderId)!.push(item);
+                          });
 
                           return (
-                            <Box
-                              key={item.id}
-                              sx={{
-                                display: 'flex',
-                                alignItems: 'flex-start',
-                                gap: theme.spacing.sm,
-                                pb: theme.spacing.md,
-                                borderBottom: '1px solid #f3f4f6',
-                                '&:last-child': {
-                                  borderBottom: 'none',
-                                },
-                              }}
-                            >
-                              <Avatar
-                                src={item.image}
-                                alt={item.name}
-                                variant="rounded"
-                                sx={{
-                                  width: 64,
-                                  height: 64,
-                                  borderRadius: theme.borderRadius.medium,
-                                }}
-                              />
-                              <Box sx={{ flex: 1 }}>
-                                <Typography 
-                                  variant="body1"
-                                  fontWeight={theme.typography.fontWeights.semibold}
-                                >
-                                  {item.quantity > 1 && `${item.quantity}x `}{item.name}
-                                </Typography>
-                                
-                                {item.toppings && item.toppings.length > 0 && (
-                                  <Box sx={{ mt: 0.5 }}>
-                                    {item.toppings.map((topping) => (
-                                      <Typography
-                                        key={topping.id}
-                                        variant="caption"
+                            <>
+                              {/* Show ready items first */}
+                              {readyItems.map((item) => {
+                                const itemBasePrice = item.price * item.quantity;
+                                const toppingsTotalPrice = item.toppings
+                                  ? item.toppings.reduce((sum, topping) => sum + (topping.price * topping.quantity), 0)
+                                  : 0;
+                                const itemTotalPrice = itemBasePrice + toppingsTotalPrice;
+
+                                return (
+                                  <Box
+                                    key={item.id}
+                                    sx={{
+                                      display: 'flex',
+                                      alignItems: 'flex-start',
+                                      gap: theme.spacing.sm,
+                                      pb: theme.spacing.md,
+                                      borderBottom: '1px solid #f3f4f6',
+                                    }}
+                                  >
+                                    <Avatar
+                                      src={item.image}
+                                      alt={item.name}
+                                      variant="rounded"
+                                      sx={{
+                                        width: 64,
+                                        height: 64,
+                                        borderRadius: theme.borderRadius.medium,
+                                      }}
+                                    />
+                                    <Box sx={{ flex: 1 }}>
+                                      <Typography 
+                                        variant="body1"
+                                        fontWeight={theme.typography.fontWeights.semibold}
+                                      >
+                                        {item.quantity > 1 && `${item.quantity}x `}{item.name}
+                                      </Typography>
+                                      
+                                      {item.toppings && item.toppings.length > 0 && (
+                                        <Box sx={{ mt: 0.5 }}>
+                                          {item.toppings.map((topping) => (
+                                            <Typography
+                                              key={topping.id}
+                                              variant="caption"
+                                              color="text.secondary"
+                                              sx={{ display: 'block', lineHeight: 1.4 }}
+                                            >
+                                              + {topping.quantity > 1 && `${topping.quantity}x `}{topping.name} (€{topping.price.toFixed(2)})
+                                            </Typography>
+                                          ))}
+                                        </Box>
+                                      )}
+                                      
+                                      {item.excludables && item.excludables.length > 0 && (
+                                        <Box sx={{ mt: 0.5 }}>
+                                          {item.excludables.map((excludable, index) => (
+                                            <Typography
+                                              key={index}
+                                              variant="caption"
+                                              sx={{ display: 'block', lineHeight: 1.4, color: '#dc2626' }}
+                                            >
+                                              − {excludable}
+                                            </Typography>
+                                          ))}
+                                        </Box>
+                                      )}
+                                      
+                                      <Typography 
+                                        variant="body2"
                                         color="text.secondary"
-                                        sx={{ display: 'block', lineHeight: 1.4 }}
+                                        sx={{ mt: 0.5 }}
                                       >
-                                        + {topping.quantity > 1 && `${topping.quantity}x `}{topping.name} (€{topping.price.toFixed(2)})
+                                        €{itemTotalPrice.toFixed(2)}
                                       </Typography>
-                                    ))}
+                                    </Box>
                                   </Box>
-                                )}
-                                
-                                {item.excludables && item.excludables.length > 0 && (
-                                  <Box sx={{ mt: 0.5 }}>
-                                    {item.excludables.map((excludable, index) => (
-                                      <Typography
-                                        key={index}
-                                        variant="caption"
-                                        sx={{ display: 'block', lineHeight: 1.4, color: '#dc2626' }}
-                                      >
-                                        − {excludable}
-                                      </Typography>
-                                    ))}
+                                );
+                              })}
+
+                              {/* Show preparing items grouped by order in boxes */}
+                              {Array.from(itemsByOrder.entries()).map(([orderId, items]) => {
+                                const orderStatus = items[0]?.orderStatus || 'received';
+                                const statusLabel = orderStatus === 'received' 
+                                  ? t('orderStatus.received')
+                                  : t('orderStatus.preparing');
+
+                                return (
+                                  <Box
+                                    key={orderId}
+                                    sx={{
+                                      border: `2px solid ${orderStatus === 'received' ? '#22c55e' : '#eab308'}`,
+                                      borderRadius: theme.borderRadius.medium,
+                                      p: theme.spacing.sm,
+                                      backgroundColor: orderStatus === 'received' ? '#f0fdf4' : '#fefce8',
+                                    }}
+                                  >
+                                    <Box sx={{ mb: theme.spacing.sm }}>
+                                      <StatusPill status={orderStatus} label={statusLabel} />
+                                    </Box>
+                                    {items.map((item) => {
+                                      const itemBasePrice = item.price * item.quantity;
+                                      const toppingsTotalPrice = item.toppings
+                                        ? item.toppings.reduce((sum, topping) => sum + (topping.price * topping.quantity), 0)
+                                        : 0;
+                                      const itemTotalPrice = itemBasePrice + toppingsTotalPrice;
+
+                                      return (
+                                        <Box
+                                          key={item.id}
+                                          sx={{
+                                            display: 'flex',
+                                            alignItems: 'flex-start',
+                                            gap: theme.spacing.sm,
+                                            pb: theme.spacing.sm,
+                                            mb: theme.spacing.sm,
+                                            borderBottom: '1px solid #e5e7eb',
+                                            '&:last-child': {
+                                              borderBottom: 'none',
+                                              mb: 0,
+                                              pb: 0,
+                                            },
+                                          }}
+                                        >
+                                          <Avatar
+                                            src={item.image}
+                                            alt={item.name}
+                                            variant="rounded"
+                                            sx={{
+                                              width: 48,
+                                              height: 48,
+                                              borderRadius: theme.borderRadius.medium,
+                                            }}
+                                          />
+                                          <Box sx={{ flex: 1 }}>
+                                            <Typography 
+                                              variant="body2"
+                                              fontWeight={theme.typography.fontWeights.semibold}
+                                            >
+                                              {item.quantity > 1 && `${item.quantity}x `}{item.name}
+                                            </Typography>
+                                            
+                                            {item.toppings && item.toppings.length > 0 && (
+                                              <Box sx={{ mt: 0.5 }}>
+                                                {item.toppings.map((topping) => (
+                                                  <Typography
+                                                    key={topping.id}
+                                                    variant="caption"
+                                                    color="text.secondary"
+                                                    sx={{ display: 'block', lineHeight: 1.4 }}
+                                                  >
+                                                    + {topping.quantity > 1 && `${topping.quantity}x `}{topping.name} (€{topping.price.toFixed(2)})
+                                                  </Typography>
+                                                ))}
+                                              </Box>
+                                            )}
+                                            
+                                            {item.excludables && item.excludables.length > 0 && (
+                                              <Box sx={{ mt: 0.5 }}>
+                                                {item.excludables.map((excludable, index) => (
+                                                  <Typography
+                                                    key={index}
+                                                    variant="caption"
+                                                    sx={{ display: 'block', lineHeight: 1.4, color: '#dc2626' }}
+                                                  >
+                                                    − {excludable}
+                                                  </Typography>
+                                                ))}
+                                              </Box>
+                                            )}
+                                            
+                                            <Typography 
+                                              variant="caption"
+                                              color="text.secondary"
+                                              sx={{ mt: 0.5 }}
+                                            >
+                                              €{itemTotalPrice.toFixed(2)}
+                                            </Typography>
+                                          </Box>
+                                        </Box>
+                                      );
+                                    })}
                                   </Box>
-                                )}
-                                
-                                <Typography 
-                                  variant="body2"
-                                  color="text.secondary"
-                                  sx={{ mt: 0.5 }}
-                                >
-                                  €{itemTotalPrice.toFixed(2)}
-                                </Typography>
-                              </Box>
-                            </Box>
+                                );
+                              })}
+                            </>
                           );
-                        })}
+                        })()}
                       </Box>
 
                       {index < billSplitConfig.bills.filter(b => b.items.length > 0).length - 1 + (primaryBillItems.length > 0 ? 1 : 0) && (
@@ -485,13 +750,16 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
             ) : (
               /* No split - show all items together */
               <>
-                <Typography 
-                  variant="body1"
-                  fontWeight={theme.typography.fontWeights.semibold}
-                  sx={{ mb: theme.spacing.md }}
-                >
-                  {t('totalOrderSummaryDialog.allItems')} ({totalOrderCount})
-                </Typography>
+                {/* Show header only if there are ready items to display */}
+                {totalOrderItems.length > 0 && (
+                  <Typography 
+                    variant="body1"
+                    fontWeight={theme.typography.fontWeights.semibold}
+                    sx={{ mb: theme.spacing.md }}
+                  >
+                    {t('totalOrderSummaryDialog.allItems')} ({totalOrderItems.length})
+                  </Typography>
+                )}
 
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.md }}>
                   {totalOrderItems.map((item) => {

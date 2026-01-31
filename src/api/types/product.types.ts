@@ -12,4 +12,5 @@ export type Product = {
     AgeRestrictied: boolean,
     Toppings?: string, // JSON string array of topping objects
     Excludables?: string, // JSON string array of multilingual excludable ingredient objects
+    FreeToppings?: number, // Number of toppings that can be added before PriceIncrement starts
 }
