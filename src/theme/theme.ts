@@ -22,7 +22,7 @@ export const theme = {
     
     // Neutral colors
     border: '#d0d0d0',
-    background: brandColors.white,
+    background: 'grey.50',
     text: brandColors.grey,
     
     // Brand colors

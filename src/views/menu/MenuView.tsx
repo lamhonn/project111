@@ -16,6 +16,7 @@ import { useGetActiveCampaignProducts } from '../../api/hooks/campaignProduct.ho
 import { useTableLockedStatus } from '../../api/hooks/table.hooks';
 import { MOCK_CATEGORIES } from '../../api/mockData/products.mock';
 import { getLocalizedCategoryName } from '../../api/utils/multilingualName.utils';
+import { theme } from '../../theme';
 
 const MenuView: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -150,7 +151,7 @@ const MenuView: React.FC = () => {
           position: 'sticky',
           top: { xs: 56, sm: 64 },
           zIndex: 1000,
-          backgroundColor: 'grey.50',
+          backgroundColor: theme.colors.background,
           py: 1.5,
           transform: showCategoryBar ? 'translateY(0)' : 'translateY(-100%)',
           transition: 'transform 0.1s ease-in-out',
