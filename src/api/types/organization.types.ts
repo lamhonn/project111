@@ -3,5 +3,6 @@ export type Organization = {
     Name?: string,
     Address?: string,
     LicenseId: string,
+    MaxUsers: number,
     Created: Date,
 }

@@ -2,23 +2,34 @@ import { gql } from '@apollo/client';
 
 // Fetch table by table number and organization
 export const GET_TABLE_BY_NUMBER = gql`
-  query GetTableByNumber($organizationId: ID!, $tableNumber: Int!) {
-    tableByNumber(organizationId: $organizationId, tableNumber: $tableNumber) {
+  query GetTabletByNumber($organizationId: ID!, $tableNumber: Int!) {
+    tabletByNumber(organizationId: $organizationId, tableNumber: $tableNumber) {
       Id
+      UserId
       TableNumber
-      OrganizationId
+      Created
     }
   }
 `;
 
 // Fetch table by ID
 export const GET_TABLE_BY_ID = gql`
-  query GetTableById($id: ID!) {
-    table(id: $id) {
+  query GetTabletById($id: ID!) {
+    tablet(id: $id) {
       Id
+      UserId
       TableNumber
-      OrganizationId
       Created
+    }
+  }
+`;
+
+// Fetch tablet assignment status for polling
+export const GET_TABLE_LOCKED_STATUS = gql`
+  query GetTabletStatus($id: ID!) {
+    tablet(id: $id) {
+      Id
+      UserId
     }
   }
 `;

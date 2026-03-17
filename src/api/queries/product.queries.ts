@@ -5,11 +5,20 @@ export const GET_PRODUCTS = gql`
   query GetProducts($organizationId: ID!) {
     products(organizationId: $organizationId) {
       Id
+      OrganizationId
       Name
       Description
       Price
+      OldPrice
+      FreeToppings
+      Ingredients
+      Dietaries
       ImgUrl
       Enabled
+      AgeRestrictied
+      Toppings
+      Excludables
+      Created
     }
   }
 `;
@@ -23,11 +32,16 @@ export const GET_PRODUCT_BY_ID = gql`
       Name
       Description
       Price
+      OldPrice
+      FreeToppings
       Ingredients
-      Dieataries
+      Dietaries
       ImgUrl
       Enabled
       AgeRestrictied
+      Toppings
+      Excludables
+      Created
     }
   }
 `;

@@ -7,6 +7,9 @@ export const GET_ORGANIZATION = gql`
       Id
       Name
       Address
+      LicenseId
+      MaxUsers
+      Created
     }
   }
 `;

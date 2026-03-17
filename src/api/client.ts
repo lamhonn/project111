@@ -5,7 +5,7 @@ import { SetContextLink } from '@apollo/client/link/context';
 import { CombinedGraphQLErrors } from '@apollo/client/errors';
 
 const httpLink = new HttpLink({
-  uri: process.env.REACT_APP_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql',
+  uri: import.meta.env.VITE_GRAPHQL_ENDPOINT || 'http://localhost:5432/graphql',
 });
 
 const authLink = new SetContextLink(({ headers }) => {

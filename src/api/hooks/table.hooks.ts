@@ -1,12 +1,12 @@
 import { useQuery } from '@apollo/client/react';
 import { useSetAtom } from 'jotai';
 import { useEffect } from 'react';
-import { GET_TABLE_BY_NUMBER, GET_TABLE_BY_ID } from '../queries/table.queries';
-import type { Table } from '../types';
+import { GET_TABLE_BY_NUMBER, GET_TABLE_BY_ID, GET_TABLE_LOCKED_STATUS } from '../queries/table.queries';
+import type { Tablet } from '../types';
 import { tableLockedAtom } from '../../context/orderStore';
 
 interface GetTableByNumberData {
-  tableByNumber: Table;
+  tabletByNumber: Tablet;
 }
 
 interface GetTableByNumberVars {
@@ -15,7 +15,7 @@ interface GetTableByNumberVars {
 }
 
 interface GetTableByIdData {
-  table: Table;
+  tablet: Tablet;
 }
 
 interface GetTableByIdVars {
@@ -46,41 +46,25 @@ export const useGetTableById = (id: string) => {
 
 /**
  * Hook to poll table locked status
- * Used for: Monitoring if staff has locked the table from another device
- * 
- * TODO: Currently returns mock data. When ready to connect to real API,
- * uncomment the useQuery call and remove the mock data return.
+ * Used for: Monitoring if tablet is occupied/assigned from another device
  */
 export const useTableLockedStatus = (tableId: string) => {
   const setTableLocked = useSetAtom(tableLockedAtom);
+  const result = useQuery<{ tablet: Pick<Tablet, 'UserId'> }, { id: string }>(
+    GET_TABLE_LOCKED_STATUS,
+    {
+      variables: { id: tableId },
+      skip: !tableId,
+      pollInterval: 5000,
+    }
+  );
 
-  // TODO: Replace with actual GraphQL query when API is ready
-  // For now, return mock data - table is never locked
   useEffect(() => {
-    setTableLocked(false);
-  }, [setTableLocked]);
+    if (result.data?.tablet) {
+      // Current model has no explicit Locked flag; assigned tablet implies occupied/locked.
+      setTableLocked(Boolean(result.data.tablet.UserId));
+    }
+  }, [result.data, setTableLocked]);
 
-  return {
-    data: { locked: false },
-    loading: false,
-    error: undefined,
-  } as const;
-
-  // When ready for real API, replace above with:
-  // const result = useQuery<{ table: { Locked: boolean } }, { id: string }>(
-  //   GET_TABLE_LOCKED_STATUS,
-  //   {
-  //     variables: { id: tableId },
-  //     skip: !tableId,
-  //     pollInterval: 5000, // Poll every 5 seconds to check locked status
-  //   }
-  // );
-  //
-  // useEffect(() => {
-  //   if (result.data?.table?.Locked !== undefined) {
-  //     setTableLocked(result.data.table.Locked);
-  //   }
-  // }, [result.data, setTableLocked]);
-  //
-  // return result;
+  return result;
 };

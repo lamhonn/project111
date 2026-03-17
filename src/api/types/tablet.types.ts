@@ -1,6 +1,6 @@
-export type Table = {
+export type Tablet = {
     Id: string,
-    OrganizationId: string,
+    UserId?: string,
     TableNumber: number,
     Created: Date,
 }

@@ -6,7 +6,8 @@ export const CREATE_ORDER = gql`
     createOrder(input: $input) {
       Id
       TotalPrice
-      TableId
+      TabletId
+      TableNumber
       Created
     }
   }

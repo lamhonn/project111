@@ -2,6 +2,6 @@ export type MenuProduct = {
     Id: string,
     MenuId: string,
     ProductId: string,
-    Category?: number,
+    CategoryId: string,
     Created: Date
 }

@@ -28,6 +28,30 @@ Open [http://localhost:5173/](hhttp://localhost:5173/) to view it in the browser
 The page will reload if you make edits.\
 You will also see any lint errors in the console.
 
+## Environment configuration
+
+API URLs and runtime IDs are now configured via `.env` files.
+
+1. Copy values from `.env.example` to your environment-specific file.
+2. For local development, update `.env.development`.
+
+Current local backend defaults:
+
+- `VITE_GRAPHQL_ENDPOINT=http://localhost:5432/graphql`
+- `VITE_ORGANIZATION_ID=org-1`
+- `VITE_MENU_ID=menu-1`
+- `VITE_TABLE_ID=table-1`
+
+## Seed local PostgreSQL with previous mock data
+
+The former frontend mock data has been converted to SQL in `db/seed_mock_data.sql`.
+
+Example import:
+
+```bash
+psql -h localhost -p 5432 -U <user> -d <database> -f db/seed_mock_data.sql
+```
+
 
 ## Notes:
 

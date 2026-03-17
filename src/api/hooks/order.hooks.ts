@@ -5,11 +5,11 @@ import type { Order } from '../types';
 
 // Query types
 interface GetTableOrdersData {
-  ordersByTable: Order[];
+  ordersByTablet: Order[];
 }
 
 interface GetTableOrdersVars {
-  tableId: string;
+  tabletId: string;
 }
 
 interface GetOrderByIdData {
@@ -24,7 +24,8 @@ interface GetOrderByIdVars {
 interface CreateOrderInput {
   OrganizationId: string;
   TotalPrice: string;
-  TableId: string;
+  TabletId: string;
+  TableNumber: number;
 }
 
 interface CreateOrderData {
@@ -39,10 +40,10 @@ interface CreateOrderVars {
  * Hook to fetch all orders for a table
  * Used for: Displaying order history, tracking table's orders
  */
-export const useGetTableOrders = (tableId: string) => {
+export const useGetTableOrders = (tabletId: string) => {
   return useQuery<GetTableOrdersData, GetTableOrdersVars>(GET_TABLE_ORDERS, {
-    variables: { tableId },
-    skip: !tableId,
+    variables: { tabletId },
+    skip: !tabletId,
   });
 };
 

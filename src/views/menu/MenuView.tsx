@@ -12,23 +12,28 @@ import ThankYouDialog from '../../components/order/ThankYouDialog';
 import LockedDialog from '../../components/order/LockedDialog';
 import { orderStatusAtom, billRequestedAtom, resetAppStateAtom, tableLockedAtom } from '../../context/orderStore';
 import { useGetProducts } from '../../api/hooks/product.hooks';
-import { useGetActiveCampaignProducts } from '../../api/hooks/campaignProduct.hooks';
 import { useTableLockedStatus } from '../../api/hooks/table.hooks';
-import { MOCK_CATEGORIES } from '../../api/mockData/products.mock';
 import { getLocalizedCategoryName } from '../../api/utils/multilingualName.utils';
 import { theme } from '../../theme';
 
+const BASE_CATEGORIES = [
+  '{"en":"Pizzas","fi":"Pizzat","sv":"Pizzor"}',
+  '{"en":"Burgers","fi":"Hampurilaiset","sv":"Hamburgare"}',
+  '{"en":"Sides","fi":"Lisukkeet","sv":"Tillbeh\u00f6r"}',
+  '{"en":"Drinks","fi":"Juomat","sv":"Drycker"}',
+];
+
 const MenuView: React.FC = () => {
   const { t, i18n } = useTranslation();
+  const organizationId = import.meta.env.VITE_ORGANIZATION_ID ?? '';
+  const menuId = import.meta.env.VITE_MENU_ID ?? '';
+  const tableId = import.meta.env.VITE_TABLE_ID ?? '';
   
   // Fetch data from API hooks
-  // TODO: Get organizationId and menuId from context/URL params
-  const { data: productsData, loading: productsLoading } = useGetProducts('mock-org-1');
-  const { data: campaignsData, loading: campaignsLoading } = useGetActiveCampaignProducts('mock-menu-1');
+  const { data: productsData, loading: productsLoading } = useGetProducts(organizationId);
   
   // Monitor table locked status
-  // TODO: Get actual tableId from context/URL params
-  useTableLockedStatus('mock-table-1');
+  useTableLockedStatus(tableId);
   
   const [activeCategory, setActiveCategory] = useState<number>(0);
   const [showCategoryBar, setShowCategoryBar] = useState<boolean>(true);
@@ -43,15 +48,11 @@ const MenuView: React.FC = () => {
 
   // Get products and campaigns from API
   const products = productsData?.products || [];
-  const campaignProducts = campaignsData?.activeCampaignProducts || [];
   
-  // Check if campaigns exist
-  const hasCampaigns = campaignProducts.length > 0;
-  
-  // Build categories array with Campaigns at top if they exist
+  // Build categories array
   // Localize category names based on current language
-  const localizedCategories = MOCK_CATEGORIES.map(cat => getLocalizedCategoryName(cat, i18n.language));
-  const categories = hasCampaigns ? [t('common.campaigns'), ...localizedCategories] : localizedCategories;
+  const localizedCategories = BASE_CATEGORIES.map(cat => getLocalizedCategoryName(cat, i18n.language));
+  const categories = localizedCategories;
 
   const handleResetSession = () => {
     resetAppState();
@@ -75,13 +76,9 @@ const MenuView: React.FC = () => {
 
   // Group products by category
   const productsByCategory = categories.map((categoryName, index) => {
-    if (hasCampaigns && index === 0) {
-      // First category is Campaigns if they exist
-      return campaignProducts;
-    }
-    // Adjust category index for regular products based on whether campaigns exist
-    const productCategoryIndex = hasCampaigns ? index - 1 : index;
-    return products.filter(product => product.Category === productCategoryIndex);
+    // Category mapping now comes from backend menu/menuProducts; until that wiring is added,
+    // render all products under the first category to stay aligned with current Product type.
+    return index === 0 ? products : [];
   });
 
   // Scroll to category

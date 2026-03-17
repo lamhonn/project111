@@ -2,10 +2,13 @@ import { gql } from '@apollo/client';
 
 // Fetch orders for a table
 export const GET_TABLE_ORDERS = gql`
-  query GetTableOrders($tableId: ID!) {
-    ordersByTable(tableId: $tableId) {
+  query GetTabletOrders($tabletId: ID!) {
+    ordersByTablet(tabletId: $tabletId) {
       Id
+      OrganizationId
       TotalPrice
+      TabletId
+      TableNumber
       Created
     }
   }
@@ -18,7 +21,8 @@ export const GET_ORDER_BY_ID = gql`
       Id
       OrganizationId
       TotalPrice
-      TableId
+      TabletId
+      TableNumber
       Created
     }
   }
