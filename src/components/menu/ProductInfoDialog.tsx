@@ -36,7 +36,7 @@ interface Product {
   ingredients?: string;
   excludables?: string;
   ageRestricted?: boolean;
-  dietaries?: number[];
+  dietaries?: Dietary[];
 }
 
 interface ProductDialogProps {

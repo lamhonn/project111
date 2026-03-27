@@ -1,8 +1,8 @@
 export type OrderProduct = {
-    Id: string,
-    OrderId: string,
-    ProductId: string,
-    CampaignProductId?: string,
-    TotalPrice: number,
-    Created: Date,
+    id: string,
+    orderId: string,
+    productId: string,
+    campaignProductId?: string,
+    totalPrice: number,
+    created: Date,
 }

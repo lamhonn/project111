@@ -1,13 +1,21 @@
 import React from 'react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+import { Box, Typography } from '@mui/material';
 import { Provider, useAtomValue, useSetAtom } from 'jotai';
 import MenuView from './views/menu/MenuView';
 import WelcomeView from './views/welcome/WelcomeView';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import AuthGuard from './components/auth/AuthGuard';
 import { store } from './context/store';
-import { sessionStateAtom, SessionState, startSessionAtom } from './context/orderStore';
+import {
+  sessionStateAtom,
+  SessionState,
+  startSessionAtom,
+  setActiveSessionIdAtom,
+  tableNumberAtom,
+} from './context/orderStore';
+import { useStartDiningSession } from './api/hooks/session.hooks';
 // import './App.css';
 
 // Create a MUI theme with brand colors
@@ -46,15 +54,74 @@ const muiTheme = createTheme({
 const AppContent: React.FC = () => {
   const sessionState = useAtomValue(sessionStateAtom);
   const startSession = useSetAtom(startSessionAtom);
+  const setSessionId = useSetAtom(setActiveSessionIdAtom);
+  const tableNumberValue = useAtomValue(tableNumberAtom);
+  const [startDiningSession, { loading, error }] = useStartDiningSession();
 
-  const handleStartSession = () => {
-    startSession();
+  const organizationId = import.meta.env.VITE_ORGANIZATION_ID ?? '';
+  const tabletId = import.meta.env.VITE_TABLET_ID ?? import.meta.env.VITE_TABLE_ID ?? '';
+
+  const handleStartSession = async () => {
+    const parsedTableNumber = Number(tableNumberValue);
+
+    if (!organizationId || !tabletId || Number.isNaN(parsedTableNumber)) {
+      return;
+    }
+
+    try {
+      const result = await startDiningSession({
+        variables: {
+          input: {
+            organizationId,
+            tabletId,
+            tableNumber: parsedTableNumber,
+          },
+        },
+      });
+
+      const response = result.data?.startDiningSession;
+      if (!response?.success || !response.session) {
+        return;
+      }
+
+      setSessionId(response.session.sessionId);
+      startSession();
+    } catch {
+      // Surface mutation errors via the error state below.
+    }
   };
 
   // Show Welcome screen if session state is Welcome
   if (sessionState === SessionState.Welcome) {
+    const hasSessionPrerequisites = Boolean(organizationId && tabletId && !Number.isNaN(Number(tableNumberValue)));
+
     // TODO: Replace backgroundImage URL with an API call to fetch from settings
-    return <WelcomeView onStartSession={handleStartSession} backgroundImage='https://images.pexels.com/photos/2130134/pexels-photo-2130134.jpeg'/>;
+    return (
+      <>
+        <WelcomeView
+          onStartSession={() => {
+            void handleStartSession();
+          }}
+          backgroundImage='https://images.pexels.com/photos/2130134/pexels-photo-2130134.jpeg'
+          isStarting={loading}
+          disabled={!hasSessionPrerequisites || loading}
+        />
+        {!hasSessionPrerequisites && (
+          <Box sx={{ position: 'fixed', bottom: 16, left: 16, right: 16 }}>
+            <Typography color='error' variant='body2' align='center'>
+              Session configuration is missing. Set VITE_ORGANIZATION_ID, VITE_TABLET_ID (or VITE_TABLE_ID), and a valid table number.
+            </Typography>
+          </Box>
+        )}
+        {error && (
+          <Box sx={{ position: 'fixed', bottom: 16, left: 16, right: 16 }}>
+            <Typography color='error' variant='body2' align='center'>
+              {error.message}
+            </Typography>
+          </Box>
+        )}
+      </>
+    );
   }
 
   // Otherwise show the main menu view

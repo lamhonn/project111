@@ -1,9 +1,9 @@
 export enum Dietary {
-  GlutenFree = 0,
-  LactoseFree = 1,
-  LowLactose = 2,
-  Vegetarian = 3,
-  Vegan = 4,
+  GlutenFree = 'GlutenFree',
+  LactoseFree = 'LactoseFree',
+  LowLactose = 'LowLactose',
+  Vegetarian = 'Vegetarian',
+  Vegan = 'Vegan',
 }
 
 // Short codes for each dietary option

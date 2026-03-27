@@ -17,6 +17,7 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
+import { useCreateOrder } from '../../api/hooks/order.hooks';
 import {
   orderItemsAtom,
   orderCountAtom,
@@ -46,6 +47,11 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
   const updateQuantity = useSetAtom(updateOrderItemQuantityAtom);
   const openConfirmDialog = useSetAtom(openConfirmDialogAtom);
   const submitOrderToTotal = useSetAtom(submitOrderToTotalAtom);
+  const [createOrder, { loading: isSubmittingOrder }] = useCreateOrder();
+  const [mutationError, setMutationError] = React.useState<string>('');
+
+  const organizationId = import.meta.env.VITE_ORGANIZATION_ID ?? '';
+  const tabletId = import.meta.env.VITE_TABLET_ID ?? import.meta.env.VITE_TABLE_ID ?? '';
 
   const handleRemoveItem = (itemId: string): void => {
     removeItem(itemId);
@@ -71,8 +77,61 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
         cancelText: t('common.cancel'),
         confirmText: t('common.confirm'),
         onConfirm: () => {
-            submitOrderToTotal();
-            onClose();
+            const parsedTableNumber = Number(tableNumber);
+            if (!organizationId || !tabletId || Number.isNaN(parsedTableNumber)) {
+              setMutationError('Missing organization/tablet/table number configuration.');
+              return;
+            }
+
+            const products = orderItems.map((item) => {
+              const itemToppings = (item.toppings ?? []).map((topping) => ({
+                toppingId: topping.id,
+                amount: topping.quantity,
+              }));
+              const toppingsTotal = (item.toppings ?? []).reduce(
+                (sum, topping) => sum + topping.price * topping.quantity,
+                0,
+              );
+
+              return {
+                productId: item.productId,
+                totalPrice: (item.price * item.quantity) + toppingsTotal,
+                toppings: itemToppings.length > 0 ? itemToppings : undefined,
+              };
+            });
+
+            const totalPrice = orderItems.reduce((sum, item) => {
+              const itemBasePrice = item.price * item.quantity;
+              const toppingsPrice = item.toppings
+                ? item.toppings.reduce((toppingSum, topping) => toppingSum + (topping.price * topping.quantity), 0)
+                : 0;
+              return sum + itemBasePrice + toppingsPrice;
+            }, 0);
+
+            void createOrder({
+              variables: {
+                input: {
+                  organizationId,
+                  tabletId,
+                  tableNumber: parsedTableNumber,
+                  totalPrice,
+                  products,
+                },
+              },
+            }).then((result) => {
+              const response = result.data?.createOrder;
+              if (!response?.success || !response.order) {
+                setMutationError(response?.message || 'Failed to place order.');
+                return;
+              }
+
+              setMutationError('');
+              submitOrderToTotal();
+              onClose();
+            }).catch((error: unknown) => {
+              const message = error instanceof Error ? error.message : 'Failed to place order.';
+              setMutationError(message);
+            });
         },
     });
   };
@@ -360,11 +419,16 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
         p: theme.spacing.lg,
         borderTop: `1px solid ${theme.colors.border}`,
       }}>
+        {mutationError && (
+          <Typography variant="body2" color="error" sx={{ width: '100%', mb: 1 }}>
+            {mutationError}
+          </Typography>
+        )}
         <Button
           onClick={handlePlaceOrder}
           variant="contained"
           fullWidth
-          disabled={orderCount === 0}
+          disabled={orderCount === 0 || isSubmittingOrder}
           sx={{
             backgroundColor: theme.colors.primary,
             color: 'white',
@@ -381,7 +445,7 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
             },
           }}
         >
-          {t('orderSummaryDialog.placeOrder')}
+          {isSubmittingOrder ? 'Placing order...' : t('orderSummaryDialog.placeOrder')}
         </Button>
       </DialogActions>
     </Dialog>

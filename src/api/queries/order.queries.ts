@@ -4,12 +4,12 @@ import { gql } from '@apollo/client';
 export const GET_TABLE_ORDERS = gql`
   query GetTabletOrders($tabletId: ID!) {
     ordersByTablet(tabletId: $tabletId) {
-      Id
-      OrganizationId
-      TotalPrice
-      TabletId
-      TableNumber
-      Created
+      id
+      organizationId
+      totalPrice
+      tabletId
+      tableNumber
+      created
     }
   }
 `;
@@ -18,12 +18,12 @@ export const GET_TABLE_ORDERS = gql`
 export const GET_ORDER_BY_ID = gql`
   query GetOrderById($id: ID!) {
     order(id: $id) {
-      Id
-      OrganizationId
-      TotalPrice
-      TabletId
-      TableNumber
-      Created
+      id
+      organizationId
+      totalPrice
+      tabletId
+      tableNumber
+      created
     }
   }
 `;

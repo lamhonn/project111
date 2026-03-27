@@ -1,8 +1,8 @@
 export type Organization = {
-    Id: string,
-    Name?: string,
-    Address?: string,
-    LicenseId: string,
-    MaxUsers: number,
-    Created: Date,
+    id: string,
+    name?: string,
+    address?: string,
+    licenseId: string,
+    maxUsers: number,
+    created: Date,
 }

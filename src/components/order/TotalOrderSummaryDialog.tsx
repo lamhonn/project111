@@ -18,10 +18,12 @@ import BillRequestOptionsDialog from './BillRequestOptionsDialog';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
+import { useRequestBill } from '../../api/hooks/session.hooks';
 import {
   totalOrderItemsAtom,
   totalOrderCountAtom,
   tableNumberAtom,
+  activeSessionIdAtom,
   billRequestedAtom,
   billSplitConfigurationAtom,
   OrderItem,
@@ -51,6 +53,40 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
   const setBillRequested = useSetAtom(billRequestedAtom);
   const billSplitConfig = useAtomValue(billSplitConfigurationAtom);
   const markBillsAsRequested = useSetAtom(markBillsAsRequestedAtom);
+  const activeSessionId = useAtomValue(activeSessionIdAtom);
+  const [requestBill, { loading: isRequestingBill }] = useRequestBill();
+  const [requestError, setRequestError] = useState<string>('');
+
+  const sendBillRequest = async (message?: string): Promise<boolean> => {
+    if (!activeSessionId) {
+      setRequestError('No active dining session found. Please restart the session.');
+      return false;
+    }
+
+    try {
+      const result = await requestBill({
+        variables: {
+          input: {
+            sessionId: activeSessionId,
+            message,
+          },
+        },
+      });
+
+      const response = result.data?.requestBill;
+      if (!response?.success) {
+        setRequestError(response?.message || 'Failed to request bill.');
+        return false;
+      }
+
+      setRequestError('');
+      return true;
+    } catch (error) {
+      const messageText = error instanceof Error ? error.message : 'Failed to request bill.';
+      setRequestError(messageText);
+      return false;
+    }
+  };
 
   // Calculate new items that weren't in the original split
   const getNewItems = (): OrderItem[] => {
@@ -86,8 +122,13 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
         cancelText: t('common.cancel'),
         confirmText: t('common.confirm'),
         onConfirm: () => {
-          setBillRequested(true);
-          onClose();
+          void sendBillRequest().then((success) => {
+            if (!success) {
+              return;
+            }
+            setBillRequested(true);
+            onClose();
+          });
         },
       });
     }
@@ -95,37 +136,49 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
 
   // Handle requesting all bills
   const handleRequestAllBills = (): void => {
-    // TODO: Implement API call to request all bills
-    // Mark all active bills as requested (don't re-request already requested ones)
-    markBillsAsRequested(activeBills.map(bill => bill.id));
-    // End session - request all remaining bills
-    setBillRequested(true);
-    onClose();
+    const allBillIds = activeBills.map((bill) => bill.id);
+    const hasPrimaryBill = primaryBillItems.length > 0;
+    const message = [
+      'scope:all',
+      allBillIds.length > 0 ? `billIds:${allBillIds.join(',')}` : null,
+      hasPrimaryBill ? 'includePrimary:true' : null,
+    ].filter(Boolean).join(' | ');
+
+    void sendBillRequest(message).then((success) => {
+      if (!success) {
+        return;
+      }
+      markBillsAsRequested(allBillIds);
+      setBillRequested(true);
+      onClose();
+    });
   };
 
   // Handle requesting selected bills
   const handleRequestSelectedBills = (selectedBillIds: string[], includePrimary: boolean): void => {
-    // TODO: Implement API call to request specific bills
-    // selectedBillIds contains the IDs of bills to request
-    // includePrimary indicates if the primary bill should be included
-    console.log('Requesting bills:', { selectedBillIds, includePrimary });
-    
-    // Mark selected bills as requested
-    markBillsAsRequested(selectedBillIds);
-    
-    // Check if this was the final bill request
-    // Final bill = all active bills are requested AND (primary bill included OR no primary items exist)
-    const remainingActiveBills = activeBills.filter(bill => !selectedBillIds.includes(bill.id));
-    const noPrimaryItemsLeft = primaryBillItems.length === 0 || includePrimary;
-    const isFinalBill = remainingActiveBills.length === 0 && noPrimaryItemsLeft;
-    
-    if (isFinalBill) {
-      // This was the final bill - end session
-      setBillRequested(true);
-    }
-    
-    // Session continues if there are still active bills or primary items remaining
-    onClose();
+    const message = [
+      'scope:selected',
+      selectedBillIds.length > 0 ? `billIds:${selectedBillIds.join(',')}` : 'billIds:none',
+      `includePrimary:${includePrimary ? 'true' : 'false'}`,
+    ].join(' | ');
+
+    void sendBillRequest(message).then((success) => {
+      if (!success) {
+        return;
+      }
+
+      markBillsAsRequested(selectedBillIds);
+
+      const remainingActiveBills = activeBills.filter((bill) => !selectedBillIds.includes(bill.id));
+      const noPrimaryItemsLeft = primaryBillItems.length === 0 || includePrimary;
+      const isFinalBill = remainingActiveBills.length === 0 && noPrimaryItemsLeft;
+
+      if (isFinalBill) {
+        setBillRequested(true);
+      }
+
+      onClose();
+    });
   };
 
   // Helper function to calculate total for items
@@ -645,11 +698,16 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
         flexDirection: 'column',
         gap: theme.spacing.md,
       }}>
+        {requestError && (
+          <Typography variant="body2" color="error" sx={{ width: '100%' }}>
+            {requestError}
+          </Typography>
+        )}
         <Button
           onClick={() => setIsSplitBillOpen(true)}
           variant="outlined"
           fullWidth
-          disabled={totalOrderCount === 0}
+          disabled={totalOrderCount === 0 || isRequestingBill}
           sx={{
             borderColor: theme.colors.primary,
             color: theme.colors.primary,
@@ -673,7 +731,7 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
           onClick={handleAskForBill}
           variant="contained"
           fullWidth
-          disabled={totalOrderCount === 0}
+          disabled={totalOrderCount === 0 || isRequestingBill}
           sx={{
             backgroundColor: theme.colors.primary,
             color: 'white',

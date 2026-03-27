@@ -4,11 +4,17 @@ import { gql } from '@apollo/client';
 export const CREATE_ORDER = gql`
   mutation CreateOrder($input: CreateOrderInput!) {
     createOrder(input: $input) {
-      Id
-      TotalPrice
-      TabletId
-      TableNumber
-      Created
+      code
+      success
+      message
+      order {
+        id
+        organizationId
+        totalPrice
+        tabletId
+        tableNumber
+        created
+      }
     }
   }
 `;

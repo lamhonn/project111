@@ -18,8 +18,12 @@ import { theme } from '../../theme/theme';
 
 // TODO: move to enums file
 export enum OrderStatus {
+  Pending = 'Pending',
   Received = 'Received',
   Preparing = 'Preparing',
+  Ready = 'Ready',
+  Completed = 'Completed',
+  Cancelled = 'Cancelled',
 }
 
 interface MenuHeaderProps {
@@ -103,6 +107,7 @@ const MenuHeader: React.FC<MenuHeaderProps> = ({
 
   const getStatusColor = (status: OrderStatus | null) => {
     switch (status) {
+      case OrderStatus.Pending:
       case OrderStatus.Received:
         return {
           bg: '#FEF3C7',
@@ -114,6 +119,24 @@ const MenuHeader: React.FC<MenuHeaderProps> = ({
           bg: '#D1FAE5',
           text: '#065F46',
           border: '#6EE7B7',
+        };
+      case OrderStatus.Ready:
+        return {
+          bg: '#DBEAFE',
+          text: '#1E3A8A',
+          border: '#93C5FD',
+        };
+      case OrderStatus.Completed:
+        return {
+          bg: '#EDE9FE',
+          text: '#5B21B6',
+          border: '#C4B5FD',
+        };
+      case OrderStatus.Cancelled:
+        return {
+          bg: '#FEE2E2',
+          text: '#991B1B',
+          border: '#FCA5A5',
         };
       default:
         return {
@@ -160,8 +183,28 @@ const MenuHeader: React.FC<MenuHeaderProps> = ({
             {restaurantName}
           </Typography>
 
-          {/* Right side - Language Selector & Bill Button */}
+          {/* Right side - Language Selector, Status & Bill Button */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            {orderStatus && statusColors && (
+              <Box
+                sx={{
+                  px: 1.25,
+                  py: 0.5,
+                  borderRadius: theme.borderRadius.large,
+                  border: '1px solid',
+                  borderColor: statusColors.border,
+                  backgroundColor: statusColors.bg,
+                  color: statusColors.text,
+                  fontSize: theme.typography.fontSizes.small,
+                  fontWeight: theme.typography.fontWeights.semibold,
+                  whiteSpace: 'nowrap',
+                  animation: animateStatus ? `${boingAnimation} 0.6s ease-out` : 'none',
+                }}
+              >
+                {orderStatus}
+              </Box>
+            )}
+
             {/* Language Selector */}
             <Button
               onClick={handleLanguageClick}

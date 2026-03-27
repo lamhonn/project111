@@ -13,6 +13,7 @@ import { atomWithStorage } from 'jotai/utils';
 // Authorization status stored in localStorage
 // Set to true to allow access, false to block
 export const isAuthorizedAtom = atomWithStorage<boolean>('is_authorized', false);
+export const authTokenAtom = atomWithStorage<string | null>('authToken', null);
 
 // Write-only atom to authorize with PIN
 export const authorizePinAtom = atom(
@@ -27,10 +28,25 @@ export const authorizePinAtom = atom(
   }
 );
 
+export const authorizeWithTokenAtom = atom(
+  null,
+  (_get, set, token: string) => {
+    const sanitized = token.trim();
+    if (!sanitized) {
+      return { success: false, error: 'Token cannot be empty' };
+    }
+
+    set(authTokenAtom, sanitized);
+    set(isAuthorizedAtom, true);
+    return { success: true };
+  }
+);
+
 // Write-only atom to revoke authorization
 export const revokeAuthorizationAtom = atom(
   null,
   (get, set) => {
     set(isAuthorizedAtom, false);
+    set(authTokenAtom, null);
   }
 );

@@ -4,12 +4,12 @@ import { gql } from '@apollo/client';
 export const GET_ORGANIZATION = gql`
   query GetOrganization($id: ID!) {
     organization(id: $id) {
-      Id
-      Name
-      Address
-      LicenseId
-      MaxUsers
-      Created
+      id
+      name
+      address
+      licenseId
+      maxUsers
+      created
     }
   }
 `;

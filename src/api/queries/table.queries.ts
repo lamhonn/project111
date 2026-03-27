@@ -3,11 +3,11 @@ import { gql } from '@apollo/client';
 // Fetch table by table number and organization
 export const GET_TABLE_BY_NUMBER = gql`
   query GetTabletByNumber($organizationId: ID!, $tableNumber: Int!) {
-    tabletByNumber(organizationId: $organizationId, tableNumber: $tableNumber) {
-      Id
-      UserId
-      TableNumber
-      Created
+    tablets(organizationId: $organizationId) {
+      id
+      userId
+      tableNumber
+      created
     }
   }
 `;
@@ -16,10 +16,10 @@ export const GET_TABLE_BY_NUMBER = gql`
 export const GET_TABLE_BY_ID = gql`
   query GetTabletById($id: ID!) {
     tablet(id: $id) {
-      Id
-      UserId
-      TableNumber
-      Created
+      id
+      userId
+      tableNumber
+      created
     }
   }
 `;
@@ -28,8 +28,8 @@ export const GET_TABLE_BY_ID = gql`
 export const GET_TABLE_LOCKED_STATUS = gql`
   query GetTabletStatus($id: ID!) {
     tablet(id: $id) {
-      Id
-      UserId
+      id
+      userId
     }
   }
 `;

@@ -10,11 +10,20 @@ import MenuHeader from '../../components/header/MenuHeader';
 import TotalOrderSummaryDialog from '../../components/order/TotalOrderSummaryDialog';
 import ThankYouDialog from '../../components/order/ThankYouDialog';
 import LockedDialog from '../../components/order/LockedDialog';
-import { orderStatusAtom, billRequestedAtom, resetAppStateAtom, tableLockedAtom } from '../../context/orderStore';
+import {
+  orderStatusAtom,
+  billRequestedAtom,
+  resetAppStateAtom,
+  tableLockedAtom,
+  orderNumberAtom,
+  tableNumberAtom,
+} from '../../context/orderStore';
 import { useGetProducts } from '../../api/hooks/product.hooks';
+import { useOrderStatusChanged, useNewOrderNotification } from '../../api/hooks/order.hooks';
 import { useTableLockedStatus } from '../../api/hooks/table.hooks';
 import { getLocalizedCategoryName } from '../../api/utils/multilingualName.utils';
 import { theme } from '../../theme';
+import { OrderStatus } from '../../components/header/MenuHeader';
 
 const BASE_CATEGORIES = [
   '{"en":"Pizzas","fi":"Pizzat","sv":"Pizzor"}',
@@ -23,17 +32,37 @@ const BASE_CATEGORIES = [
   '{"en":"Drinks","fi":"Juomat","sv":"Drycker"}',
 ];
 
+type RealtimeOrderStatus = 'Pending' | 'Preparing' | 'Ready' | 'Completed' | 'Cancelled';
+
+const mapRealtimeStatusToUiStatus = (status: RealtimeOrderStatus): OrderStatus => {
+  switch (status) {
+    case 'Pending':
+      return OrderStatus.Pending;
+    case 'Preparing':
+      return OrderStatus.Preparing;
+    case 'Ready':
+      return OrderStatus.Ready;
+    case 'Completed':
+      return OrderStatus.Completed;
+    case 'Cancelled':
+      return OrderStatus.Cancelled;
+    default:
+      return OrderStatus.Pending;
+  }
+};
+
 const MenuView: React.FC = () => {
   const { t, i18n } = useTranslation();
   const organizationId = import.meta.env.VITE_ORGANIZATION_ID ?? '';
-  const menuId = import.meta.env.VITE_MENU_ID ?? '';
-  const tableId = import.meta.env.VITE_TABLE_ID ?? '';
+  const tabletId = import.meta.env.VITE_TABLET_ID ?? import.meta.env.VITE_TABLE_ID ?? '';
   
   // Fetch data from API hooks
   const { data: productsData, loading: productsLoading } = useGetProducts(organizationId);
+  const { data: orderStatusData } = useOrderStatusChanged(tabletId);
+  const { data: newOrderData } = useNewOrderNotification(tabletId);
   
   // Monitor table locked status
-  useTableLockedStatus(tableId);
+  useTableLockedStatus(tabletId);
   
   const [activeCategory, setActiveCategory] = useState<number>(0);
   const [showCategoryBar, setShowCategoryBar] = useState<boolean>(true);
@@ -45,6 +74,9 @@ const MenuView: React.FC = () => {
   const billRequested = useAtomValue(billRequestedAtom);
   const tableLocked = useAtomValue(tableLockedAtom);
   const resetAppState = useSetAtom(resetAppStateAtom);
+  const setOrderStatus = useSetAtom(orderStatusAtom);
+  const setOrderNumber = useSetAtom(orderNumberAtom);
+  const setTableNumber = useSetAtom(tableNumberAtom);
 
   // Get products and campaigns from API
   const products = productsData?.products || [];
@@ -73,6 +105,30 @@ const MenuView: React.FC = () => {
       document.body.style.position = 'unset';
     };
   }, [billRequested]);
+
+  // Keep header/order atoms in sync with websocket status updates.
+  useEffect(() => {
+    const update = orderStatusData?.orderStatusChanged;
+    if (!update) {
+      return;
+    }
+
+    setOrderStatus(mapRealtimeStatusToUiStatus(update.newStatus));
+    setOrderNumber(`#${update.orderId.slice(0, 6).toUpperCase()}`);
+    setTableNumber(update.tableNumber);
+  }, [orderStatusData, setOrderNumber, setOrderStatus, setTableNumber]);
+
+  // Capture new order metadata for receipt/status UI context.
+  useEffect(() => {
+    const event = newOrderData?.newOrderNotification;
+    if (!event) {
+      return;
+    }
+
+    setOrderNumber(`#${event.orderId.slice(0, 6).toUpperCase()}`);
+    setTableNumber(event.tableNumber);
+    setOrderStatus(OrderStatus.Pending);
+  }, [newOrderData, setOrderNumber, setOrderStatus, setTableNumber]);
 
   // Group products by category
   const productsByCategory = categories.map((categoryName, index) => {
@@ -214,26 +270,26 @@ const MenuView: React.FC = () => {
             >
               {productsByCategory[categoryIndex].map((product) => {
                 // Type guard to differentiate between regular and campaign products
-                const isCampaign = 'CampaignPrice' in product;
+                const isCampaign = 'campaignPrice' in (product as Record<string, unknown>);
                 const price = isCampaign 
-                  ? (product as any).CampaignPrice || 0 
-                  : (product as any).Price;
-                const name = product.Name || '';
-                const ingredients = product.Ingredients || undefined;
-                const ageRestricted = (product as any).AgeRestrictied || false;
-                const dietaries = product.Dietaries || undefined;
+                  ? (product as any).campaignPrice || 0 
+                  : (product as any).price;
+                const name = product.name || '';
+                const ingredients = product.ingredients || undefined;
+                const ageRestricted = (product as any).ageRestricted || false;
+                const dietaries = product.dietaries || undefined;
                 
                 return (
                   <ProductCard
-                    key={product.Id}
-                    id={product.Id}
-                    image={product.ImgUrl || ''}
+                    key={product.id}
+                    id={product.id}
+                    image={product.imgUrl || ''}
                     name={name}
                     price={price}
-                    description={product.Description}
-                    toppings={product.Toppings}
+                    description={product.description}
+                    toppings={product.toppings}
                     ingredients={ingredients}
-                    excludables={product.Excludables}
+                    excludables={product.excludables}
                     ageRestricted={ageRestricted}
                     dietaries={dietaries}
                   />

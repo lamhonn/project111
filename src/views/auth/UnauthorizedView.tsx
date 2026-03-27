@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Box, Container, Paper, Typography, TextField } from '@mui/material';
+import { Box, CircularProgress, Container, Paper, Typography, TextField } from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
 import { theme } from '../../theme/theme';
-import { useAuthorization } from '../../api/hooks/auth.hooks';
+import { useAuthorization, useVerifyTabletPin } from '../../api/hooks/auth.hooks';
+import { useSetAtom } from 'jotai';
+import { tableNumberAtom } from '../../context/orderStore';
 
 /**
  * PIN Entry View
@@ -15,14 +17,64 @@ const UnauthorizedView: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [isShaking, setIsShaking] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const { authorizeWithPin } = useAuthorization();
+  const { authorizeToken } = useAuthorization();
+  const setTableNumber = useSetAtom(tableNumberAtom);
+  const [verifyTabletPin, { loading }] = useVerifyTabletPin();
+
+  const tabletId = import.meta.env.VITE_TABLET_ID ?? import.meta.env.VITE_TABLE_ID ?? '';
+
+  const handleUnauthorizedError = (message: string) => {
+    setError(message);
+    setIsShaking(true);
+    setTimeout(() => {
+      setIsShaking(false);
+      setPin(Array(8).fill(''));
+      inputRefs.current[0]?.focus();
+    }, 500);
+  };
+
+  const submitPin = async (pinValue: string) => {
+    if (!tabletId) {
+      handleUnauthorizedError('Tablet ID is missing. Set VITE_TABLET_ID or VITE_TABLE_ID.');
+      return;
+    }
+
+    try {
+      const result = await verifyTabletPin({
+        variables: {
+          input: {
+            tabletId,
+            pin: pinValue,
+          },
+        },
+      });
+
+      const response = result.data?.verifyTabletPin;
+      if (!response?.success || !response.token) {
+        handleUnauthorizedError(response?.message || 'Invalid PIN');
+        return;
+      }
+
+      if (response.tablet?.tableNumber !== undefined) {
+        setTableNumber(response.tablet.tableNumber);
+      }
+
+      const authResult = authorizeToken(response.token);
+      if (!authResult.success) {
+        handleUnauthorizedError(authResult.error || 'Authentication failed');
+      }
+    } catch (mutationError) {
+      const message = mutationError instanceof Error ? mutationError.message : 'Authentication failed';
+      handleUnauthorizedError(message);
+    }
+  };
 
   // Focus first input on mount
   useEffect(() => {
     inputRefs.current[0]?.focus();
   }, []);
 
-  const handleChange = (index: number, value: string) => {
+  const handleChange = async (index: number, value: string) => {
     // Only allow digits
     if (value && !/^\d$/.test(value)) {
       return;
@@ -41,17 +93,7 @@ const UnauthorizedView: React.FC = () => {
     // Auto-submit when all 8 digits are entered
     if (value && index === 7 && newPin.every(digit => digit !== '')) {
       const pinString = newPin.join('');
-      const result = authorizeWithPin(pinString);
-      
-      if (!result.success) {
-        setError(result.error || 'Invalid PIN');
-        setIsShaking(true);
-        setTimeout(() => {
-          setIsShaking(false);
-          setPin(Array(8).fill(''));
-          inputRefs.current[0]?.focus();
-        }, 500);
-      }
+      await submitPin(pinString);
     }
   };
 
@@ -61,7 +103,7 @@ const UnauthorizedView: React.FC = () => {
     }
   };
 
-  const handlePaste = (e: React.ClipboardEvent) => {
+  const handlePaste = async (e: React.ClipboardEvent) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text').replace(/\D/g, '');
     
@@ -71,16 +113,7 @@ const UnauthorizedView: React.FC = () => {
       inputRefs.current[7]?.focus();
       
       // Auto-submit
-      const result = authorizeWithPin(pastedData);
-      if (!result.success) {
-        setError(result.error || 'Invalid PIN');
-        setIsShaking(true);
-        setTimeout(() => {
-          setIsShaking(false);
-          setPin(Array(8).fill(''));
-          inputRefs.current[0]?.focus();
-        }, 500);
-      }
+      await submitPin(pastedData);
     }
   };
 
@@ -154,6 +187,7 @@ const UnauthorizedView: React.FC = () => {
                 value={digit}
                 onChange={e => handleChange(index, e.target.value)}
                 onKeyDown={e => handleKeyDown(index, e)}
+                disabled={loading}
                 inputProps={{
                   maxLength: 1,
                   style: {
@@ -197,6 +231,12 @@ const UnauthorizedView: React.FC = () => {
             >
               {error}
             </Typography>
+          )}
+
+          {loading && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+              <CircularProgress size={20} />
+            </Box>
           )}
 
           <Box

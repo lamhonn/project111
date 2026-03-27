@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
 import ProductDialog from './ProductInfoDialog';
 import { getLocalizedProductName, getLocalizedDescription } from '../../api/utils/multilingualName.utils';
+import { Dietary } from '../../api/types/enums';
 
 interface Props {
   id: string;
@@ -26,7 +27,7 @@ interface Props {
   ingredients?: string;
   excludables?: string;
   ageRestricted?: boolean;
-  dietaries?: number[];
+  dietaries?: Dietary[];
 }
 
 const ProductCard: React.FC<Props> = (props: Props) => {

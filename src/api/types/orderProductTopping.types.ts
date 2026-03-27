@@ -1,7 +1,7 @@
 export type OrderProductTopping = {
-    Id: string,
-    OrderProductId: string,
-    ToppingId: string,
-    Amount: number,
-    Created: Date
+    id: string,
+    orderProductId: string,
+    toppingId: string,
+    amount: number,
+    created: Date
 }

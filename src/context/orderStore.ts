@@ -61,6 +61,7 @@ export const orderStatusAtom = atom<OrderStatus | null>(null);
 export const billRequestedAtom = atom<boolean>(false);
 
 export const tableLockedAtom = atom<boolean>(false);
+export const activeSessionIdAtom = atom<string | null>(null);
 
 // Session state tracking
 export enum SessionState {
@@ -138,6 +139,7 @@ export const resetAppStateAtom = atom(
     set(orderStatusAtom, null);
     set(billRequestedAtom, false);
     set(tableLockedAtom, false);
+    set(activeSessionIdAtom, null);
     set(languageAtom, 'en');
     set(billSplitConfigurationAtom, null);
     set(sessionStateAtom, SessionState.Welcome); // Reset to welcome screen
@@ -147,8 +149,15 @@ export const resetAppStateAtom = atom(
 // Atom to start a new session
 export const startSessionAtom = atom(
   null,
-  (get, set) => {
+  (_get, set) => {
     set(sessionStateAtom, SessionState.Active);
+  }
+);
+
+export const setActiveSessionIdAtom = atom(
+  null,
+  (_get, set, sessionId: string | null) => {
+    set(activeSessionIdAtom, sessionId);
   }
 );
 

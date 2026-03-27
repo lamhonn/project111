@@ -5,7 +5,9 @@ import type { OrderProduct } from '../types';
 
 // Query types
 interface GetOrderProductsData {
-  orderProducts: OrderProduct[];
+  order: {
+    products: OrderProduct[];
+  } | null;
 }
 
 interface GetOrderProductsVars {
@@ -14,10 +16,10 @@ interface GetOrderProductsVars {
 
 // Mutation types
 interface CreateOrderProductInput {
-  OrderId: string;
-  ProductId: string;
-  CampaignProductId?: string;
-  TotalPrice: number;
+  orderId: string;
+  productId: string;
+  campaignProductId?: string;
+  totalPrice: number;
 }
 
 interface CreateOrderProductData {

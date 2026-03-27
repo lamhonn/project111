@@ -4,21 +4,21 @@ import { gql } from '@apollo/client';
 export const GET_PRODUCTS = gql`
   query GetProducts($organizationId: ID!) {
     products(organizationId: $organizationId) {
-      Id
-      OrganizationId
-      Name
-      Description
-      Price
-      OldPrice
-      FreeToppings
-      Ingredients
-      Dietaries
-      ImgUrl
-      Enabled
-      AgeRestrictied
-      Toppings
-      Excludables
-      Created
+      id
+      organizationId
+      name
+      description
+      price
+      oldPrice
+      freeToppings
+      ingredients
+      dietaries
+      imgUrl
+      enabled
+      ageRestricted
+      toppings
+      excludables
+      created
     }
   }
 `;
@@ -27,21 +27,21 @@ export const GET_PRODUCTS = gql`
 export const GET_PRODUCT_BY_ID = gql`
   query GetProductById($id: ID!) {
     product(id: $id) {
-      Id
-      OrganizationId
-      Name
-      Description
-      Price
-      OldPrice
-      FreeToppings
-      Ingredients
-      Dietaries
-      ImgUrl
-      Enabled
-      AgeRestrictied
-      Toppings
-      Excludables
-      Created
+      id
+      organizationId
+      name
+      description
+      price
+      oldPrice
+      freeToppings
+      ingredients
+      dietaries
+      imgUrl
+      enabled
+      ageRestricted
+      toppings
+      excludables
+      created
     }
   }
 `;

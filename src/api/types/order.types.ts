@@ -1,8 +1,8 @@
 export type Order = {
-    Id: string,
-    OrganizationId: string,
-    TotalPrice: number,
-    TabletId: string,
-    TableNumber: number,
-    Created: Date
+    id: string,
+    organizationId: string,
+    totalPrice: number,
+    tabletId: string,
+    tableNumber: number,
+    created: Date
 }

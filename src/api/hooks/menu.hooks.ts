@@ -3,7 +3,7 @@ import { GET_ACTIVE_MENU, GET_MENU_BY_ID } from '../queries/menu.queries';
 import type { Menu } from '../types';
 
 interface GetActiveMenuData {
-  activeMenu: Menu;
+  menus: Menu[];
 }
 
 interface GetActiveMenuVars {
@@ -23,10 +23,18 @@ interface GetMenuByIdVars {
  * Used for: Initial menu load, determining available categories
  */
 export const useGetActiveMenu = (organizationId: string) => {
-  return useQuery<GetActiveMenuData, GetActiveMenuVars>(GET_ACTIVE_MENU, {
+  const result = useQuery<GetActiveMenuData, GetActiveMenuVars>(GET_ACTIVE_MENU, {
     variables: { organizationId },
     skip: !organizationId,
   });
+
+  const menus = result.data?.menus ?? [];
+  const activeMenu = menus.find((menu) => menu.enabled) ?? menus[0] ?? null;
+
+  return {
+    ...result,
+    data: result.data ? { activeMenu } : undefined,
+  };
 };
 
 /**

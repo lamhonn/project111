@@ -5,18 +5,23 @@ import type { OrderProductTopping } from '../types';
 
 // Query types
 interface GetOrderProductToppingsData {
-  orderProductToppings: OrderProductTopping[];
+  order: {
+    products: {
+      id: string;
+      toppings: OrderProductTopping[];
+    }[];
+  } | null;
 }
 
 interface GetOrderProductToppingsVars {
-  orderProductId: string;
+  orderId: string;
 }
 
 // Mutation types
 interface CreateOrderProductToppingInput {
-  OrderProductId: string;
-  ToppingId: string;
-  Amount: number;
+  orderProductId: string;
+  toppingId: string;
+  amount: number;
 }
 
 interface CreateOrderProductToppingData {
@@ -31,12 +36,12 @@ interface CreateOrderProductToppingVars {
  * Hook to fetch toppings for a specific order product
  * Used for: Displaying customizations on order items in receipts
  */
-export const useGetOrderProductToppings = (orderProductId: string) => {
+export const useGetOrderProductToppings = (orderId: string) => {
   return useQuery<GetOrderProductToppingsData, GetOrderProductToppingsVars>(
     GET_ORDER_PRODUCT_TOPPINGS,
     {
-      variables: { orderProductId },
-      skip: !orderProductId,
+      variables: { orderId },
+      skip: !orderId,
     }
   );
 };

@@ -16,9 +16,16 @@ import { theme } from '../../theme/theme';
 interface WelcomeViewProps {
   onStartSession: () => void;
   backgroundImage?: string;
+  isStarting?: boolean;
+  disabled?: boolean;
 }
 
-const WelcomeView: React.FC<WelcomeViewProps> = ({ onStartSession, backgroundImage }) => {
+const WelcomeView: React.FC<WelcomeViewProps> = ({
+  onStartSession,
+  backgroundImage,
+  isStarting = false,
+  disabled = false,
+}) => {
   const { t, i18n } = useTranslation();
   const [language, setLanguage] = useAtom(languageAtom);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -212,6 +219,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({ onStartSession, backgroundIma
             variant="contained"
             size="large"
             onClick={onStartSession}
+            disabled={disabled}
             sx={{
               backgroundColor: theme.colors.primary,
               color: 'white',
@@ -226,7 +234,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({ onStartSession, backgroundIma
               },
             }}
           >
-            {t('welcome.startButton')}
+            {isStarting ? 'Starting...' : t('welcome.startButton')}
           </Button>
         </Paper>
       </Container>
