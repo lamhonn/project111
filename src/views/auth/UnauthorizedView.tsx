@@ -21,8 +21,6 @@ const UnauthorizedView: React.FC = () => {
   const setTableNumber = useSetAtom(tableNumberAtom);
   const [verifyTabletPin, { loading }] = useVerifyTabletPin();
 
-  const tabletId = import.meta.env.VITE_TABLET_ID ?? import.meta.env.VITE_TABLE_ID ?? '';
-
   const handleUnauthorizedError = (message: string) => {
     setError(message);
     setIsShaking(true);
@@ -34,16 +32,10 @@ const UnauthorizedView: React.FC = () => {
   };
 
   const submitPin = async (pinValue: string) => {
-    if (!tabletId) {
-      handleUnauthorizedError('Tablet ID is missing. Set VITE_TABLET_ID or VITE_TABLE_ID.');
-      return;
-    }
-
     try {
       const result = await verifyTabletPin({
         variables: {
           input: {
-            tabletId,
             pin: pinValue,
           },
         },

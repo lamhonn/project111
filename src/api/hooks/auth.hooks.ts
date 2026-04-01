@@ -16,7 +16,6 @@ interface VerifyTabletPinData {
 
 interface VerifyTabletPinVars {
   input: {
-    tabletId: string;
     pin: string;
   };
 }
