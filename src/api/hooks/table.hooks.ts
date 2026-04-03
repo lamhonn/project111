@@ -1,9 +1,10 @@
 import { useQuery } from '@apollo/client/react';
 import { useSetAtom } from 'jotai';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { GET_TABLE_BY_NUMBER, GET_TABLE_BY_ID, GET_TABLE_LOCKED_STATUS } from '../queries/table.queries';
 import type { Tablet } from '../types';
 import { tableLockedAtom } from '../../context/orderStore';
+import { isNonRecoverableTabletStatusError } from '../utils/authErrorPolicy';
 
 interface GetTableByNumberData {
   tablets: Tablet[];
@@ -58,14 +59,19 @@ export const useGetTableById = (id: string) => {
  */
 export const useTableLockedStatus = (tableId: string) => {
   const setTableLocked = useSetAtom(tableLockedAtom);
+  const [isPollingPaused, setIsPollingPaused] = useState(false);
   const result = useQuery<{ tablet: Pick<Tablet, 'userId'> }, { id: string }>(
     GET_TABLE_LOCKED_STATUS,
     {
       variables: { id: tableId },
-      skip: !tableId,
+      skip: !tableId || isPollingPaused,
       pollInterval: 5000,
     }
   );
+
+  useEffect(() => {
+    setIsPollingPaused(false);
+  }, [tableId]);
 
   useEffect(() => {
     if (result.data?.tablet) {
@@ -73,6 +79,13 @@ export const useTableLockedStatus = (tableId: string) => {
       setTableLocked(Boolean(result.data.tablet.userId));
     }
   }, [result.data, setTableLocked]);
+
+  useEffect(() => {
+    if (!isPollingPaused && result.error && isNonRecoverableTabletStatusError(result.error)) {
+      console.warn('[Tablet status polling] Pausing polling after non-recoverable auth error.');
+      setIsPollingPaused(true);
+    }
+  }, [result.error, isPollingPaused]);
 
   return result;
 };

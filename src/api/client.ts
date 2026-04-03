@@ -7,6 +7,10 @@ import { getMainDefinition } from '@apollo/client/utilities';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { createClient } from 'graphql-ws';
 import { normalizeStoredAuthToken, revokeAuthorizationSession } from './utils/authSession';
+import {
+  getGraphqlErrorCodeFromExtensions,
+  isTabletStatusNonFatalAuthError,
+} from './utils/authErrorPolicy';
 
 const resolveGraphqlHttpEndpoint = (): string => {
   return import.meta.env.VITE_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql';
@@ -35,6 +39,8 @@ const httpLink = new HttpLink({
 });
 
 const UNAUTHORIZED_WS_CLOSE_CODE = 4401;
+
+let hasLoggedTabletStatusAuthWarning = false;
 
 const isUnauthorizedGraphqlError = (error: { extensions?: Record<string, unknown> }): boolean => {
   return error.extensions?.code === 'UNAUTHENTICATED';
@@ -77,12 +83,23 @@ const errorLink = new ErrorLink(({ error, operation }) => {
 
   if (CombinedGraphQLErrors.is(error)) {
     error.errors.forEach(({ message, locations, path, extensions }) => {
+      const errorCode = getGraphqlErrorCodeFromExtensions(extensions);
+
+      if (isTabletStatusNonFatalAuthError(operation.operationName, errorCode)) {
+        if (!hasLoggedTabletStatusAuthWarning) {
+          console.warn('[Auth] Tablet status polling is forbidden for current token; polling should pause.');
+          hasLoggedTabletStatusAuthWarning = true;
+        }
+
+        return;
+      }
+
       if (isUnauthorizedGraphqlError({ extensions })) {
         shouldRevokeAuthorization = true;
       }
 
       console.error(
-        `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
+        `[GraphQL error]: Message: ${message}, Code: ${errorCode ?? 'unknown'}, Location: ${locations}, Path: ${path}`
       );
     });
   } else {
