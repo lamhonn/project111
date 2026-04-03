@@ -37,6 +37,10 @@
     "ageVerification": "Ikärajoitettu tuote. Voit joutua todistamaan ikäsi henkilökunnalle",
     "addToOrder": "Lisää tilaukseen"
   },
+  "menuView": {
+    "noMenuTitle": "Ruokalistaa ei ole saatavilla",
+    "noMenuDescription": "Tälle pöydälle ei ole tällä hetkellä näytettävää ruokalistaa."
+  },
   "orderSummaryDialog": {
     "title": "Tilauksen yhteenveto",
     "totalItems": "Tuotteet yhteensä",

@@ -37,6 +37,10 @@
     "ageVerification": "Åldersbegränsad. Din ålder kan verifieras av personalen",
     "addToOrder": "Lägg till beställning"
   },
+  "menuView": {
+    "noMenuTitle": "Ingen meny tillgänglig",
+    "noMenuDescription": "Det finns för närvarande ingen meny att visa för det här bordet."
+  },
   "orderSummaryDialog": {
     "title": "Beställningssammanfattning",
     "totalItems": "Totalt antal artiklar",

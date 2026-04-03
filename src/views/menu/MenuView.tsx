@@ -19,24 +19,105 @@ import {
   tableNumberAtom,
 } from '../../context/orderStore';
 import { useGetProducts } from '../../api/hooks/product.hooks';
+import { useGetActiveMenu } from '../../api/hooks/menu.hooks';
 import { useOrderStatusChanged, useNewOrderNotification } from '../../api/hooks/order.hooks';
 import { useTableLockedStatus } from '../../api/hooks/table.hooks';
 import { getLocalizedCategoryName } from '../../api/utils/multilingualName.utils';
 import { theme } from '../../theme';
 import { OrderStatus } from '../../components/header/MenuHeader';
 
-const BASE_CATEGORIES = [
-  '{"en":"Pizzas","fi":"Pizzat","sv":"Pizzor"}',
-  '{"en":"Burgers","fi":"Hampurilaiset","sv":"Hamburgare"}',
-  '{"en":"Sides","fi":"Lisukkeet","sv":"Tillbeh\u00f6r"}',
-  '{"en":"Drinks","fi":"Juomat","sv":"Drycker"}',
-];
+type TabletTokenClaims = {
+  organizationId?: string;
+  tabletId?: string;
+};
+
+const normalizeStoredAuthToken = (rawToken: string | null): string | null => {
+  if (!rawToken) {
+    return null;
+  }
+
+  const trimmed = rawToken.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (typeof parsed === 'string') {
+        return parsed.trim() || null;
+      }
+    } catch {
+      return trimmed.slice(1, -1).trim() || null;
+    }
+  }
+
+  return trimmed;
+};
+
+const decodeTokenClaims = (token: string | null): TabletTokenClaims | null => {
+  if (!token) {
+    return null;
+  }
+
+  const parts = token.split('.');
+  if (parts.length < 2) {
+    return null;
+  }
+
+  try {
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+    const decoded = atob(padded);
+    const parsed = JSON.parse(decoded) as TabletTokenClaims;
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
+const parseMenuCategories = (categoriesRaw?: string): string[] => {
+  if (!categoriesRaw) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(categoriesRaw);
+
+    if (Array.isArray(parsed)) {
+      return parsed
+        .map((category) => {
+          if (typeof category === 'string') {
+            return category;
+          }
+
+          if (typeof category === 'object' && category !== null) {
+            return JSON.stringify(category);
+          }
+
+          return '';
+        })
+        .filter((category): category is string => Boolean(category));
+    }
+  } catch {
+    // Support legacy comma-separated category strings.
+    return categoriesRaw
+      .split(',')
+      .map((category) => category.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+};
 
 type RealtimeOrderStatus = 'Pending' | 'Preparing' | 'Ready' | 'Completed' | 'Cancelled';
 
 const mapRealtimeStatusToUiStatus = (status: RealtimeOrderStatus): OrderStatus => {
   switch (status) {
-    case 'Pending':
+    case 'Pending': 
       return OrderStatus.Pending;
     case 'Preparing':
       return OrderStatus.Preparing;
@@ -53,11 +134,14 @@ const mapRealtimeStatusToUiStatus = (status: RealtimeOrderStatus): OrderStatus =
 
 const MenuView: React.FC = () => {
   const { t, i18n } = useTranslation();
-  const organizationId = import.meta.env.VITE_ORGANIZATION_ID ?? '';
-  const tabletId = import.meta.env.VITE_TABLET_ID ?? import.meta.env.VITE_TABLE_ID ?? '';
+  const token = normalizeStoredAuthToken(localStorage.getItem('authToken'));
+  const tokenClaims = decodeTokenClaims(token);
+  const organizationId = typeof tokenClaims?.organizationId === 'string' ? tokenClaims.organizationId : '';
+  const tabletId = typeof tokenClaims?.tabletId === 'string' ? tokenClaims.tabletId : '';
   
   // Fetch data from API hooks
   const { data: productsData, loading: productsLoading } = useGetProducts(organizationId);
+  const { data: activeMenuData, loading: menuLoading } = useGetActiveMenu(organizationId);
   const { data: orderStatusData } = useOrderStatusChanged(tabletId);
   const { data: newOrderData } = useNewOrderNotification(tabletId);
   
@@ -80,11 +164,12 @@ const MenuView: React.FC = () => {
 
   // Get products and campaigns from API
   const products = productsData?.products || [];
-  
-  // Build categories array
-  // Localize category names based on current language
-  const localizedCategories = BASE_CATEGORIES.map(cat => getLocalizedCategoryName(cat, i18n.language));
-  const categories = localizedCategories;
+
+  const menuCategories = parseMenuCategories(activeMenuData?.activeMenu?.categories);
+  const categories = menuCategories
+    .map((category) => getLocalizedCategoryName(category, i18n.language).trim())
+    .filter(Boolean);
+  const hasMenuToShow = categories.length > 0;
 
   const handleResetSession = () => {
     resetAppState();
@@ -131,11 +216,17 @@ const MenuView: React.FC = () => {
   }, [newOrderData, setOrderNumber, setOrderStatus, setTableNumber]);
 
   // Group products by category
-  const productsByCategory = categories.map((categoryName, index) => {
+  const productsByCategory = categories.map((_categoryName, index) => {
     // Category mapping now comes from backend menu/menuProducts; until that wiring is added,
     // render all products under the first category to stay aligned with current Product type.
     return index === 0 ? products : [];
   });
+
+  useEffect(() => {
+    if (activeCategory >= categories.length) {
+      setActiveCategory(0);
+    }
+  }, [activeCategory, categories.length]);
 
   // Scroll to category
   const handleCategoryClick = (index: number): void => {
@@ -154,6 +245,10 @@ const MenuView: React.FC = () => {
 
   // Track active category on scroll
   useEffect(() => {
+    if (categories.length === 0) {
+      return;
+    }
+
     const handleScroll = (): void => {
       const currentScrollY = window.scrollY;
       const scrollPosition = currentScrollY + 250; // Offset for sticky header + category bar
@@ -187,7 +282,7 @@ const MenuView: React.FC = () => {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [categories.length]);
 
   return (
     <Box sx={{ pb: 10 }}>
@@ -199,105 +294,127 @@ const MenuView: React.FC = () => {
       />
 
       {/* Sticky Category Pills */}
-      <Box
-        sx={{
-          position: 'sticky',
-          top: { xs: 56, sm: 64 },
-          zIndex: 1000,
-          backgroundColor: theme.colors.background,
-          py: 1.5,
-          transform: showCategoryBar ? 'translateY(0)' : 'translateY(-100%)',
-          transition: 'transform 0.1s ease-in-out',
-        }}
-      >
-        <Container maxWidth="lg">
-          <Box
-            sx={{
-              display: 'flex',
-              gap: 1.5,
-              overflowX: 'auto',
-              '&::-webkit-scrollbar': {
-                height: 6,
-              },
-              '&::-webkit-scrollbar-thumb': {
-                backgroundColor: 'grey.300',
-                borderRadius: 3,
-              },
-            }}
-          >
-            {categories.map((category, index) => (
-              <CategoryPill
-                key={index}
-                index={index}
-                name={category}
-                isActive={activeCategory === index}
-                onClick={handleCategoryClick}
-              />
-            ))}
-          </Box>
-        </Container>
-      </Box>
-
-      {/* Product Categories */}
-      <Container maxWidth="lg" sx={{ mt: 8 }}>
-        {categories.map((category, categoryIndex) => (
-          <Box
-            key={categoryIndex}
-            ref={(el) => {
-              if (el) {
-                categoryRefs.current[categoryIndex] = el as HTMLDivElement;
-              }
-            }}
-            sx={{ mb: 6 }}
-          >
-            <Typography
-              variant="h5"
-              fontWeight="bold"
-              sx={{ mb: 3 }}
-            >
-              {category}
-            </Typography>
+      {hasMenuToShow && (
+        <Box
+          sx={{
+            position: 'sticky',
+            top: { xs: 56, sm: 64 },
+            zIndex: 1000,
+            backgroundColor: theme.colors.background,
+            py: 1.5,
+            transform: showCategoryBar ? 'translateY(0)' : 'translateY(-100%)',
+            transition: 'transform 0.1s ease-in-out',
+          }}
+        >
+          <Container maxWidth="lg">
             <Box
               sx={{
-                display: 'grid',
-                gridTemplateColumns: {
-                  xs: '1fr',
-                  sm: 'repeat(2, 1fr)',
-                  md: 'repeat(3, 1fr)',
+                display: 'flex',
+                gap: 1.5,
+                overflowX: 'auto',
+                '&::-webkit-scrollbar': {
+                  height: 6,
                 },
-                gap: 3,
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: 'grey.300',
+                  borderRadius: 3,
+                },
               }}
             >
-              {productsByCategory[categoryIndex].map((product) => {
-                // Type guard to differentiate between regular and campaign products
-                const isCampaign = 'campaignPrice' in (product as Record<string, unknown>);
-                const price = isCampaign 
-                  ? (product as any).campaignPrice || 0 
-                  : (product as any).price;
-                const name = product.name || '';
-                const ingredients = product.ingredients || undefined;
-                const ageRestricted = (product as any).ageRestricted || false;
-                const dietaries = product.dietaries || undefined;
-                
-                return (
-                  <ProductCard
-                    key={product.id}
-                    id={product.id}
-                    image={product.imgUrl || ''}
-                    name={name}
-                    price={price}
-                    description={product.description}
-                    toppings={product.toppings}
-                    ingredients={ingredients}
-                    excludables={product.excludables}
-                    ageRestricted={ageRestricted}
-                    dietaries={dietaries}
-                  />
-                );
-              })}
+              {categories.map((category, index) => (
+                <CategoryPill
+                  key={index}
+                  index={index}
+                  name={category}
+                  isActive={activeCategory === index}
+                  onClick={handleCategoryClick}
+                />
+              ))}
             </Box>
+          </Container>
+        </Box>
+      )}
+
+      {/* Product Categories */}
+      <Container maxWidth="lg" sx={{ mt: hasMenuToShow ? 8 : 12 }}>
+        {!menuLoading && !productsLoading && !hasMenuToShow ? (
+          <Box
+            sx={{
+              py: { xs: 6, sm: 10 },
+              textAlign: 'center',
+              borderRadius: 3,
+              border: '1px dashed',
+              borderColor: 'grey.300',
+              backgroundColor: 'grey.50',
+            }}
+          >
+            <Typography variant="h5" fontWeight="bold" sx={{ mb: 1 }}>
+              {t('menuView.noMenuTitle')}
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              {t('menuView.noMenuDescription')}
+            </Typography>
           </Box>
-        ))}
+        ) : (
+          categories.map((category, categoryIndex) => (
+            <Box
+              key={categoryIndex}
+              ref={(el) => {
+                if (el) {
+                  categoryRefs.current[categoryIndex] = el as HTMLDivElement;
+                }
+              }}
+              sx={{ mb: 6 }}
+            >
+              <Typography
+                variant="h5"
+                fontWeight="bold"
+                sx={{ mb: 3 }}
+              >
+                {category}
+              </Typography>
+              <Box
+                sx={{
+                  display: 'grid',
+                  gridTemplateColumns: {
+                    xs: '1fr',
+                    sm: 'repeat(2, 1fr)',
+                    md: 'repeat(3, 1fr)',
+                  },
+                  gap: 3,
+                }}
+              >
+                {productsByCategory[categoryIndex].map((product) => {
+                  // Type guard to differentiate between regular and campaign products
+                  const isCampaign = 'campaignPrice' in (product as Record<string, unknown>);
+                  const price = isCampaign
+                    ? (product as any).campaignPrice || 0
+                    : (product as any).price;
+                  const name = product.name || '';
+                  const ingredients = product.ingredients || undefined;
+                  const ageRestricted = (product as any).ageRestricted || false;
+                  const dietaries = product.dietaries || undefined;
+
+                  return (
+                    <ProductCard
+                      key={product.id}
+                      id={product.id}
+                      image={product.imgUrl || ''}
+                      name={name}
+                      price={price}
+                      description={product.description}
+                      toppings={product.toppings}
+                      ingredients={ingredients}
+                      excludables={product.excludables}
+                      ageRestricted={ageRestricted}
+                      dietaries={dietaries}
+                    />
+                  );
+                })}
+              </Box>
+            </Box>
+          ))
+        )}
       </Container>
 
       {/* Action Bar */}

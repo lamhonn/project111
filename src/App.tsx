@@ -16,7 +16,36 @@ import {
   tableNumberAtom,
 } from './context/orderStore';
 import { useStartDiningSession } from './api/hooks/session.hooks';
+import { normalizeStoredAuthToken } from './api/utils/authSession';
 // import './App.css';
+
+type TabletTokenClaims = {
+  organizationId?: string;
+  tabletId?: string;
+  tableNumber?: number;
+  role?: string;
+};
+
+const decodeTokenClaims = (token: string | null): TabletTokenClaims | null => {
+  if (!token) {
+    return null;
+  }
+
+  const parts = token.split('.');
+  if (parts.length < 2) {
+    return null;
+  }
+
+  try {
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+    const decoded = atob(padded);
+    const parsed = JSON.parse(decoded) as TabletTokenClaims;
+    return parsed;
+  } catch {
+    return null;
+  }
+};
 
 // Create a MUI theme with brand colors
 const muiTheme = createTheme({
@@ -58,8 +87,10 @@ const AppContent: React.FC = () => {
   const tableNumberValue = useAtomValue(tableNumberAtom);
   const [startDiningSession, { loading, error }] = useStartDiningSession();
 
-  const organizationId = import.meta.env.VITE_ORGANIZATION_ID ?? '';
-  const tabletId = import.meta.env.VITE_TABLET_ID ?? import.meta.env.VITE_TABLE_ID ?? '';
+  const token = normalizeStoredAuthToken(localStorage.getItem('authToken'));
+  const tokenClaims = decodeTokenClaims(token);
+  const organizationId = typeof tokenClaims?.organizationId === 'string' ? tokenClaims.organizationId : '';
+  const tabletId = typeof tokenClaims?.tabletId === 'string' ? tokenClaims.tabletId : '';
 
   const handleStartSession = async () => {
     const parsedTableNumber = Number(tableNumberValue);
@@ -109,7 +140,7 @@ const AppContent: React.FC = () => {
         {!hasSessionPrerequisites && (
           <Box sx={{ position: 'fixed', bottom: 16, left: 16, right: 16 }}>
             <Typography color='error' variant='body2' align='center'>
-              Session configuration is missing. Set VITE_ORGANIZATION_ID, VITE_TABLET_ID (or VITE_TABLE_ID), and a valid table number.
+              Session prerequisites are missing. Ensure the auth token contains organizationId and tabletId, and table number is valid.
             </Typography>
           </Box>
         )}

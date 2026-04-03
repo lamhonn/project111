@@ -6,6 +6,7 @@ import { CombinedGraphQLErrors } from '@apollo/client/errors';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { createClient } from 'graphql-ws';
+import { normalizeStoredAuthToken, revokeAuthorizationSession } from './utils/authSession';
 
 const resolveGraphqlHttpEndpoint = (): string => {
   return import.meta.env.VITE_GRAPHQL_ENDPOINT || 'http://localhost:4000/graphql';
@@ -33,8 +34,36 @@ const httpLink = new HttpLink({
   uri: resolveGraphqlHttpEndpoint(),
 });
 
+const UNAUTHORIZED_WS_CLOSE_CODE = 4401;
+
+const isUnauthorizedGraphqlError = (error: { extensions?: Record<string, unknown> }): boolean => {
+  return error.extensions?.code === 'UNAUTHENTICATED';
+};
+
+const getStatusCodeFromNetworkError = (error: unknown): number | null => {
+  if (!error || typeof error !== 'object') {
+    return null;
+  }
+
+  if ('statusCode' in error && typeof error.statusCode === 'number') {
+    return error.statusCode;
+  }
+
+  if (
+    'cause' in error &&
+    error.cause &&
+    typeof error.cause === 'object' &&
+    'statusCode' in error.cause &&
+    typeof error.cause.statusCode === 'number'
+  ) {
+    return error.cause.statusCode;
+  }
+
+  return null;
+};
+
 const authLink = new SetContextLink(({ headers }) => {
-  const token = localStorage.getItem('authToken');
+  const token = normalizeStoredAuthToken(localStorage.getItem('authToken'));
   return {
     headers: {
       ...headers,
@@ -44,14 +73,30 @@ const authLink = new SetContextLink(({ headers }) => {
 });
 
 const errorLink = new ErrorLink(({ error, operation }) => {
+  let shouldRevokeAuthorization = false;
+
   if (CombinedGraphQLErrors.is(error)) {
-    error.errors.forEach(({ message, locations, path }) => {
+    error.errors.forEach(({ message, locations, path, extensions }) => {
+      if (isUnauthorizedGraphqlError({ extensions })) {
+        shouldRevokeAuthorization = true;
+      }
+
       console.error(
         `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
       );
     });
   } else {
+    const statusCode = getStatusCodeFromNetworkError(error);
+    if (statusCode === 401) {
+      shouldRevokeAuthorization = true;
+    }
+
     console.error(`[Network error]: ${error}`);
+  }
+
+  if (shouldRevokeAuthorization) {
+    console.warn(`[Auth] Revoking authorization after failed operation: ${operation.operationName || 'unknown'}`);
+    revokeAuthorizationSession();
   }
 });
 
@@ -61,8 +106,19 @@ const wsLink = typeof window === 'undefined'
       createClient({
         url: resolveGraphqlWsEndpoint(),
         connectionParams: () => {
-          const token = localStorage.getItem('authToken');
+          const token = normalizeStoredAuthToken(localStorage.getItem('authToken'));
           return token ? { authorization: `Bearer ${token}` } : {};
+        },
+        on: {
+          closed: (event) => {
+            const code = typeof event === 'object' && event !== null && 'code' in event
+              ? event.code
+              : undefined;
+
+            if (code === UNAUTHORIZED_WS_CLOSE_CODE) {
+              revokeAuthorizationSession();
+            }
+          },
         },
       })
     );

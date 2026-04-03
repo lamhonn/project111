@@ -40,6 +40,10 @@
     "ageVerification": "Age restricted. Your age might be verified by the staff",
     "addToOrder": "Add to order"
   },
+  "menuView": {
+    "noMenuTitle": "No menu available",
+    "noMenuDescription": "There is currently no menu to show for this table."
+  },
   "orderSummaryDialog": {
     "title": "Order's Summary",
     "totalItems": "Total Items",

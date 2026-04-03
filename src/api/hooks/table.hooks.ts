@@ -51,6 +51,7 @@ export const useGetTableById = (id: string) => {
   });
 };
 
+// TODO: use websockets instead of polling
 /**
  * Hook to poll table locked status
  * Used for: Monitoring if tablet is occupied/assigned from another device
