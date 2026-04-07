@@ -76,7 +76,8 @@ export const useTableLockedStatus = (tableId: string) => {
   useEffect(() => {
     if (result.data?.tablet) {
       // Current model has no explicit Locked flag; assigned tablet implies occupied/locked.
-      setTableLocked(Boolean(result.data.tablet.userId));
+      // TODO: we need a proper Locked status
+      setTableLocked(!Boolean(result.data.tablet.userId));
     }
   }, [result.data, setTableLocked]);
 

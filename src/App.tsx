@@ -16,7 +16,8 @@ import {
   tableNumberAtom,
 } from './context/orderStore';
 import { useStartDiningSession } from './api/hooks/session.hooks';
-import { normalizeStoredAuthToken } from './api/utils/authSession';
+import { normalizeStoredAuthToken, revokeAuthorizationSession } from './api/utils/authSession';
+import { isUnauthorizedMutationResponse } from './api/utils/authErrorPolicy';
 // import './App.css';
 
 type TabletTokenClaims = {
@@ -112,6 +113,10 @@ const AppContent: React.FC = () => {
 
       const response = result.data?.startDiningSession;
       if (!response?.success || !response.session) {
+        if (isUnauthorizedMutationResponse(response)) {
+          revokeAuthorizationSession();
+        }
+
         return;
       }
 

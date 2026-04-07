@@ -1,7 +1,12 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAtomValue } from 'jotai';
 import { isAuthorizedAtom } from '../../context/authStore';
 import UnauthorizedView from '../../views/auth/UnauthorizedView';
+import {
+  isJwtTokenExpired,
+  normalizeStoredAuthToken,
+  revokeAuthorizationSession,
+} from '../../api/utils/authSession';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -20,6 +25,17 @@ interface AuthGuardProps {
  */
 const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   const isAuthorized = useAtomValue(isAuthorizedAtom);
+
+  useEffect(() => {
+    if (!isAuthorized) {
+      return;
+    }
+
+    const token = normalizeStoredAuthToken(localStorage.getItem('authToken'));
+    if (!token || isJwtTokenExpired(token)) {
+      revokeAuthorizationSession();
+    }
+  }, [isAuthorized]);
 
   // Show unauthorized view if not authorized
   if (!isAuthorized) {

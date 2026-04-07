@@ -9,7 +9,7 @@ import { createClient } from 'graphql-ws';
 import { normalizeStoredAuthToken, revokeAuthorizationSession } from './utils/authSession';
 import {
   getGraphqlErrorCodeFromExtensions,
-  isTabletStatusNonFatalAuthError,
+  isUnauthorizedGraphqlCode,
 } from './utils/authErrorPolicy';
 
 const resolveGraphqlHttpEndpoint = (): string => {
@@ -39,12 +39,6 @@ const httpLink = new HttpLink({
 });
 
 const UNAUTHORIZED_WS_CLOSE_CODE = 4401;
-
-let hasLoggedTabletStatusAuthWarning = false;
-
-const isUnauthorizedGraphqlError = (error: { extensions?: Record<string, unknown> }): boolean => {
-  return error.extensions?.code === 'UNAUTHENTICATED';
-};
 
 const getStatusCodeFromNetworkError = (error: unknown): number | null => {
   if (!error || typeof error !== 'object') {
@@ -85,16 +79,7 @@ const errorLink = new ErrorLink(({ error, operation }) => {
     error.errors.forEach(({ message, locations, path, extensions }) => {
       const errorCode = getGraphqlErrorCodeFromExtensions(extensions);
 
-      if (isTabletStatusNonFatalAuthError(operation.operationName, errorCode)) {
-        if (!hasLoggedTabletStatusAuthWarning) {
-          console.warn('[Auth] Tablet status polling is forbidden for current token; polling should pause.');
-          hasLoggedTabletStatusAuthWarning = true;
-        }
-
-        return;
-      }
-
-      if (isUnauthorizedGraphqlError({ extensions })) {
+      if (isUnauthorizedGraphqlCode(errorCode)) {
         shouldRevokeAuthorization = true;
       }
 

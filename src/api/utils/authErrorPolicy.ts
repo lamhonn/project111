@@ -1,7 +1,4 @@
-export const TABLET_STATUS_OPERATION_NAME = 'GetTabletStatus';
-
-const TABLET_STATUS_NON_FATAL_AUTH_CODES = new Set(['FORBIDDEN']);
-const TABLET_STATUS_NON_RECOVERABLE_CODES = new Set(['FORBIDDEN', 'UNAUTHENTICATED']);
+const TABLET_STATUS_NON_RECOVERABLE_CODES = new Set(['UNAUTHENTICATED']);
 
 const extractGraphqlErrors = (error: unknown): Array<{ extensions?: Record<string, unknown> }> => {
   if (!error || typeof error !== 'object') {
@@ -29,7 +26,9 @@ export const isTabletStatusNonFatalAuthError = (
   operationName: string | undefined,
   errorCode: string | null,
 ): boolean => {
-  return operationName === TABLET_STATUS_OPERATION_NAME && !!errorCode && TABLET_STATUS_NON_FATAL_AUTH_CODES.has(errorCode);
+  void operationName;
+  void errorCode;
+  return false;
 };
 
 export const isNonRecoverableTabletStatusError = (error: unknown): boolean => {
@@ -44,7 +43,7 @@ export const isNonRecoverableTabletStatusError = (error: unknown): boolean => {
   }
 
   if (error instanceof Error) {
-    return /forbidden|unauthenticated/i.test(error.message);
+    return /unauthenticated|unauthorized|token.*expired|jwt.*expired/i.test(error.message);
   }
 
   return false;
@@ -52,4 +51,27 @@ export const isNonRecoverableTabletStatusError = (error: unknown): boolean => {
 
 export const getGraphqlErrorCodeFromExtensions = (extensions?: Record<string, unknown>): string | null => {
   return getGraphqlErrorCode({ extensions });
+};
+
+export const isUnauthorizedGraphqlCode = (errorCode: string | null): boolean => {
+  return errorCode === 'UNAUTHENTICATED';
+};
+
+type MutationResponseLike = {
+  code?: string | null;
+  success?: boolean;
+  message?: string | null;
+};
+
+export const isUnauthorizedMutationResponse = (response: MutationResponseLike | null | undefined): boolean => {
+  if (!response || response.success === true) {
+    return false;
+  }
+
+  if (response.code === '401') {
+    return true;
+  }
+
+  const message = typeof response.message === 'string' ? response.message : '';
+  return /unauthenticated|unauthorized|token.*expired|jwt.*expired/i.test(message);
 };

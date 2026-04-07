@@ -3,6 +3,10 @@ import { revokeAuthorizationAtom } from '../../context/authStore';
 
 const AUTH_STORAGE_KEYS = ['authToken', 'is_authorized', 'accessToken', 'refreshToken'] as const;
 
+type JwtPayload = {
+  exp?: number;
+};
+
 export const normalizeStoredAuthToken = (rawToken: string | null): string | null => {
   if (!rawToken) {
     return null;
@@ -36,6 +40,31 @@ export const clearStoredAuthKeys = (): void => {
   AUTH_STORAGE_KEYS.forEach((key) => {
     localStorage.removeItem(key);
   });
+};
+
+const decodeJwtPayload = (token: string): JwtPayload | null => {
+  const parts = token.split('.');
+  if (parts.length < 2) {
+    return null;
+  }
+
+  try {
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+    const decoded = atob(padded);
+    return JSON.parse(decoded) as JwtPayload;
+  } catch {
+    return null;
+  }
+};
+
+export const isJwtTokenExpired = (token: string, nowMs = Date.now()): boolean => {
+  const payload = decodeJwtPayload(token);
+  if (!payload || typeof payload.exp !== 'number') {
+    return false;
+  }
+
+  return payload.exp * 1000 <= nowMs;
 };
 
 export const revokeAuthorizationSession = (): void => {
