@@ -13,6 +13,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import FastfoodIcon from '@mui/icons-material/Fastfood';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
@@ -555,7 +556,7 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                       gap: theme.spacing.md,
                     }}>
                       <Avatar
-                        src={item.image}
+                        src={item.imgUrl || undefined}
                         alt={item.name}
                         variant="rounded"
                         sx={{
@@ -563,7 +564,9 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                           height: 48,
                           borderRadius: theme.borderRadius.small,
                         }}
-                      />
+                      >
+                        <FastfoodIcon sx={{ color: 'grey.500' }} />
+                      </Avatar>
                       <Box sx={{ flex: 1 }}>
                         <Typography 
                           variant="body2"
@@ -826,7 +829,7 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                               gap: theme.spacing.sm,
                             }}>
                               <Avatar
-                                src={item.image}
+                                src={item.imgUrl || undefined}
                                 alt={item.name}
                                 variant="rounded"
                                 sx={{
@@ -834,7 +837,9 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                                   height: 36,
                                   borderRadius: theme.borderRadius.small,
                                 }}
-                              />
+                              >
+                                <FastfoodIcon sx={{ color: 'grey.500', fontSize: 20 }} />
+                              </Avatar>
                               <Box sx={{ flex: 1 }}>
                                 <Typography 
                                   variant="caption"

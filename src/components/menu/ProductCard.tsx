@@ -18,20 +18,42 @@ import { Dietary } from '../../api/types/enums';
 
 interface Props {
   id: string;
+  organizationId: string;
   image: string;
   name: string;
   price: number;
   initialQuantity?: number;
   description?: string;
   toppings?: string;
+  freeToppings?: number;
+  maxToppings: number;
   ingredients?: string;
   excludables?: string;
   ageRestricted?: boolean;
+  enabled?: boolean;
+  created?: Date;
   dietaries?: Dietary[];
 }
 
 const ProductCard: React.FC<Props> = (props: Props) => {
-  const { id, image, name, price, initialQuantity = 0, description, toppings, ingredients, excludables, ageRestricted, dietaries } = props;
+  const {
+    id,
+    organizationId,
+    image,
+    name,
+    price,
+    initialQuantity = 0,
+    description,
+    toppings,
+    freeToppings = 0,
+    maxToppings = 0,
+    ingredients,
+    excludables,
+    ageRestricted = false,
+    enabled = true,
+    created,
+    dietaries,
+  } = props;
   const { t, i18n } = useTranslation();
 
   // Get localized product name and description
@@ -136,14 +158,19 @@ const ProductCard: React.FC<Props> = (props: Props) => {
         productId={id}
         product={{
           id,
-          image,
+          organizationId,
+          imgUrl: image,
           name: localizedName,
           price,
           description: localizedDescription,
           toppings,
+          freeToppings,
+          maxToppings,
           ingredients,
           excludables,
           ageRestricted,
+          enabled,
+          created: created || new Date(),
           dietaries,
         }}
         isOpen={dialogOpen}

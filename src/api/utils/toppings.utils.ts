@@ -13,6 +13,50 @@ export type Topping = {
   PriceIncrement: number;
 };
 
+const normalizeMultilingualName = (value: unknown): MultilingualName | null => {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (typeof parsed === 'object' && parsed !== null) {
+        const obj = parsed as Record<string, unknown>;
+        const name: MultilingualName = {
+          en: typeof obj.en === 'string' ? obj.en : undefined,
+          fi: typeof obj.fi === 'string' ? obj.fi : undefined,
+          sv: typeof obj.sv === 'string' ? obj.sv : undefined,
+        };
+
+        if (name.en || name.fi || name.sv) {
+          return name;
+        }
+      }
+    } catch {
+      return { en: trimmed };
+    }
+
+    return { en: trimmed };
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    const obj = value as Record<string, unknown>;
+    const name: MultilingualName = {
+      en: typeof obj.en === 'string' ? obj.en : undefined,
+      fi: typeof obj.fi === 'string' ? obj.fi : undefined,
+      sv: typeof obj.sv === 'string' ? obj.sv : undefined,
+    };
+
+    if (name.en || name.fi || name.sv) {
+      return name;
+    }
+  }
+
+  return null;
+};
+
 /**
  * Parses a toppings string which can be either:
  * - An empty/null string (no toppings)
@@ -31,16 +75,34 @@ export const parseToppings = (toppingsString?: string): Topping[] => {
     
     // Validate it's an array
     if (Array.isArray(parsed)) {
-      // Validate each item has the required fields
-      return parsed.filter(
-        (item): item is Topping =>
-          typeof item === 'object' &&
-          item !== null &&
-          typeof item.Name === 'object' &&
-          item.Name !== null &&
-          (item.Name.en !== undefined || item.Name.fi !== undefined || item.Name.sv !== undefined) &&
-          typeof item.PriceIncrement === 'number'
-      );
+      return parsed
+        .map((item): Topping | null => {
+          if (!item || typeof item !== 'object') {
+            return null;
+          }
+
+          const candidate = item as Record<string, unknown>;
+          const rawName = candidate.Name ?? candidate.name;
+          const rawPriceIncrement = candidate.PriceIncrement ?? candidate.priceIncrement;
+
+          const normalizedName = normalizeMultilingualName(rawName);
+          const normalizedPriceIncrement =
+            typeof rawPriceIncrement === 'number'
+              ? rawPriceIncrement
+              : typeof rawPriceIncrement === 'string'
+                ? Number(rawPriceIncrement)
+                : NaN;
+
+          if (!normalizedName || !Number.isFinite(normalizedPriceIncrement)) {
+            return null;
+          }
+
+          return {
+            Name: normalizedName,
+            PriceIncrement: normalizedPriceIncrement,
+          };
+        })
+        .filter((item): item is Topping => item !== null);
     }
   } catch (error) {
     console.warn('Failed to parse toppings JSON:', error);

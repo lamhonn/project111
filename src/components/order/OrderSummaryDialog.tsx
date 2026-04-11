@@ -14,6 +14,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
+import FastfoodIcon from '@mui/icons-material/Fastfood';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
@@ -26,6 +27,7 @@ import {
   updateOrderItemQuantityAtom,
   submitOrderToTotalAtom,
 } from '../../context/orderStore';
+import { authTokenClaimsAtom } from '../../context/authStore';
 import { openConfirmDialogAtom } from '../../context/confirmDialogStore';
 
 interface OrderSummaryDialogProps {
@@ -43,15 +45,15 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
   const orderItems = useAtomValue(orderItemsAtom);
   const orderCount = useAtomValue(orderCountAtom);
   const tableNumber = useAtomValue(tableNumberAtom);
+  const tokenClaims = useAtomValue(authTokenClaimsAtom);
   const removeItem = useSetAtom(removeOrderItemAtom);
   const updateQuantity = useSetAtom(updateOrderItemQuantityAtom);
   const openConfirmDialog = useSetAtom(openConfirmDialogAtom);
   const submitOrderToTotal = useSetAtom(submitOrderToTotalAtom);
   const [createOrder, { loading: isSubmittingOrder }] = useCreateOrder();
   const [mutationError, setMutationError] = React.useState<string>('');
-
-  const organizationId = import.meta.env.VITE_ORGANIZATION_ID ?? '';
-  const tabletId = import.meta.env.VITE_TABLET_ID ?? import.meta.env.VITE_TABLE_ID ?? '';
+  const organizationId = typeof tokenClaims?.organizationId === 'string' ? tokenClaims.organizationId : '';
+  const tabletId = typeof tokenClaims?.tabletId === 'string' ? tokenClaims.tabletId : '';
 
   const handleRemoveItem = (itemId: string): void => {
     removeItem(itemId);
@@ -232,7 +234,7 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
                 }}
               >
                 <Avatar
-                  src={item.image}
+                  src={item.imgUrl || undefined}
                   alt={item.name}
                   variant="rounded"
                   sx={{
@@ -240,7 +242,9 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
                     height: 64,
                     borderRadius: theme.borderRadius.medium,
                   }}
-                />
+                >
+                  <FastfoodIcon sx={{ color: 'grey.500' }} />
+                </Avatar>
                 <Box sx={{ flex: 1 }}>
                   <Typography 
                     variant="body1"

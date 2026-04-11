@@ -1,5 +1,6 @@
 export * from './product.queries';
 export * from './menu.queries';
+export * from './menuProduct.queries';
 export * from './order.queries';
 export * from './orderProduct.queries';
 export * from './orderProductTopping.queries';

@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import FastfoodIcon from '@mui/icons-material/Fastfood';
 import SplitBillDialog from './SplitBillDialog';
 import BillRequestOptionsDialog from './BillRequestOptionsDialog';
 import { useAtomValue, useSetAtom } from 'jotai';
@@ -349,7 +350,7 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                               }}
                             >
                               <Avatar
-                                src={item.image}
+                                src={item.imgUrl || undefined}
                                 alt={item.name}
                                 variant="rounded"
                                 sx={{
@@ -357,7 +358,9 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                                   height: 64,
                                   borderRadius: theme.borderRadius.medium,
                                 }}
-                              />
+                              >
+                                <FastfoodIcon sx={{ color: 'grey.500' }} />
+                              </Avatar>
                               <Box sx={{ flex: 1 }}>
                                 <Typography 
                                   variant="body1"
@@ -474,7 +477,7 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                             }}
                           >
                             <Avatar
-                              src={item.image}
+                              src={item.imgUrl || undefined}
                               alt={item.name}
                               variant="rounded"
                               sx={{
@@ -482,7 +485,9 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                                 height: 64,
                                 borderRadius: theme.borderRadius.medium,
                               }}
-                            />
+                            >
+                              <FastfoodIcon sx={{ color: 'grey.500' }} />
+                            </Avatar>
                             <Box sx={{ flex: 1 }}>
                               <Typography 
                                 variant="body1"
@@ -569,7 +574,7 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                         }}
                       >
                         <Avatar
-                          src={item.image}
+                          src={item.imgUrl || undefined}
                           alt={item.name}
                           variant="rounded"
                           sx={{
@@ -577,7 +582,9 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                             height: 64,
                             borderRadius: theme.borderRadius.medium,
                           }}
-                        />
+                        >
+                          <FastfoodIcon sx={{ color: 'grey.500' }} />
+                        </Avatar>
                         <Box sx={{ flex: 1 }}>
                           <Typography 
                             variant="body1"

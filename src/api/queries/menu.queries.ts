@@ -9,7 +9,6 @@ export const GET_ACTIVE_MENU = gql`
       name
       categories
       enabled
-      topmostCategory
       patternStartTime
       patternEndTime
       eventStartTime
@@ -28,7 +27,6 @@ export const GET_MENU_BY_ID = gql`
       name
       categories
       enabled
-      topmostCategory
       patternStartTime
       patternEndTime
       eventStartTime

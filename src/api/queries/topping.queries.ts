@@ -6,6 +6,7 @@ export const GET_PRODUCT_TOPPINGS = gql`
     product(id: $productId) {
       id
       toppings
+      maxToppings
     }
   }
 `;

@@ -1,5 +1,6 @@
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
+import { decodeJwtClaims } from '../api/utils/authSession';
 
 /**
  * Simple authorization state with PIN-based access
@@ -14,6 +15,18 @@ import { atomWithStorage } from 'jotai/utils';
 // Set to true to allow access, false to block
 export const isAuthorizedAtom = atomWithStorage<boolean>('is_authorized', false);
 export const authTokenAtom = atomWithStorage<string | null>('authToken', null);
+
+export type TabletTokenClaims = {
+  organizationId?: string;
+  tabletId?: string;
+  tableNumber?: number;
+  role?: string;
+};
+
+export const authTokenClaimsAtom = atom<TabletTokenClaims | null>((get) => {
+  const token = get(authTokenAtom);
+  return decodeJwtClaims<TabletTokenClaims>(token);
+});
 
 // Write-only atom to authorize with PIN
 export const authorizePinAtom = atom(

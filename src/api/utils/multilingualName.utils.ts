@@ -254,18 +254,63 @@ export const parseExcludables = (excludablesString?: string): MultilingualName[]
     return [];
   }
 
+  const normalizeExcludable = (value: unknown): MultilingualName | null => {
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (!trimmed) {
+        return null;
+      }
+
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (typeof parsed === 'object' && parsed !== null) {
+          const obj = parsed as Record<string, unknown>;
+          const normalized = {
+            en: typeof obj.en === 'string' ? obj.en : undefined,
+            fi: typeof obj.fi === 'string' ? obj.fi : undefined,
+            sv: typeof obj.sv === 'string' ? obj.sv : undefined,
+          };
+
+          if (normalized.en || normalized.fi || normalized.sv) {
+            return normalized;
+          }
+        }
+      } catch {
+        return { en: trimmed };
+      }
+
+      return { en: trimmed };
+    }
+
+    if (typeof value === 'object' && value !== null) {
+      const obj = value as Record<string, unknown>;
+
+      if (typeof obj.name === 'string') {
+        return normalizeExcludable(obj.name);
+      }
+
+      const normalized = {
+        en: typeof obj.en === 'string' ? obj.en : undefined,
+        fi: typeof obj.fi === 'string' ? obj.fi : undefined,
+        sv: typeof obj.sv === 'string' ? obj.sv : undefined,
+      };
+
+      if (normalized.en || normalized.fi || normalized.sv) {
+        return normalized;
+      }
+    }
+
+    return null;
+  };
+
   try {
     const parsed = JSON.parse(excludablesString);
     
     // Validate it's an array
     if (Array.isArray(parsed)) {
-      // Validate each item is an object with at least one language key
-      return parsed.filter(
-        (item): item is MultilingualName =>
-          typeof item === 'object' &&
-          item !== null &&
-          (item.en !== undefined || item.fi !== undefined || item.sv !== undefined)
-      );
+      return parsed
+        .map((item) => normalizeExcludable(item))
+        .filter((item): item is MultilingualName => item !== null);
     }
   } catch (error) {
     console.warn('Failed to parse excludables JSON:', error);

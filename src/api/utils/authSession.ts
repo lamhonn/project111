@@ -7,6 +7,8 @@ type JwtPayload = {
   exp?: number;
 };
 
+type JwtClaims = Record<string, unknown>;
+
 export const normalizeStoredAuthToken = (rawToken: string | null): string | null => {
   if (!rawToken) {
     return null;
@@ -53,6 +55,29 @@ const decodeJwtPayload = (token: string): JwtPayload | null => {
     const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
     const decoded = atob(padded);
     return JSON.parse(decoded) as JwtPayload;
+  } catch {
+    return null;
+  }
+};
+
+export const decodeJwtClaims = <TClaims extends JwtClaims = JwtClaims>(
+  rawToken: string | null,
+): TClaims | null => {
+  const token = normalizeStoredAuthToken(rawToken);
+  if (!token) {
+    return null;
+  }
+
+  const parts = token.split('.');
+  if (parts.length < 2) {
+    return null;
+  }
+
+  try {
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
+    const decoded = atob(padded);
+    return JSON.parse(decoded) as TClaims;
   } catch {
     return null;
   }

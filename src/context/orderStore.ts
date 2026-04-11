@@ -1,4 +1,5 @@
 import { atom } from 'jotai';
+import { atomWithStorage } from 'jotai/utils';
 import { OrderStatus } from '../components/header/MenuHeader';
 
 export interface Topping {
@@ -12,7 +13,7 @@ export interface OrderItem {
   id: string;
   productId: string; // Base product ID
   name: string;
-  image: string;
+  imgUrl?: string | null;
   price: number;
   quantity: number;
   toppings?: Topping[];
@@ -54,14 +55,14 @@ export const orderItemsAtom = atom<OrderItem[]>([]);
 
 export const orderNumberAtom = atom<string>('#219021');
 
-export const tableNumberAtom = atom<string | number>('12');
+export const tableNumberAtom = atomWithStorage<string | number>('table_number', '12');
 
 export const orderStatusAtom = atom<OrderStatus | null>(null);
 
 export const billRequestedAtom = atom<boolean>(false);
 
 export const tableLockedAtom = atom<boolean>(false);
-export const activeSessionIdAtom = atom<string | null>(null);
+export const activeSessionIdAtom = atomWithStorage<string | null>('active_session_id', null);
 
 // Session state tracking
 export enum SessionState {
@@ -70,7 +71,7 @@ export enum SessionState {
   Ended = 'ended',          // Session ended (showing thank you)
 }
 
-export const sessionStateAtom = atom<SessionState>(SessionState.Welcome);
+export const sessionStateAtom = atomWithStorage<SessionState>('session_state', SessionState.Welcome);
 
 export const languageAtom = atom<string>('en'); // ISO language codes: 'en', 'fi', 'sv'
 

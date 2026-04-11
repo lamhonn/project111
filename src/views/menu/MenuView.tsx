@@ -18,68 +18,23 @@ import {
   orderNumberAtom,
   tableNumberAtom,
 } from '../../context/orderStore';
+import { authTokenClaimsAtom } from '../../context/authStore';
 import { useGetProducts } from '../../api/hooks/product.hooks';
 import { useGetActiveMenu } from '../../api/hooks/menu.hooks';
+import { useGetMenuProducts } from '../../api/hooks/menuProduct.hooks';
 import { useOrderStatusChanged, useNewOrderNotification } from '../../api/hooks/order.hooks';
 import { useTableLockedStatus } from '../../api/hooks/table.hooks';
 import { getLocalizedCategoryName } from '../../api/utils/multilingualName.utils';
 import { theme } from '../../theme';
 import { OrderStatus } from '../../components/header/MenuHeader';
 
-type TabletTokenClaims = {
-  organizationId?: string;
-  tabletId?: string;
+type MenuCategory = {
+  id: string;
+  name: string;
+  orderNumber: number;
 };
 
-const normalizeStoredAuthToken = (rawToken: string | null): string | null => {
-  if (!rawToken) {
-    return null;
-  }
-
-  const trimmed = rawToken.trim();
-  if (!trimmed) {
-    return null;
-  }
-
-  if (
-    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
-    (trimmed.startsWith("'") && trimmed.endsWith("'"))
-  ) {
-    try {
-      const parsed = JSON.parse(trimmed);
-      if (typeof parsed === 'string') {
-        return parsed.trim() || null;
-      }
-    } catch {
-      return trimmed.slice(1, -1).trim() || null;
-    }
-  }
-
-  return trimmed;
-};
-
-const decodeTokenClaims = (token: string | null): TabletTokenClaims | null => {
-  if (!token) {
-    return null;
-  }
-
-  const parts = token.split('.');
-  if (parts.length < 2) {
-    return null;
-  }
-
-  try {
-    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
-    const decoded = atob(padded);
-    const parsed = JSON.parse(decoded) as TabletTokenClaims;
-    return parsed;
-  } catch {
-    return null;
-  }
-};
-
-const parseMenuCategories = (categoriesRaw?: string): string[] => {
+const parseMenuCategories = (categoriesRaw?: string): MenuCategory[] => {
   if (!categoriesRaw) {
     return [];
   }
@@ -89,25 +44,55 @@ const parseMenuCategories = (categoriesRaw?: string): string[] => {
 
     if (Array.isArray(parsed)) {
       return parsed
-        .map((category) => {
-          if (typeof category === 'string') {
-            return category;
+        .map((category, index): MenuCategory | null => {
+          if (!category || typeof category !== 'object') {
+            return null;
           }
 
-          if (typeof category === 'object' && category !== null) {
-            return JSON.stringify(category);
+          const candidate = category as Record<string, unknown>;
+          const id = typeof candidate.id === 'string' ? candidate.id.trim() : '';
+          const name = typeof candidate.name === 'string' ? candidate.name.trim() : '';
+          const orderNumber =
+            typeof candidate.orderNumber === 'number' && Number.isFinite(candidate.orderNumber)
+              ? candidate.orderNumber
+              : index;
+
+          if (!id || !name) {
+            return null;
           }
 
-          return '';
+          return {
+            id,
+            name,
+            orderNumber,
+          };
         })
-        .filter((category): category is string => Boolean(category));
+        .filter((category): category is MenuCategory => category !== null)
+        .sort((a, b) => {
+          if (a.orderNumber !== b.orderNumber) {
+            return a.orderNumber - b.orderNumber;
+          }
+
+          return a.id.localeCompare(b.id);
+        });
     }
   } catch {
     // Support legacy comma-separated category strings.
     return categoriesRaw
       .split(',')
-      .map((category) => category.trim())
-      .filter(Boolean);
+      .map((category, index) => {
+        const trimmed = category.trim();
+        if (!trimmed) {
+          return null;
+        }
+
+        return {
+          id: trimmed,
+          name: trimmed,
+          orderNumber: index,
+        };
+      })
+      .filter((category): category is MenuCategory => category !== null);
   }
 
   return [];
@@ -134,19 +119,22 @@ const mapRealtimeStatusToUiStatus = (status: RealtimeOrderStatus): OrderStatus =
 
 const MenuView: React.FC = () => {
   const { t, i18n } = useTranslation();
-  const token = normalizeStoredAuthToken(localStorage.getItem('authToken'));
-  const tokenClaims = decodeTokenClaims(token);
+  const tokenClaims = useAtomValue(authTokenClaimsAtom);
   const organizationId = typeof tokenClaims?.organizationId === 'string' ? tokenClaims.organizationId : '';
   const tabletId = typeof tokenClaims?.tabletId === 'string' ? tokenClaims.tabletId : '';
   
   // Fetch data from API hooks
   const { data: productsData, loading: productsLoading } = useGetProducts(organizationId);
   const { data: activeMenuData, loading: menuLoading } = useGetActiveMenu(organizationId);
+  const activeMenuId = activeMenuData?.activeMenu?.id || '';
+  const { data: menuProductsData } = useGetMenuProducts(activeMenuId);
   const { data: orderStatusData } = useOrderStatusChanged(tabletId);
   const { data: newOrderData } = useNewOrderNotification(tabletId);
   
+  // TODO: don't poll for locked status - use websocket subscription instead
+  // Keep commented out for now so we don't cause unnecessary load
   // Monitor table locked status
-  useTableLockedStatus(tabletId);
+  // useTableLockedStatus(tabletId);
   
   const [activeCategory, setActiveCategory] = useState<number>(0);
   const [showCategoryBar, setShowCategoryBar] = useState<boolean>(true);
@@ -164,11 +152,13 @@ const MenuView: React.FC = () => {
 
   // Get products and campaigns from API
   const products = productsData?.products || [];
-
   const menuCategories = parseMenuCategories(activeMenuData?.activeMenu?.categories);
   const categories = menuCategories
-    .map((category) => getLocalizedCategoryName(category, i18n.language).trim())
-    .filter(Boolean);
+    .map((category) => ({
+      ...category,
+      localizedName: getLocalizedCategoryName(category.name, i18n.language).trim(),
+    }))
+    .filter((category) => Boolean(category.localizedName));
   const hasMenuToShow = categories.length > 0;
 
   const handleResetSession = () => {
@@ -216,10 +206,12 @@ const MenuView: React.FC = () => {
   }, [newOrderData, setOrderNumber, setOrderStatus, setTableNumber]);
 
   // Group products by category
-  const productsByCategory = categories.map((_categoryName, index) => {
-    // Category mapping now comes from backend menu/menuProducts; until that wiring is added,
-    // render all products under the first category to stay aligned with current Product type.
-    return index === 0 ? products : [];
+  const categoryByProductId = new Map(
+    (menuProductsData?.menuProducts || []).map((menuProduct) => [menuProduct.productId, menuProduct.categoryId])
+  );
+
+  const productsByCategory = categories.map((category) => {
+    return products.filter((product) => categoryByProductId.get(product.id) === category.id);
   });
 
   useEffect(() => {
@@ -323,9 +315,9 @@ const MenuView: React.FC = () => {
             >
               {categories.map((category, index) => (
                 <CategoryPill
-                  key={index}
+                  key={category.id}
                   index={index}
-                  name={category}
+                  name={category.localizedName}
                   isActive={activeCategory === index}
                   onClick={handleCategoryClick}
                 />
@@ -358,7 +350,7 @@ const MenuView: React.FC = () => {
         ) : (
           categories.map((category, categoryIndex) => (
             <Box
-              key={categoryIndex}
+              key={category.id}
               ref={(el) => {
                 if (el) {
                   categoryRefs.current[categoryIndex] = el as HTMLDivElement;
@@ -371,7 +363,7 @@ const MenuView: React.FC = () => {
                 fontWeight="bold"
                 sx={{ mb: 3 }}
               >
-                {category}
+                {category.localizedName}
               </Typography>
               <Box
                 sx={{
@@ -399,14 +391,19 @@ const MenuView: React.FC = () => {
                     <ProductCard
                       key={product.id}
                       id={product.id}
+                      organizationId={product.organizationId}
                       image={product.imgUrl || ''}
                       name={name}
                       price={price}
                       description={product.description}
                       toppings={product.toppings}
+                      freeToppings={product.freeToppings}
+                      maxToppings={product.maxToppings}
                       ingredients={ingredients}
                       excludables={product.excludables}
                       ageRestricted={ageRestricted}
+                      enabled={product.enabled}
+                      created={product.created}
                       dietaries={dietaries}
                     />
                   );

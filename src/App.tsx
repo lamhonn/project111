@@ -15,38 +15,11 @@ import {
   setActiveSessionIdAtom,
   tableNumberAtom,
 } from './context/orderStore';
+import { authTokenClaimsAtom } from './context/authStore';
 import { useStartDiningSession } from './api/hooks/session.hooks';
-import { normalizeStoredAuthToken, revokeAuthorizationSession } from './api/utils/authSession';
+import { revokeAuthorizationSession } from './api/utils/authSession';
 import { isUnauthorizedMutationResponse } from './api/utils/authErrorPolicy';
 // import './App.css';
-
-type TabletTokenClaims = {
-  organizationId?: string;
-  tabletId?: string;
-  tableNumber?: number;
-  role?: string;
-};
-
-const decodeTokenClaims = (token: string | null): TabletTokenClaims | null => {
-  if (!token) {
-    return null;
-  }
-
-  const parts = token.split('.');
-  if (parts.length < 2) {
-    return null;
-  }
-
-  try {
-    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);
-    const decoded = atob(padded);
-    const parsed = JSON.parse(decoded) as TabletTokenClaims;
-    return parsed;
-  } catch {
-    return null;
-  }
-};
 
 // Create a MUI theme with brand colors
 const muiTheme = createTheme({
@@ -85,36 +58,92 @@ const AppContent: React.FC = () => {
   const sessionState = useAtomValue(sessionStateAtom);
   const startSession = useSetAtom(startSessionAtom);
   const setSessionId = useSetAtom(setActiveSessionIdAtom);
+  const setTableNumber = useSetAtom(tableNumberAtom);
   const tableNumberValue = useAtomValue(tableNumberAtom);
+  const tokenClaims = useAtomValue(authTokenClaimsAtom);
   const [startDiningSession, { loading, error }] = useStartDiningSession();
-
-  const token = normalizeStoredAuthToken(localStorage.getItem('authToken'));
-  const tokenClaims = decodeTokenClaims(token);
   const organizationId = typeof tokenClaims?.organizationId === 'string' ? tokenClaims.organizationId : '';
   const tabletId = typeof tokenClaims?.tabletId === 'string' ? tokenClaims.tabletId : '';
+  const tokenTableNumber =
+    typeof tokenClaims?.tableNumber === 'number' && Number.isFinite(tokenClaims.tableNumber)
+      ? tokenClaims.tableNumber
+      : null;
+
+  React.useEffect(() => {
+    if (sessionState !== SessionState.Welcome || tokenTableNumber === null) {
+      return;
+    }
+
+    const parsedTableNumber = Number(tableNumberValue);
+    if (parsedTableNumber !== tokenTableNumber) {
+      setTableNumber(tokenTableNumber);
+    }
+  }, [sessionState, setTableNumber, tableNumberValue, tokenTableNumber]);
+
+  const isForbiddenStartResponse = (response: { code?: string; message?: string | null } | null | undefined): boolean => {
+    if (!response) {
+      return false;
+    }
+
+    if (response.code === '403') {
+      return true;
+    }
+
+    const message = typeof response.message === 'string' ? response.message : '';
+    return /forbidden|insufficient permissions/i.test(message);
+  };
+
+  const runStartDiningSession = (tableNumber: number) => {
+    return startDiningSession({
+      variables: {
+        input: {
+          organizationId,
+          tabletId,
+          tableNumber,
+        },
+      },
+    });
+  };
 
   const handleStartSession = async () => {
     const parsedTableNumber = Number(tableNumberValue);
+    const resolvedTableNumber = Number.isNaN(parsedTableNumber) ? tokenTableNumber : parsedTableNumber;
 
-    if (!organizationId || !tabletId || Number.isNaN(parsedTableNumber)) {
+    if (!organizationId || !tabletId || resolvedTableNumber === null || Number.isNaN(resolvedTableNumber)) {
       return;
     }
 
     try {
-      const result = await startDiningSession({
-        variables: {
-          input: {
-            organizationId,
-            tabletId,
-            tableNumber: parsedTableNumber,
-          },
-        },
-      });
+      const result = await runStartDiningSession(resolvedTableNumber);
 
-      const response = result.data?.startDiningSession;
+      let response = result.data?.startDiningSession;
       if (!response?.success || !response.session) {
         if (isUnauthorizedMutationResponse(response)) {
           revokeAuthorizationSession();
+          return;
+        }
+
+        if (
+          tokenTableNumber !== null
+          && resolvedTableNumber !== tokenTableNumber
+          && isForbiddenStartResponse(response)
+        ) {
+          setTableNumber(tokenTableNumber);
+
+          const retryResult = await runStartDiningSession(tokenTableNumber);
+          response = retryResult.data?.startDiningSession;
+
+          if (!response?.success || !response.session) {
+            if (isUnauthorizedMutationResponse(response)) {
+              revokeAuthorizationSession();
+            }
+
+            return;
+          }
+
+          setSessionId(response.session.sessionId);
+          startSession();
+          return;
         }
 
         return;
@@ -122,7 +151,16 @@ const AppContent: React.FC = () => {
 
       setSessionId(response.session.sessionId);
       startSession();
-    } catch {
+    } catch (mutationError) {
+      if (
+        tokenTableNumber !== null
+        && resolvedTableNumber !== tokenTableNumber
+        && mutationError instanceof Error
+        && /forbidden|insufficient permissions/i.test(mutationError.message)
+      ) {
+        setTableNumber(tokenTableNumber);
+      }
+
       // Surface mutation errors via the error state below.
     }
   };

@@ -9,8 +9,8 @@ export const GET_PRODUCTS = gql`
       name
       description
       price
-      oldPrice
       freeToppings
+      maxToppings
       ingredients
       dietaries
       imgUrl
@@ -32,8 +32,8 @@ export const GET_PRODUCT_BY_ID = gql`
       name
       description
       price
-      oldPrice
       freeToppings
+      maxToppings
       ingredients
       dietaries
       imgUrl
