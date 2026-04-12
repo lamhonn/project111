@@ -1,5 +1,6 @@
 import { store } from '../../context/store';
 import { revokeAuthorizationAtom } from '../../context/authStore';
+import { resetAppStateAtom } from '../../context/orderStore';
 
 const AUTH_STORAGE_KEYS = ['authToken', 'is_authorized', 'accessToken', 'refreshToken'] as const;
 
@@ -93,6 +94,8 @@ export const isJwtTokenExpired = (token: string, nowMs = Date.now()): boolean =>
 };
 
 export const revokeAuthorizationSession = (): void => {
+  // Sudden-death behavior: wipe local customer flow state on de-auth.
+  store.set(resetAppStateAtom);
   store.set(revokeAuthorizationAtom);
   clearStoredAuthKeys();
 };
