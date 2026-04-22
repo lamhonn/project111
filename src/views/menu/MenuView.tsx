@@ -112,16 +112,6 @@ const MenuView: React.FC = () => {
       const scrollPosition = currentScrollY + 250; // Offset for sticky header + category bar
       const windowHeight = window.innerHeight;
 
-      // Show/hide category bar based on scroll direction
-      if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
-        // Scrolling down
-        setShowCategoryBar(false);
-      } else {
-        // Scrolling up
-        setShowCategoryBar(true);
-      }
-      lastScrollY.current = currentScrollY;
-
       // TODO: doesn't work properly with last category
       // Check if user has scrolled to bottom
       if ((windowHeight + scrollPosition) > document.body.offsetHeight) {

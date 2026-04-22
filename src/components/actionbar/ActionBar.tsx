@@ -12,7 +12,13 @@ import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
 import OrderSummaryDialog from '../order/OrderSummaryDialog';
 import TotalOrderSummaryDialog from '../order/TotalOrderSummaryDialog';
-import { orderCountAtom, totalPriceAtom } from '../../context/orderStore';
+import {
+  orderCountAtom,
+  totalPriceAtom,
+  submittedOrdersAtom,
+  billSplitConfigurationAtom,
+  totalOrderCountAtom,
+} from '../../context/orderStore';
 
 interface ActionBarProps {
   // No props needed, using Jotai atoms
@@ -22,8 +28,14 @@ const ActionBar: React.FC<ActionBarProps> = () => {
   const { t } = useTranslation();
   const orderCount = useAtomValue(orderCountAtom);
   const totalPrice = useAtomValue(totalPriceAtom);
+  const billBacklogCount = useAtomValue(totalOrderCountAtom);
+  const submittedOrders = useAtomValue(submittedOrdersAtom);
+  const billSplitConfig = useAtomValue(billSplitConfigurationAtom);
   const [showOrderDialog, setShowOrderDialog] = useState(false);
   const [showTotalDialog, setShowTotalDialog] = useState(false);
+
+  // Determine if there are active orders (preparing or received) or split bills
+  const hasActiveOrders = submittedOrders.length > 0 || (billSplitConfig && billSplitConfig.bills.length > 0);
 
   const handleShowOrder = (): void => {
     setShowOrderDialog(true);
@@ -65,11 +77,10 @@ const ActionBar: React.FC<ActionBarProps> = () => {
         {/* Bill Button */}
         <Button
           onClick={handleBillClick}
-          startIcon={<ReceiptIcon />}
           sx={{
             flex: 1,
-            backgroundColor: theme.colors.brandWhite,
-            color: theme.colors.primary,
+            backgroundColor: hasActiveOrders ? '#fefce8' : theme.colors.brandWhite,
+            color: hasActiveOrders ? '#eab308' : theme.colors.primary,
             fontSize: theme.typography.fontSizes.medium,
             px: theme.spacing.lg,
             py: 1.5,
@@ -77,12 +88,28 @@ const ActionBar: React.FC<ActionBarProps> = () => {
             textTransform: 'none',
             boxShadow: theme.shadows.sm,
             gap: theme.spacing.sm,
+            border: hasActiveOrders ? '2px solid #eab308' : 'none',
             '&:hover': {
-              backgroundColor: 'grey.100',
+              backgroundColor: hasActiveOrders ? '#fef3c7' : 'grey.100',
             },
           }}
         >
-          {t('common.bill')}
+          <Typography component="span">{t('common.bill')}</Typography>
+          <Badge
+            badgeContent={billBacklogCount}
+            sx={{
+              '& .MuiBadge-badge': {
+                backgroundColor: 'error.main',
+                color: 'white',
+                fontSize: '0.75rem',
+                fontWeight: theme.typography.fontWeights.bold,
+                minWidth: 20,
+                height: 20,
+              },
+            }}
+          >
+            <ReceiptIcon />
+          </Badge>
         </Button>
 
         {/* Show Order Button */}

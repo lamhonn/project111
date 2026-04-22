@@ -23,7 +23,7 @@ export const MOCK_CAMPAIGN_PRODUCTS: CampaignProductWithDetails[] = [
     CampaignPrice: 9.99,
     OriginalPrice: 12.99,
     DiscountRate: 0.25,
-    ImgUrl: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=400',
+    ImgUrl: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?q=80&w=1738&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     Ingredients: '{"en":"flour, tomato sauce, mozzarella cheese, fresh basil, olive oil, salt","fi":"jauho, tomaattikastike, mozzarellajuusto, tuore basilika, oliiviöljy, suola","sv":"mjöl, tomatsås, mozzarellaost, färsk basilika, olivolja, salt"}',
     LimitedDuration: true,
     StartDate: new Date('2026-01-01'),
