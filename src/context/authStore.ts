@@ -1,36 +1,15 @@
 import { atom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 
-/**
- * Simple authorization state with PIN-based access
- * 
- * Uses localStorage to persist authorization between sessions.
- * Authorization is granted by entering any 8-digit PIN.
- * 
- * TODO: Add actual PIN validation and JWT token handling later
- */
+// Tablet JWT stored in localStorage. Populated by verifyTabletPin (WF-02).
+// Null means the tablet has not been paired or the token was cleared.
+export const tabletTokenAtom = atomWithStorage<string | null>('tablet_token', null);
 
-// Authorization status stored in localStorage
-// Set to true to allow access, false to block
-export const isAuthorizedAtom = atomWithStorage<boolean>('is_authorized', false);
+// Derived read-only atom — true only when a tablet JWT is present in storage.
+// AuthGuard reads this. Nothing else should change access control logic.
+export const isAuthorizedAtom = atom((get) => get(tabletTokenAtom) !== null);
 
-// Write-only atom to authorize with PIN
-export const authorizePinAtom = atom(
-  null,
-  (get, set, pin: string) => {
-    // For now, accept any 8-digit PIN
-    if (pin.length === 8 && /^\d{8}$/.test(pin)) {
-      set(isAuthorizedAtom, true);
-      return { success: true };
-    }
-    return { success: false, error: 'PIN must be 8 digits' };
-  }
-);
-
-// Write-only atom to revoke authorization
-export const revokeAuthorizationAtom = atom(
-  null,
-  (get, set) => {
-    set(isAuthorizedAtom, false);
-  }
-);
+// Write-only atom to clear tablet authentication (logout / session revoke).
+export const clearTabletAuthAtom = atom(null, (_get, set) => {
+  set(tabletTokenAtom, null);
+});

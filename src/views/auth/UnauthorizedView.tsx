@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Box, Container, Paper, Typography, TextField } from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
 import { theme } from '../../theme/theme';
-import { useAuthorization } from '../../api/hooks/auth.hooks';
+import { useTabletAuth } from '../../api/hooks/auth.hooks';
 
 /**
  * PIN Entry View
@@ -15,7 +15,7 @@ const UnauthorizedView: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [isShaking, setIsShaking] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const { authorizeWithPin } = useAuthorization();
+  const { submitPin } = useTabletAuth();
 
   // Focus first input on mount
   useEffect(() => {
@@ -41,8 +41,8 @@ const UnauthorizedView: React.FC = () => {
     // Auto-submit when all 8 digits are entered
     if (value && index === 7 && newPin.every(digit => digit !== '')) {
       const pinString = newPin.join('');
-      const result = authorizeWithPin(pinString);
-      
+      const result = submitPin(pinString);
+
       if (!result.success) {
         setError(result.error || 'Invalid PIN');
         setIsShaking(true);
@@ -71,7 +71,7 @@ const UnauthorizedView: React.FC = () => {
       inputRefs.current[7]?.focus();
       
       // Auto-submit
-      const result = authorizeWithPin(pastedData);
+      const result = submitPin(pastedData);
       if (!result.success) {
         setError(result.error || 'Invalid PIN');
         setIsShaking(true);

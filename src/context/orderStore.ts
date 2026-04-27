@@ -150,7 +150,8 @@ export const resetAppStateAtom = atom(
 // Atom to start a new session
 export const startSessionAtom = atom(
   null,
-  (get, set) => {
+  (_get, set) => {
+    console.warn('[NOT IMPLEMENTED] startDiningSession mutation not called — session started locally only (WF-03)');
     set(sessionStateAtom, SessionState.Active);
   }
 );

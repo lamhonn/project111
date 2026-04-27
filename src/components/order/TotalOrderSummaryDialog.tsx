@@ -89,6 +89,7 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
         cancelText: t('common.cancel'),
         confirmText: t('common.confirm'),
         onConfirm: () => {
+          console.warn('[NOT IMPLEMENTED] requestBill mutation not called — staff will not receive bill request (WF-07)');
           setBillRequested(true);
           onClose();
         },
@@ -102,6 +103,7 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
     // Mark all active bills as requested (don't re-request already requested ones)
     markBillsAsRequested(activeBills.map(bill => bill.id));
     // End session - request all remaining bills
+    console.warn('[NOT IMPLEMENTED] requestBill mutation not called — staff will not receive bill request (WF-07)');
     setBillRequested(true);
     onClose();
   };
@@ -124,6 +126,7 @@ const TotalOrderSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
     
     if (isFinalBill) {
       // This was the final bill - end session
+      console.warn('[NOT IMPLEMENTED] requestBill mutation not called — staff will not receive bill request (WF-07)');
       setBillRequested(true);
     }
     

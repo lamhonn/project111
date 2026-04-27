@@ -9,14 +9,11 @@ interface AuthGuardProps {
 
 /**
  * AuthGuard component
- * 
- * Controls access to the entire application based on authorization state.
- * - If authorized (true): renders children (the app)
- * - If not authorized (false): renders UnauthorizedView
- * 
- * This prevents any API calls or components from rendering when unauthorized.
- * 
- * TODO: Add actual authentication logic later
+ *
+ * Renders children only when a tablet JWT is present in localStorage.
+ * isAuthorizedAtom is derived from tabletTokenAtom in authStore.
+ * When WF-02 (verifyTabletPin) is implemented and stores a token,
+ * this guard will automatically pass.
  */
 const AuthGuard: React.FC<AuthGuardProps> = ({ children }) => {
   const isAuthorized = useAtomValue(isAuthorizedAtom);

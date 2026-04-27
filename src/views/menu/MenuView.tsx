@@ -24,13 +24,12 @@ const MenuView: React.FC = () => {
   const { t, i18n } = useTranslation();
   
   // Fetch data from API hooks
-  // TODO: Get organizationId and menuId from context/URL params
-  const { data: productsData, loading: productsLoading } = useGetProducts('mock-org-1');
-  const { data: campaignsData, loading: campaignsLoading } = useGetActiveCampaignProducts('mock-menu-1');
-  
-  // Monitor table locked status
-  // TODO: Get actual tableId from context/URL params
-  useTableLockedStatus('mock-table-1');
+  // TODO (WF-04): supply real organizationId and menuId from tablet JWT / context
+  const { data: productsData, loading: productsLoading } = useGetProducts('');
+  const { data: campaignsData, loading: campaignsLoading } = useGetActiveCampaignProducts('');
+
+  // TODO (WF-03/WF-08): supply real tabletId from tablet JWT
+  useTableLockedStatus('');
   
   const [activeCategory, setActiveCategory] = useState<number>(0);
   const [showCategoryBar, setShowCategoryBar] = useState<boolean>(true);
@@ -62,6 +61,16 @@ const MenuView: React.FC = () => {
   const handleResetSession = () => {
     resetAppState();
   };
+
+  // Prevent scrolling when bill is requested
+  useEffect(() => {
+    // [NOT IMPLEMENTED] WF-08: tablet has no subscription to session close events.
+    // When staff closes the session via admin, the tablet will not know and will
+    // stay on the Active screen. Wire a sessionClosed subscription here once
+    // GraphQLWsLink (WF-06) and tablet auth (WF-02) are implemented.
+    console.warn('[NOT IMPLEMENTED] session close subscription not wired (WF-08)');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Prevent scrolling when bill is requested
   useEffect(() => {
