@@ -27,10 +27,11 @@ interface Props {
   excludables?: string;
   ageRestricted?: boolean;
   dietaries?: number[];
+  freeToppings?: number;
 }
 
 const ProductCard: React.FC<Props> = (props: Props) => {
-  const { id, image, name, price, initialQuantity = 0, description, toppings, ingredients, excludables, ageRestricted, dietaries } = props;
+  const { id, image, name, price, initialQuantity = 0, description, toppings, ingredients, excludables, ageRestricted, dietaries, freeToppings } = props;
   const { t, i18n } = useTranslation();
 
   // Get localized product name and description
@@ -61,6 +62,9 @@ const ProductCard: React.FC<Props> = (props: Props) => {
           boxShadow: isSelected ? theme.shadows.primary : 1,
           transition: theme.transitions.normal,
           cursor: 'pointer',
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
         }}
       >
         {!imageError ? (
@@ -86,7 +90,7 @@ const ProductCard: React.FC<Props> = (props: Props) => {
           </Box>
         )}
         
-        <CardContent sx={{ pb: theme.spacing.sm }}>
+        <CardContent sx={{ pb: theme.spacing.sm, flexGrow: 1 }}>
           <Typography 
             variant="h6" 
             component="div" 
@@ -106,7 +110,8 @@ const ProductCard: React.FC<Props> = (props: Props) => {
         <CardActions sx={{ 
           px: theme.spacing.md, 
           pb: theme.spacing.md, 
-          pt: 0 
+          pt: 0,
+          mt: 'auto',
         }}>
             <Button
               fullWidth
@@ -144,6 +149,7 @@ const ProductCard: React.FC<Props> = (props: Props) => {
           excludables,
           ageRestricted,
           dietaries,
+          freeToppings,
         }}
         isOpen={dialogOpen}
         onClose={handleCloseDialog}

@@ -5,15 +5,20 @@ import {
   Typography,
   Badge,
 } from '@mui/material';
-import PersonIcon from '@mui/icons-material/Person';
+import ReceiptIcon from '@mui/icons-material/Receipt';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtomValue } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
-import Toaster from '../common/Toaster';
 import OrderSummaryDialog from '../order/OrderSummaryDialog';
-import { orderCountAtom, totalPriceAtom } from '../../context/orderStore';
-import { openConfirmDialogAtom } from '../../context/confirmDialogStore';
+import TotalOrderSummaryDialog from '../order/TotalOrderSummaryDialog';
+import {
+  orderCountAtom,
+  totalPriceAtom,
+  submittedOrdersAtom,
+  billSplitConfigurationAtom,
+  totalOrderCountAtom,
+} from '../../context/orderStore';
 
 interface ActionBarProps {
   // No props needed, using Jotai atoms
@@ -23,9 +28,14 @@ const ActionBar: React.FC<ActionBarProps> = () => {
   const { t } = useTranslation();
   const orderCount = useAtomValue(orderCountAtom);
   const totalPrice = useAtomValue(totalPriceAtom);
-  const openConfirmDialog = useSetAtom(openConfirmDialogAtom);
-  const [showToaster, setShowToaster] = useState(false);
+  const billBacklogCount = useAtomValue(totalOrderCountAtom);
+  const submittedOrders = useAtomValue(submittedOrdersAtom);
+  const billSplitConfig = useAtomValue(billSplitConfigurationAtom);
   const [showOrderDialog, setShowOrderDialog] = useState(false);
+  const [showTotalDialog, setShowTotalDialog] = useState(false);
+
+  // Determine if there are active orders (preparing or received) or split bills
+  const hasActiveOrders = submittedOrders.length > 0 || (billSplitConfig && billSplitConfig.bills.length > 0);
 
   const handleShowOrder = (): void => {
     setShowOrderDialog(true);
@@ -35,22 +45,12 @@ const ActionBar: React.FC<ActionBarProps> = () => {
     setShowOrderDialog(false);
   };
 
-  const handleCallService = (): void => {
-    openConfirmDialog({
-      title: t('confirmDialog.callService.title'),
-      message: t('confirmDialog.callService.message'),
-      cancelText: t('common.cancel'),
-      confirmText: t('common.confirm'),
-      onConfirm: () => {
-        console.log('Service called');
-        // Add your call service logic here
-        setShowToaster(true);
-      },
-    });
+  const handleBillClick = (): void => {
+    setShowTotalDialog(true);
   };
 
-  const handleCloseToaster = (): void => {
-    setShowToaster(false);
+  const handleCloseTotalDialog = (): void => {
+    setShowTotalDialog(false);
   };
 
   // const hasOrder: boolean = orderCount > 0;
@@ -74,14 +74,13 @@ const ActionBar: React.FC<ActionBarProps> = () => {
           zIndex: 50,
         }}
       >
-        {/* Call for Service Button */}
+        {/* Bill Button */}
         <Button
-          onClick={handleCallService}
-          startIcon={<PersonIcon />}
+          onClick={handleBillClick}
           sx={{
             flex: 1,
-            backgroundColor: theme.colors.brandWhite,
-            color: theme.colors.primary,
+            backgroundColor: hasActiveOrders ? '#fefce8' : theme.colors.brandWhite,
+            color: hasActiveOrders ? '#eab308' : theme.colors.primary,
             fontSize: theme.typography.fontSizes.medium,
             px: theme.spacing.lg,
             py: 1.5,
@@ -89,12 +88,28 @@ const ActionBar: React.FC<ActionBarProps> = () => {
             textTransform: 'none',
             boxShadow: theme.shadows.sm,
             gap: theme.spacing.sm,
+            border: hasActiveOrders ? '2px solid #eab308' : 'none',
             '&:hover': {
-              backgroundColor: 'grey.100',
+              backgroundColor: hasActiveOrders ? '#fef3c7' : 'grey.100',
             },
           }}
         >
-          {t('actionBar.callForService')}
+          <Typography component="span">{t('common.bill')}</Typography>
+          <Badge
+            badgeContent={billBacklogCount}
+            sx={{
+              '& .MuiBadge-badge': {
+                backgroundColor: 'error.main',
+                color: 'white',
+                fontSize: '0.75rem',
+                fontWeight: theme.typography.fontWeights.bold,
+                minWidth: 20,
+                height: 20,
+              },
+            }}
+          >
+            <ReceiptIcon />
+          </Badge>
         </Button>
 
         {/* Show Order Button */}
@@ -145,17 +160,16 @@ const ActionBar: React.FC<ActionBarProps> = () => {
         </Button>
       </Box>
 
-      <Toaster
-        open={showToaster}
-        onClose={handleCloseToaster}
-        message={t('toaster.serviceCalledSuccess')}
-        severity="success"
-      />
-
       {/* Order Summary Dialog */}
       <OrderSummaryDialog
         isOpen={showOrderDialog}
         onClose={handleCloseOrderDialog}
+      />
+
+      {/* Total Order Summary Dialog */}
+      <TotalOrderSummaryDialog
+        isOpen={showTotalDialog}
+        onClose={handleCloseTotalDialog}
       />
     </>
   );

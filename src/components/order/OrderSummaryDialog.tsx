@@ -14,6 +14,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
+import FastfoodIcon from '@mui/icons-material/Fastfood';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
@@ -24,8 +25,15 @@ import {
   removeOrderItemAtom,
   updateOrderItemQuantityAtom,
   submitOrderToTotalAtom,
+  updateOrderStatusAtom,
+  addOrderItemAtom,
 } from '../../context/orderStore';
 import { openConfirmDialogAtom } from '../../context/confirmDialogStore';
+import { showToasterAtom } from '../../context/toasterStore';
+import { useOrderConfirmation } from '../../api/hooks/orderStatus.hooks';
+import { MOCK_PRODUCTS } from '../../api/mockData/products.mock';
+import type { ProductWithCategory } from '../../api/mockData/products.mock';
+import { getLocalizedProductName } from '../../api/utils/multilingualName.utils';
 
 interface OrderSummaryDialogProps {
   isOpen: boolean;
@@ -36,7 +44,7 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   
   // Use Jotai atoms
   const orderItems = useAtomValue(orderItemsAtom);
@@ -46,6 +54,32 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
   const updateQuantity = useSetAtom(updateOrderItemQuantityAtom);
   const openConfirmDialog = useSetAtom(openConfirmDialogAtom);
   const submitOrderToTotal = useSetAtom(submitOrderToTotalAtom);
+  const updateOrderStatus = useSetAtom(updateOrderStatusAtom);
+  const showToaster = useSetAtom(showToasterAtom);
+
+  // Order confirmation hook
+  const { confirmOrder } = useOrderConfirmation();
+  const addOrderItem = useSetAtom(addOrderItemAtom);
+
+  // Filter products for quick add: Sides (Category 2) and non-alcoholic Drinks (Category 3)
+  const quickAddProducts: ProductWithCategory[] = MOCK_PRODUCTS.filter(
+    (product) => 
+      (product.Category === 2 || product.Category === 3) && // Sides or Drinks
+      !product.AgeRestrictied && // Non-alcoholic
+      product.Enabled
+  ).slice(0, 6); // Limit to 6 products for display
+
+  const handleQuickAddProduct = (product: ProductWithCategory): void => {
+    const productName = getLocalizedProductName(product.Name, i18n.language);
+    addOrderItem({
+      id: product.Id,
+      productId: product.Id,
+      name: productName,
+      image: product.ImgUrl || '',
+      price: product.Price,
+      quantity: 1,
+    });
+  };
 
   const handleRemoveItem = (itemId: string): void => {
     removeItem(itemId);
@@ -70,9 +104,37 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
         message: t('confirmDialog.placeOrder.message'),
         cancelText: t('common.cancel'),
         confirmText: t('common.confirm'),
-        onConfirm: () => {
-            submitOrderToTotal();
+        onConfirm: async () => {
+            // Submit order and get the order ID
+            const orderId = submitOrderToTotal();
             onClose();
+            
+            // Confirm order via API (currently returns true immediately)
+            // When webhooks are implemented, this will wait for actual confirmation
+            const isConfirmed = await confirmOrder(orderId, (status) => {
+                // Handle status changes from the order system
+                if (status === 'preparing' && orderId) {
+                    // Update order status in store
+                    updateOrderStatus({ orderId, status: 'preparing' });
+                    showToaster({
+                        message: t('toaster.orderPreparing'),
+                        severity: 'warning', // Yellow color for in-progress status
+                        duration: 3000,
+                    });
+                } else if (status === 'ready' && orderId) {
+                    // Update order status to ready - this will move items to final bill
+                    updateOrderStatus({ orderId, status: 'ready' });
+                }
+            });
+            
+            if (isConfirmed) {
+                // Show success toaster for initial confirmation
+                showToaster({
+                    message: t('toaster.orderReceived'),
+                    severity: 'success',
+                    duration: 3000,
+                });
+            }
         },
     });
   };
@@ -141,6 +203,107 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
 
       {/* Order Items */}
       <DialogContent sx={{ p: theme.spacing.lg }}>
+        {/* "Forgot something?" Section */}
+        <Box sx={{ mb: theme.spacing.xl }}>
+          <Typography 
+            variant="body1"
+            fontWeight={theme.typography.fontWeights.semibold}
+            sx={{ mb: theme.spacing.md }}
+          >
+            {t('orderSummaryDialog.forgotSomething')}
+          </Typography>
+          
+          <Box sx={{ 
+            display: 'flex', 
+            gap: theme.spacing.md,
+            overflowX: 'auto',
+            pb: theme.spacing.sm,
+            '&::-webkit-scrollbar': {
+              height: 6,
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: theme.colors.border,
+              borderRadius: theme.borderRadius.small,
+            },
+          }}>
+            {quickAddProducts.map((product) => {
+              const productName = getLocalizedProductName(product.Name, i18n.language);
+              
+              return (
+                <Box
+                  key={product.Id}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: theme.spacing.xs,
+                    minWidth: 100,
+                  }}
+                >
+                  <Box
+                    onClick={() => handleQuickAddProduct(product)}
+                    sx={{
+                      width: 100,
+                      height: 100,
+                      cursor: 'pointer',
+                      border: `1px solid ${theme.colors.border}`,
+                      borderRadius: theme.borderRadius.medium,
+                      overflow: 'hidden',
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundImage: product.ImgUrl ? `url(${product.ImgUrl})` : 'none',
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      backgroundColor: theme.colors.border,
+                      '&:hover': {
+                        transform: 'scale(1.05)',
+                        boxShadow: theme.shadows.md,
+                        borderColor: theme.colors.primary,
+                      },
+                      '&:active': {
+                        transform: 'scale(0.98)',
+                      },
+                    }}
+                  >
+                    {!product.ImgUrl && (
+                      <FastfoodIcon sx={{ fontSize: 40, color: 'grey.500' }} />
+                    )}
+                  </Box>
+                  <Box sx={{ textAlign: 'center', maxWidth: 100 }}>
+                    <Typography 
+                      variant="caption"
+                      sx={{ 
+                        fontSize: '0.7rem',
+                        lineHeight: 1.2,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      {productName}
+                    </Typography>
+                    <Typography 
+                      variant="caption"
+                      color="primary"
+                      sx={{ 
+                        fontSize: '0.75rem',
+                        fontWeight: theme.typography.fontWeights.semibold,
+                        display: 'block',
+                        mt: 0.25,
+                      }}
+                    >
+                      €{product.Price.toFixed(2)}
+                    </Typography>
+                  </Box>
+                </Box>
+              );
+            })}
+          </Box>
+        </Box>
+
         <Typography 
           variant="body1"
           fontWeight={theme.typography.fontWeights.semibold}

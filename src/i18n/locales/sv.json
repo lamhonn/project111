@@ -35,11 +35,14 @@
     "ingredients": "INGREDIENSER",
     "excludables": "EXKLUDERA INGREDIENSER",
     "ageVerification": "Åldersbegränsad. Din ålder kan verifieras av personalen",
-    "addToOrder": "Lägg till beställning"
+    "addToOrder": "Lägg till beställning",
+    "freeTopping": "gratis pålägg",
+    "freeToppings": "gratis pålägg"
   },
   "orderSummaryDialog": {
     "title": "Beställningssammanfattning",
     "totalItems": "Totalt antal artiklar",
+    "forgotSomething": "Glömde du något?",
     "paymentSummary": "Betalningssammanfattning",
     "priceBeforeVat": "Pris före moms",
     "vat": "Moms",
@@ -72,6 +75,7 @@
     "save": "Spara",
     "dragItemsHere": "Dra artiklar hit",
     "clickToMoveHere": "Flytta hit",
+    "placeProductsHere": "Placera produkter här för att skapa en ny nota",
     "allItemsAssigned": "Alla artiklar har tilldelats notor",
     "item": "artikel",
     "items": "artiklar",
@@ -104,7 +108,9 @@
     }
   },
   "toaster": {
-    "serviceCalledSuccess": "Service har ringts! En servitör kommer att hjälpa dig inom kort."
+    "serviceCalledSuccess": "Service har ringts! En servitör kommer att hjälpa dig inom kort.",
+    "orderReceived": "Din beställning har mottagits",
+    "orderPreparing": "Din beställning förbereds"
   },
   "errorDialog": {
     "title": "Hoppsan! Något gick fel",
