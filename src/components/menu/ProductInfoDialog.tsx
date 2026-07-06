@@ -23,7 +23,7 @@ import { addOrderItemAtom, Topping as OrderTopping } from '../../context/orderSt
 import { parseToppings, getLocalizedTopping } from '../../api/utils/toppings.utils';
 import { getLocalizedIngredients, parseExcludables, getLocalizedExcludable } from '../../api/utils/multilingualName.utils';
 import { getDietaryCodes, getDietaryName } from '../../api/utils/dietary.utils';
-import { Dietary } from '../../api/types/enums';
+import { Dietaries } from '../../types/enums';
 
 // Temporary interfaces
 interface Product {
@@ -289,7 +289,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
               fontWeight={theme.typography.fontWeights.medium}
               color="text.secondary"
             >
-              ({getDietaryCodes(product.dietaries as Dietary[]).join(', ')})
+              ({getDietaryCodes(product.dietaries as Dietaries[]).join(', ')})
             </Typography>
           )}
         </Box>
@@ -525,8 +525,8 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
               }}
             >
               {product.dietaries.map((dietary, index) => {
-                const code = getDietaryCodes([dietary as Dietary])[0];
-                const name = getDietaryName(dietary as Dietary, t);
+                const code = getDietaryCodes([dietary as Dietaries])[0];
+                const name = getDietaryName(dietary as Dietaries, t);
                 return (
                   <span key={dietary}>
                     {code} = {name}

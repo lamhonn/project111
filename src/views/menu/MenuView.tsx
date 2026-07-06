@@ -13,18 +13,13 @@ import ThankYouDialog from '../../components/order/ThankYouDialog';
 import LockedDialog from '../../components/order/LockedDialog';
 import { orderStatusAtom, billRequestedAtom, resetAppStateAtom, tableLockedAtom } from '../../context/orderStore';
 import { toasterAtom, hideToasterAtom } from '../../context/toasterStore';
-import { useGetProducts } from '../../api/hooks/product.hooks';
-import { useGetActiveCampaignProducts } from '../../api/hooks/campaignProduct.hooks';
-import { useTableLockedStatus } from '../../api/hooks/table.hooks';
-import { MOCK_CATEGORIES } from '../../api/mockData/products.mock';
-import { getLocalizedCategoryName } from '../../api/utils/multilingualName.utils';
+import { getLocalizedCategoryName } from '../../utils/multilingualNameUtils';
 import { theme } from '../../theme';
 
 const MenuView: React.FC = () => {
   const { t, i18n } = useTranslation();
   
   // Fetch data from API hooks
-  // TODO (WF-04): supply real organizationId and menuId from tablet JWT / context
   const { data: productsData, loading: productsLoading } = useGetProducts('');
   const { data: campaignsData, loading: campaignsLoading } = useGetActiveCampaignProducts('');
 
