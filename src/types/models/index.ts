@@ -14,4 +14,4 @@ export * from './session';
 export * from './table';
 export * from './user';
 
-export * from './enums';
+export * from '../enums';

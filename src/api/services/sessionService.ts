@@ -1,11 +1,11 @@
 import { api } from "../axios";
-import { Session } from "../../types";
+import { SessionDto } from "../../types/dtos";
 
 const baseUrl = "/sessions";
 
 export const SessionService = {
-    create: async (session: Session) => {
-        const { data } = await api.post<Omit<Session, "id">>(baseUrl, session);
+    create: async (session: SessionDto) => {
+        const { data } = await api.post<Omit<SessionDto, "id">>(baseUrl, session);
         return data;
     },
 

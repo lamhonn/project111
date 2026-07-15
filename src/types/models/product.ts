@@ -1,4 +1,4 @@
-import { Dietaries } from "./enums";
+import { Dietaries } from "../enums";
 import { ProductExcludable } from "./productExcludable";
 import { ProductTopping } from "./productTopping";
 

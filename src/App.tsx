@@ -6,8 +6,8 @@ import MenuView from './views/menu/MenuView';
 import WelcomeView from './views/welcome/WelcomeView';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import AuthGuard from './components/auth/AuthGuard';
-import { store } from './context/store';
-import { sessionStateAtom, SessionState, startSessionAtom } from './context/orderStore';
+import { store } from './state/store';
+import { sessionStateAtom, SessionState, startSessionAtom } from './state/orderStore';
 // import './App.css';
 
 // Create a MUI theme with brand colors

@@ -1,4 +1,4 @@
-import { UserRole } from "./enums"
+import { UserRole } from "../enums"
 import { Organization } from "./organization"
 
 export type User = {

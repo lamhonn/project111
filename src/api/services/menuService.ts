@@ -1,11 +1,11 @@
 import { api } from "../axios";
-import { Menu } from "../../types";
+import { Menu } from "../../types/models";
 
 const baseUrl = "/menus";
 
 export const MenuService = {
-    getByOrganizationId: async (organizationId: string) => {
-        const { data } = await api.get<Menu[]>(`${baseUrl}/organization/${organizationId}`);
+    getActiveByOrganizationId: async (organizationId: string) => {
+        const { data } = await api.get<Menu[]>(`${baseUrl}/organization/${organizationId}/active`);
         return data;
     },
 }
