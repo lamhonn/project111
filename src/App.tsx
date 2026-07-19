@@ -7,7 +7,8 @@ import WelcomeView from './views/welcome/WelcomeView';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import AuthGuard from './components/auth/AuthGuard';
 import { store } from './state/store';
-import { sessionStateAtom, SessionState, startSessionAtom } from './state/orderStore';
+import { SessionStatus } from './types/enums/sessionStatus';
+import { sessionStatusAtom, setStartSession } from './state/sessionStore';
 // import './App.css';
 
 // Create a MUI theme with brand colors
@@ -44,15 +45,16 @@ const muiTheme = createTheme({
 
 // Main app content component - handles session state
 const AppContent: React.FC = () => {
-  const sessionState = useAtomValue(sessionStateAtom);
-  const startSession = useSetAtom(startSessionAtom);
+  // const sessionState = useAtomValue(sessionStateAtom);
+  const sessionState = useAtomValue(sessionStatusAtom);
+  const startSession = useSetAtom(setStartSession);
 
   const handleStartSession = () => {
     startSession();
   };
 
   // Show Welcome screen if session state is Welcome
-  if (sessionState === SessionState.Welcome) {
+  if (sessionState === SessionStatus.WELCOME) {
     // TODO: Replace backgroundImage URL with an API call to fetch from settings
     return <WelcomeView onStartSession={handleStartSession} backgroundImage='https://images.pexels.com/photos/2130134/pexels-photo-2130134.jpeg'/>;
   }

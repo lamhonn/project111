@@ -5,7 +5,7 @@ const baseUrl = "/sessions";
 
 export const SessionService = {
     create: async (session: SessionDto) => {
-        const { data } = await api.post<Omit<SessionDto, "id">>(baseUrl, session);
+        const { data } = await api.post<SessionDto>(baseUrl, session);
         return data;
     },
 
