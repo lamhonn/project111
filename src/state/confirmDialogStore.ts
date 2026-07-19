@@ -1,5 +1,6 @@
 import { atom } from 'jotai';
 
+// NOTE: AI-generated class
 export interface ConfirmDialogConfig {
   isOpen: boolean;
   title: string;
