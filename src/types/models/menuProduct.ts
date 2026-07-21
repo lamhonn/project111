@@ -8,5 +8,8 @@ export type MenuProduct = {
     Product: Product,
     MenuCategoryId: string,
     MenuCategory: MenuCategory,
+    Name: string,
+    ImgUrl?: string,
+    Price: number,
     Created: Date
 }

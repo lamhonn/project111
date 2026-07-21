@@ -16,7 +16,7 @@ import ReceiptIcon from '@mui/icons-material/Receipt';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
-import { SplitBill, OrderItem, BillStatus } from '../../context/orderStore';
+import { SplitBill, OrderItem, BillStatus } from '../../state/orderStore';
 
 interface BillRequestOptionsDialogProps {
   isOpen: boolean;

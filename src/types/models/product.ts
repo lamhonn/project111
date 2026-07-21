@@ -7,6 +7,7 @@ export interface Product {
     OrganizationId: string,
     Name: string, // JSON string with multilingual object
     Description?: string, // JSON string with multilingual object
+    Ingredients?: string // JSON string with multilingual object
     Price: number,
     Dietaries: Dietaries[], // Array of Dietary enum values
     FreeToppings: number, // Number of toppings that can be added before PriceIncrement starts

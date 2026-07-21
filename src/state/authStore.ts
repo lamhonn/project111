@@ -1,40 +1,33 @@
 import { atom } from 'jotai';
 import { atomWithStorage, atomWithReset } from 'jotai/utils';
-
-interface AuthTokens {
-  accessToken: string | null;
-  refreshToken: string | null;
-}
+import { AuthService } from '../api/services/authService';
 
 export const pin = atom<string>();
 
-// Store token in sessionStorage for better security (cleared on tab close)
-export const tokensAtom = atomWithStorage<AuthTokens>('auth_token', { accessToken: null, refreshToken: null });
+export const tokenAtom = atomWithStorage<string | null>('accessToken', null);
 
 export const isAuthorizedAtom = atom((get) => {
-  const { accessToken } = get(tokensAtom);
+  const accessToken = get(tokenAtom);
   return !!accessToken;
 });
 
-export const errorAtom = atom<string | null>(null;
+export const currentPinAtom = atom<string>('');
 
-// TODO: PIN based login
+export const errorAtom = atom<string | null>(null);
+
 export const login = atom(
-    (get) => get(tokensAtom),
+    (get) => get(tokenAtom),
     async (get, set) => {
         try {
-            // const response = 
+            set(errorAtom, null);
+
+            const pin = get(currentPinAtom);
+            const response = await AuthService.login(pin);
+
+            set(tokenAtom, response);
         }
         catch {
             set(errorAtom, "Authnentication error");
         }
     }
-);
-
-export const logout = atom(
-
-);
-
-export const refresh = atom(
-
 );

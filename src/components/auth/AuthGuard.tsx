@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAtomValue } from 'jotai';
-import { isAuthorizedAtom } from '../../context/authStore';
+import { isAuthorizedAtom } from '../../state/authStore';
 import UnauthorizedView from '../../views/auth/UnauthorizedView';
 
 interface AuthGuardProps {

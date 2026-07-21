@@ -1,4 +1,6 @@
-import { AxiosInstance } from "axios";
+import axios, { AxiosInstance } from "axios";
+import { store } from "../../state/store";
+import { tokenAtom } from "../../state/authStore";
 
 export function registerInterceptors(axiosInstance: AxiosInstance) {
     // Add a request interceptor
@@ -24,20 +26,39 @@ export function registerInterceptors(axiosInstance: AxiosInstance) {
             return response;
         },
         async (error) => {
+            const originalRequest = error.config;
 
+            // TODO: remove console errors for security
             switch (error.response?.status) {
                 case 401:
-                    // TODO: remove token?
-                    console.error("Unauthorized access - perhaps the token is invalid or expired.");
+                    console.error("Unauthorized");
+
+                    if (!originalRequest.retryRequest) {
+                        originalRequest.retryRequest = true;
+
+                        try {
+                            const response = await axios.post(`${originalRequest.baseURL}/tablet/refresh`);
+                            
+                            store.set(tokenAtom, response.data.accessToken);
+
+                            originalRequest.headers['Authorization'] = `Bearer ${response.data.accessToken}`;
+                            
+                            return axiosInstance(originalRequest);
+                        } 
+                        catch (refreshError) {
+                            store.set(tokenAtom, null);
+                            return Promise.reject(refreshError);
+                        }
+                    }
                     break;
                 case 403:
-                    console.error("Forbidden access - you don't have permission to access this resource.");
+                    console.error("Forbidden");
                     break;
                 case 404:
-                    console.error("Resource not found - the requested resource does not exist.");
+                    console.error("Resource");
                     break;
                 case 500:
-                    console.error("Internal server error - something went wrong on the server.");
+                    console.error("Internal");
                     break;
                 default:
                     console.error(`Unexpected error: ${error.response?.status}`);

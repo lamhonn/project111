@@ -1,4 +1,4 @@
-import { OrderProductExcludables } from "./orderProductExcludables";
+import { OrderProductExcludable } from "./orderProductExcludables";
 import { OrderProductTopping } from "./orderProductTopping";
 import { Product } from "./product";
 
@@ -8,6 +8,6 @@ export interface OrderProduct {
     ProductId: string,
     Product: Product,
     OrderProductToppings: OrderProductTopping[],
-    OrderProductExcludables: OrderProductExcludables[],
+    OrderProductExcludables: OrderProductExcludable[],
     Created: Date,
 }

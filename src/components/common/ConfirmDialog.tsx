@@ -11,7 +11,7 @@ import { theme } from '../../theme/theme';
 import {
   confirmDialogConfigAtom,
   closeConfirmDialogAtom,
-} from '../../context/confirmDialogStore';
+} from '../../state/confirmDialogStore';
 
 const ConfirmDialog: React.FC = () => {
   const [config] = useAtom(confirmDialogConfigAtom);

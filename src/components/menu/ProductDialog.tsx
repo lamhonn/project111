@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -13,145 +13,116 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import FastfoodIcon from '@mui/icons-material/Fastfood';
-import { useSetAtom } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
-import { addOrderItemAtom, Topping as OrderTopping } from '../../context/orderStore';
-import { parseToppings, getLocalizedTopping } from '../../api/utils/toppings.utils';
-import { getLocalizedIngredients, parseExcludables, getLocalizedExcludable } from '../../api/utils/multilingualName.utils';
-import { getDietaryCodes, getDietaryName } from '../../api/utils/dietary.utils';
+import { orderProductsAtom } from '../../state/orderStore';
 import { Dietaries } from '../../types/enums';
-
-// Temporary interfaces
-interface Product {
-  id: string;
-  image: string;
-  name: string;
-  price: number;
-  description?: string;
-  toppings?: string;
-  ingredients?: string;
-  excludables?: string;
-  ageRestricted?: boolean;
-  dietaries?: number[];
-  freeToppings?: number;
-}
+import { getProductById, loadingAtom, selectedProductAtom } from '../../state/productStore';
+import { getTranslation } from '../../utils/multilingualNameUtils';
+import { ProductExcludable, ProductTopping } from '../../types/models';
+import { getDietaryCodes, getDietaryName } from '../../utils/dietaryUtils';
+import { OrderProductViewModel } from '../../types/viewModels/orderProductViewModel';
 
 interface ProductDialogProps {
   productId: string;
-  product: Product;
   isOpen: boolean;
   onClose: () => void;
 }
 
-const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpen, onClose }) => {
+const ProductDialog: React.FC<ProductDialogProps> = ({ isOpen, onClose }) => {
   const { t, i18n } = useTranslation();
   const [quantity, setQuantity] = useState<number>(1);
-  const [selectedToppings, setSelectedToppings] = useState<Record<number, number>>({});
-  const [selectedExcludables, setSelectedExcludables] = useState<Set<number>>(new Set());
+  const [selectedToppings, setSelectedToppings] = useState<Record<string, number>>({});
+  const [selectedExcludables, setSelectedExcludables] = useState<Set<string>>(new Set());
   const [imageError, setImageError] = useState<boolean>(false);
-  const addItem = useSetAtom(addOrderItemAtom);
+  const [totalPrice, setTotalPrice] = useState<number>(0);
+
+  const loading = useAtomValue(loadingAtom);
+
+  const getProduct = useSetAtom(getProductById);
+  const product = useAtomValue(selectedProductAtom);
   
-  // Parse toppings from embedded product data
-  const toppings = parseToppings(product.toppings);
-  
-  // Parse excludables from embedded product data
-  const excludables = parseExcludables(product.excludables);
-  
-  // Get localized ingredients
-  const localizedIngredients = getLocalizedIngredients(product.ingredients, i18n.language);
+  const [toppings, setToppings] = useState<ProductTopping[]>();
+  const [excludables, setExcludables] = useState<ProductExcludable[]>();
+
+  const [orderProducts, setOrderProducts] = useAtom(orderProductsAtom);
+
+  useEffect(() => {
+    getProduct();
+    if (product) {
+      setToppings(product.ProductToppings);
+      setExcludables(product.ProductExcludables);
+    }
+  }, []);
+
+  useEffect(() => {
+    setTotalPrice(calculateTotal());
+  }, [selectedToppings, selectedExcludables])
 
   const handleAddToOrder = (): void => {
-    // Convert selected toppings to array format
-    const toppingsArray: OrderTopping[] = [];
-    toppings.forEach((topping, index) => {
-      const toppingQuantity = selectedToppings[index] || 0;
-      if (toppingQuantity > 0) {
-        const localizedName = getLocalizedTopping(topping.Name, i18n.language);
-        toppingsArray.push({
-          id: localizedName,
-          name: localizedName,
-          price: topping.PriceIncrement,
-          quantity: toppingQuantity,
-        });
+    if (product) {
+      const orderProduct: OrderProductViewModel = {
+        ProductId: product.Id,
+        Name: product.Name,
+        Price: totalPrice,
+        ProductToppings: selectedToppings,
+        ProductExcludables: selectedExcludables
       }
-    });
-
-    // Convert selected excludables to array format
-    const excludablesArray: string[] = [];
-    selectedExcludables.forEach((index) => {
-      const excludableName = getLocalizedExcludable(excludables[index], i18n.language);
-      if (excludableName) {
-        excludablesArray.push(excludableName);
-      }
-    });
-
-    // Add item to order
-    addItem({
-      id: product.id,
-      productId: product.id,
-      name: product.name,
-      image: product.image,
-      price: product.price,
-      quantity: quantity,
-      toppings: toppingsArray.length > 0 ? toppingsArray : undefined,
-      excludables: excludablesArray.length > 0 ? excludablesArray : undefined,
-    });
-
-    // Reset and close
-    setQuantity(1);
-    setSelectedToppings({});
-    setSelectedExcludables(new Set());
+      setOrderProducts([...orderProducts, orderProduct]);
+    }
+    
     onClose();
   };
 
-  const handleToppingToggle = (toppingIndex: number): void => {
+  const handleToppingToggle = (toppingId: string): void => {
     setSelectedToppings(prev => {
-      const current = prev[toppingIndex] || 0;
+      const current = prev[toppingId] || 0;
       if (current === 0) {
-        return { ...prev, [toppingIndex]: 1 };
+        return { ...prev, [toppingId]: 1 };
       }
-      return { ...prev, [toppingIndex]: 0 };
+      return { ...prev, [toppingId]: 0 };
     });
   };
 
-  const handleToppingIncrement = (toppingIndex: number, e: React.MouseEvent): void => {
+  const handleToppingIncrement = (toppingId: string, e: React.MouseEvent): void => {
     e.stopPropagation();
     setSelectedToppings(prev => ({
       ...prev,
-      [toppingIndex]: (prev[toppingIndex] || 0) + 1
+      [toppingId]: (prev[toppingId] || 0) + 1
     }));
   };
 
-  const handleToppingDecrement = (toppingIndex: number, e: React.MouseEvent): void => {
+  const handleToppingDecrement = (toppingId: string, e: React.MouseEvent): void => {
     e.stopPropagation();
     setSelectedToppings(prev => {
-      const current = prev[toppingIndex] || 0;
+      const current = prev[toppingId] || 0;
       if (current > 0) {
-        return { ...prev, [toppingIndex]: current - 1 };
+        return { ...prev, [toppingId]: current - 1 };
       }
       return prev;
     });
   };
 
-  const handleExcludableToggle = (excludableIndex: number): void => {
+  const handleExcludableToggle = (excludableId: string): void => {
     setSelectedExcludables(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(excludableIndex)) {
-        newSet.delete(excludableIndex);
+      if (newSet.has(excludableId)) {
+        newSet.delete(excludableId);
       } else {
-        newSet.add(excludableIndex);
+        newSet.add(excludableId);
       }
       return newSet;
     });
   };
 
   const calculateTotal = (): number => {
-    let total = product.price * quantity;
-    const freeToppingsCount = product.freeToppings || 0;
+    if (!product) return 0;
+
+    let total = product.Price * quantity;
+    const freeToppingsCount = product.FreeToppings || 0;
     
     // Calculate total number of selected toppings
     const totalToppingsSelected = Object.values(selectedToppings).reduce((sum, count) => sum + count, 0);
@@ -163,10 +134,10 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
     if (freeToppingsCount > 0 && chargeableToppings > 0) {
       // Sort toppings by price (highest first) to maximize free topping value for customer fairness
       const toppingPrices: number[] = [];
-      toppings.forEach((topping, index) => {
-        const count = selectedToppings[index] || 0;
+      toppings?.forEach((topping) => {
+        const count = selectedToppings[topping.Id] || 0;
         for (let i = 0; i < count; i++) {
-          toppingPrices.push(topping.PriceIncrement);
+          toppingPrices.push(topping.Price);
         }
       });
       toppingPrices.sort((a, b) => b - a); // Sort descending
@@ -177,14 +148,12 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
       }
     } else if (freeToppingsCount === 0) {
       // No free toppings, charge for all
-      toppings.forEach((topping, index) => {
-        const count = selectedToppings[index] || 0;
-        total += topping.PriceIncrement * count;
+      toppings?.forEach((topping) => {
+        const count = selectedToppings[topping.Id] || 0;
+        total += topping.Price * count;
       });
-    }
-    // If totalToppingsSelected <= freeToppingsCount, no additional charge
-    
-    return total;
+    }    
+    return total; // TODO: round to decimal?
   };
 
 
@@ -239,8 +208,8 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
           {!imageError ? (
             <Box
               component="img"
-              src={product.image}
-              alt={product.name}
+              src={product?.ImgUrl}
+              alt={product?.ImgUrl ? getTranslation(product.Name, i18n.language) : "Image"}
               onError={() => setImageError(true)}
               sx={{
                 width: '100%',
@@ -281,41 +250,25 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
           }}>
         <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, flexWrap: 'wrap' }}>
           <Typography variant="h5" fontWeight={theme.typography.fontWeights.bold}>
-            {product.name}
+            {product?.Name ? getTranslation(product.Name, i18n.language) : "ERROR"}
           </Typography>
-          {product.dietaries && product.dietaries.length > 0 && (
+          {product?.Dietaries && product.Dietaries.length > 0 && (
             <Typography 
               variant="h5" 
               fontWeight={theme.typography.fontWeights.medium}
               color="text.secondary"
             >
-              ({getDietaryCodes(product.dietaries as Dietaries[]).join(', ')})
+              ({getDietaryCodes(product.Dietaries as Dietaries[]).join(', ')})
             </Typography>
           )}
         </Box>
         <Typography variant="h6" color={theme.colors.text} sx={{ mb: theme.spacing.lg }}>
-          €{product.price.toFixed(2)}
+          {product?.Price ? product.Price.toFixed(2) : "ERROR"}€
         </Typography>
 
-        {/* Age Restriction Warning */}
-        {product.ageRestricted && (
-          <Typography 
-            variant="body2"
-            sx={{ 
-              mb: theme.spacing.lg,
-              color: '#b45309',
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: 0.5 
-            }}
-          >
-            <ErrorOutlineIcon fontSize="small" sx={{ color: '#b45309' }} /> {t('productDialog.ageVerification')}
-          </Typography>
-        )}
-
-        {product.description && (
+        {product?.Description && (
           <Typography color={theme.colors.text} sx={{ mb: theme.spacing.lg }}>
-            {product.description}
+            {getTranslation(product.Description, i18n.language)}
           </Typography>
         )}
 
@@ -332,15 +285,15 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               {toppings.map((topping, index) => {
-                const count = selectedToppings[index] || 0;
+                const count = selectedToppings[topping.Id] || 0;
                 const isSelected = count > 0;
-                const localizedName = getLocalizedTopping(topping.Name, i18n.language);
+                const toppingName = getTranslation(topping.Name, i18n.language);
 
                 return (
                   <Card
-                    key={index}
+                    key={topping.Id}
                     variant="outlined"
-                    onClick={() => handleToppingToggle(index)}
+                    onClick={() => handleToppingToggle(topping.Id)}
                     sx={{
                       borderRadius: theme.borderRadius.medium,
                       borderColor: isSelected ? theme.colors.primary : 'grey.300',
@@ -364,14 +317,14 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
                     >
                       <Box>
                         <Typography component="span" fontWeight="medium">
-                          {localizedName}
+                          {toppingName}
                         </Typography>
-                        {topping.PriceIncrement > 0 && (
-                          product.freeToppings && Object.values(selectedToppings).reduce((sum, cnt) => sum + cnt, 0) < product.freeToppings ? (
+                        {topping.Price > 0 && (
+                          product?.FreeToppings && Object.values(selectedToppings).reduce((sum, cnt) => sum + cnt, 0) < product.FreeToppings ? (
                             <></>
                             ) : (
                             <Typography component="span" color={theme.colors.text} sx={{ ml: 1 }}>
-                              +{topping.PriceIncrement.toFixed(2)}€
+                              +{topping.Price.toFixed(2)}€
                             </Typography>
                           )
                         )}
@@ -389,7 +342,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
                         >
                           <IconButton
                             size="small"
-                            onClick={(e) => handleToppingDecrement(index, e)}
+                            onClick={(e) => handleToppingDecrement(topping.Id, e)}
                             sx={{
                               color: 'error.main',
                               '&:hover': {
@@ -401,7 +354,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
                           </IconButton>
                           <IconButton
                             size="small"
-                            onClick={(e) => handleToppingIncrement(index, e)}
+                            onClick={(e) => handleToppingIncrement(topping.Id, e)}
                             sx={{
                               color: theme.colors.text,
                               '&:hover': {
@@ -434,14 +387,14 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               {excludables.map((excludable, index) => {
-                const isExcluded = selectedExcludables.has(index);
-                const localizedName = getLocalizedExcludable(excludable, i18n.language);
+                const isExcluded = selectedExcludables.has(excludable.Id);
+                const toppingName = getTranslation(excludable.Name, i18n.language);
 
                 return (
                   <Card
                     key={index}
                     variant="outlined"
-                    onClick={() => handleExcludableToggle(index)}
+                    onClick={() => handleExcludableToggle(excludable.Id)}
                     sx={{
                       borderRadius: theme.borderRadius.medium,
                       borderColor: isExcluded ? '#dc2626' : 'grey.300',
@@ -465,7 +418,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Checkbox
                           checked={isExcluded}
-                          onChange={() => handleExcludableToggle(index)}
+                          onChange={() => handleExcludableToggle(excludable.Id)}
                           icon={<RemoveCircleOutlineIcon />}
                           checkedIcon={<RemoveCircleOutlineIcon />}
                           sx={{
@@ -478,7 +431,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
                           onClick={(e) => e.stopPropagation()}
                         />
                         <Typography component="span" fontWeight="medium">
-                          {localizedName}
+                          {toppingName}
                         </Typography>
                       </Box>
                     </CardContent>
@@ -490,7 +443,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
         )}
 
         {/* Ingredients */}
-        {localizedIngredients && (
+        {product?.Ingredients && (
           <Box sx={{ mb: theme.spacing.lg }}>
             <Typography 
               variant="caption"
@@ -507,13 +460,13 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
                 fontSize: theme.typography.fontSizes.small,
               }}
             >
-              {localizedIngredients}
+              {getTranslation(product.Ingredients, i18n.language)}
             </Typography>
           </Box>
         )}
 
         {/* Dietary Definitions */}
-        {product.dietaries && product.dietaries.length > 0 && (
+        {product?.Dietaries && product.Dietaries.length > 0 && (
           <Box sx={{ mb: theme.spacing.md }}>
             <Typography 
               variant="caption"
@@ -524,13 +477,13 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
                 display: 'block',
               }}
             >
-              {product.dietaries.map((dietary, index) => {
-                const code = getDietaryCodes([dietary as Dietaries])[0];
-                const name = getDietaryName(dietary as Dietaries, t);
+              {product?.Dietaries.map((dietary, index) => {
+                const code = getDietaryCodes([dietary])[0];
+                const name = getDietaryName(dietary, t);
                 return (
                   <span key={dietary}>
                     {code} = {name}
-                    {index < product.dietaries!.length - 1 ? ', ' : ''}
+                    {index < product.Dietaries!.length - 1 ? ', ' : ''}
                   </span>
                 );
               })}
@@ -606,7 +559,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ productId, product, isOpe
             },
           }}
         >
-          {t('productDialog.addToOrder')} €{calculateTotal().toFixed(2)}
+          {t('productDialog.addToOrder')} {totalPrice}€
         </Button>
       </Box>
         </Box>

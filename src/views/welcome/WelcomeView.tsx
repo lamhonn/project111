@@ -4,7 +4,7 @@ import RestaurantIcon from '@mui/icons-material/Restaurant';
 import LanguageIcon from '@mui/icons-material/Language';
 import { useTranslation } from 'react-i18next';
 import { useAtom } from 'jotai';
-import { languageAtom } from '../../context/orderStore';
+import { languageAtom } from '../../state/orderStore';
 import { theme } from '../../theme/theme';
 
 /**

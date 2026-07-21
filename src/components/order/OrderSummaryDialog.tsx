@@ -18,22 +18,19 @@ import FastfoodIcon from '@mui/icons-material/Fastfood';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
-import {
-  orderItemsAtom,
-  orderCountAtom,
-  tableNumberAtom,
-  removeOrderItemAtom,
-  updateOrderItemQuantityAtom,
-  submitOrderToTotalAtom,
-  updateOrderStatusAtom,
-  addOrderItemAtom,
-} from '../../context/orderStore';
-import { openConfirmDialogAtom } from '../../context/confirmDialogStore';
-import { showToasterAtom } from '../../context/toasterStore';
-import { useOrderConfirmation } from '../../api/hooks/orderStatus.hooks';
-import { MOCK_PRODUCTS } from '../../api/mockData/products.mock';
-import type { ProductWithCategory } from '../../api/mockData/products.mock';
-import { getLocalizedProductName } from '../../api/utils/multilingualName.utils';
+// import {
+//   orderItemsAtom,
+//   orderCountAtom,
+//   tableNumberAtom,
+//   removeOrderItemAtom,
+//   updateOrderItemQuantityAtom,
+//   submitOrderToTotalAtom,
+//   updateOrderStatusAtom,
+//   addOrderItemAtom,
+// } from '../../state/orderStore';
+import { openConfirmDialogAtom } from '../../state/confirmDialogStore';
+import { showToasterAtom } from '../../state/toasterStore';
+import { getTranslation } from '../../utils/multilingualNameUtils';
 
 interface OrderSummaryDialogProps {
   isOpen: boolean;
@@ -47,19 +44,19 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
   const { t, i18n } = useTranslation();
   
   // Use Jotai atoms
-  const orderItems = useAtomValue(orderItemsAtom);
-  const orderCount = useAtomValue(orderCountAtom);
-  const tableNumber = useAtomValue(tableNumberAtom);
-  const removeItem = useSetAtom(removeOrderItemAtom);
-  const updateQuantity = useSetAtom(updateOrderItemQuantityAtom);
-  const openConfirmDialog = useSetAtom(openConfirmDialogAtom);
-  const submitOrderToTotal = useSetAtom(submitOrderToTotalAtom);
-  const updateOrderStatus = useSetAtom(updateOrderStatusAtom);
+  // const orderItems = useAtomValue(orderItemsAtom);
+  // const orderCount = useAtomValue(orderCountAtom);
+  // const tableNumber = useAtomValue(tableNumberAtom);
+  // const removeItem = useSetAtom(removeOrderItemAtom);
+  // const updateQuantity = useSetAtom(updateOrderItemQuantityAtom);
+  // const openConfirmDialog = useSetAtom(openConfirmDialogAtom);
+  // const submitOrderToTotal = useSetAtom(submitOrderToTotalAtom);
+  // const updateOrderStatus = useSetAtom(updateOrderStatusAtom);
   const showToaster = useSetAtom(showToasterAtom);
 
   // Order confirmation hook
-  const { confirmOrder } = useOrderConfirmation();
-  const addOrderItem = useSetAtom(addOrderItemAtom);
+  // const { confirmOrder } = useOrderConfirmation();
+  // const addOrderItem = useSetAtom(addOrderItemAtom);
 
   // Filter products for quick add: Sides (Category 2) and non-alcoholic Drinks (Category 3)
   const quickAddProducts: ProductWithCategory[] = MOCK_PRODUCTS.filter(
@@ -70,7 +67,7 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
   ).slice(0, 6); // Limit to 6 products for display
 
   const handleQuickAddProduct = (product: ProductWithCategory): void => {
-    const productName = getLocalizedProductName(product.Name, i18n.language);
+    const productName = getTranslation(product.Name, i18n.language);
     addOrderItem({
       id: product.Id,
       productId: product.Id,
@@ -227,7 +224,7 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
             },
           }}>
             {quickAddProducts.map((product) => {
-              const productName = getLocalizedProductName(product.Name, i18n.language);
+              const productName = getTranslation(product.Name, i18n.language);
               
               return (
                 <Box

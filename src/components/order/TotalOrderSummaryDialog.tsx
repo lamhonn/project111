@@ -29,8 +29,8 @@ import {
   markBillsAsRequestedAtom,
   BillStatus,
   submittedOrdersAtom,
-} from '../../context/orderStore';
-import { openConfirmDialogAtom } from '../../context/confirmDialogStore';
+} from '../../state/orderStore';
+import { openConfirmDialogAtom } from '../../state/confirmDialogStore';
 
 interface TotalOrderSummaryDialogProps {
   isOpen: boolean;

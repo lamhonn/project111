@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Box, Container, Typography } from '@mui/material';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
+
 import ProductCard from '../../components/menu/ProductCard';
 import ActionBar from '../../components/actionbar/ActionBar';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
@@ -11,65 +12,55 @@ import MenuHeader from '../../components/header/MenuHeader';
 import TotalOrderSummaryDialog from '../../components/order/TotalOrderSummaryDialog';
 import ThankYouDialog from '../../components/order/ThankYouDialog';
 import LockedDialog from '../../components/order/LockedDialog';
-import { orderStatusAtom, billRequestedAtom, resetAppStateAtom, tableLockedAtom } from '../../context/orderStore';
-import { toasterAtom, hideToasterAtom } from '../../context/toasterStore';
-import { getLocalizedCategoryName } from '../../utils/multilingualNameUtils';
+import { toasterAtom, hideToasterAtom } from '../../state/toasterStore';
+import { menusAtom, loadingAtom, getActiveMenus, getMenuCategories, getMenuProducts, menuCategoriesAtom, menuProductsAtom } from '../../state/menuStore';
+import { getTranslation } from '../../utils/multilingualNameUtils';
 import { theme } from '../../theme';
+import { orderStatusAtom } from '../../state/orderStore';
+import { sessionStatusAtom } from '../../state/sessionStore';
+import { SessionStatus } from '../../types/enums/sessionStatus';
 
 const MenuView: React.FC = () => {
   const { t, i18n } = useTranslation();
   
-  // Fetch data from API hooks
-  const { data: productsData, loading: productsLoading } = useGetProducts('');
-  const { data: campaignsData, loading: campaignsLoading } = useGetActiveCampaignProducts('');
+  // TODO: create a loading overlay
+  const menusLoading = useAtomValue(loadingAtom);
 
-  // TODO (WF-03/WF-08): supply real tabletId from tablet JWT
-  useTableLockedStatus('');
-  
+  // Fetch data from API hooks
+  const getMenus = useSetAtom(getActiveMenus);
+
+  const menuCategories = useAtomValue(menuCategoriesAtom);
+  const getCategories = useSetAtom(getMenuCategories);
+
+  const menuProducts = useAtomValue(menuProductsAtom);
+  const getProducts = useSetAtom(getMenuProducts);
+
+  const orderStatus = useAtomValue(orderStatusAtom);
+  const sessionStatus = useAtomValue(sessionStatusAtom)
+
   const [activeCategory, setActiveCategory] = useState<number>(0);
-  const [showCategoryBar, setShowCategoryBar] = useState<boolean>(true);
   const [showTotalDialog, setShowTotalDialog] = useState<boolean>(false);
   const categoryRefs = useRef<(HTMLDivElement | null)[]>([]);
   const categoryPillRefs = useRef<(HTMLDivElement | null)[]>([]);
   const categoryBarRef = useRef<HTMLDivElement | null>(null);
   const lastScrollY = useRef<number>(0);
-  
-  const orderStatus = useAtomValue(orderStatusAtom);
-  const billRequested = useAtomValue(billRequestedAtom);
-  const tableLocked = useAtomValue(tableLockedAtom);
-  const resetAppState = useSetAtom(resetAppStateAtom);
+
   const toasterState = useAtomValue(toasterAtom);
   const hideToaster = useSetAtom(hideToasterAtom);
 
-  // Get products and campaigns from API
-  const products = productsData?.products || [];
-  const campaignProducts = campaignsData?.activeCampaignProducts || [];
-  
-  // Check if campaigns exist
-  const hasCampaigns = campaignProducts.length > 0;
-  
-  // Build categories array with Campaigns at top if they exist
-  // Localize category names based on current language
-  const localizedCategories = MOCK_CATEGORIES.map(cat => getLocalizedCategoryName(cat, i18n.language));
-  const categories = hasCampaigns ? [t('common.campaigns'), ...localizedCategories] : localizedCategories;
-
   const handleResetSession = () => {
-    resetAppState();
+    // resetAppState();
   };
 
-  // Prevent scrolling when bill is requested
   useEffect(() => {
-    // [NOT IMPLEMENTED] WF-08: tablet has no subscription to session close events.
-    // When staff closes the session via admin, the tablet will not know and will
-    // stay on the Active screen. Wire a sessionClosed subscription here once
-    // GraphQLWsLink (WF-06) and tablet auth (WF-02) are implemented.
-    console.warn('[NOT IMPLEMENTED] session close subscription not wired (WF-08)');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    getMenus();
+    getCategories();
+    getProducts();
   }, []);
 
   // Prevent scrolling when bill is requested
   useEffect(() => {
-    if (billRequested) {
+    if (sessionStatus === SessionStatus.BILL_REQUESTED) {
       document.body.style.overflow = 'hidden';
       document.body.style.position = 'fixed';
     } else {
@@ -81,17 +72,11 @@ const MenuView: React.FC = () => {
       document.body.style.overflow = 'unset';
       document.body.style.position = 'unset';
     };
-  }, [billRequested]);
+  }, [sessionStatus]);
 
   // Group products by category
-  const productsByCategory = categories.map((categoryName, index) => {
-    if (hasCampaigns && index === 0) {
-      // First category is Campaigns if they exist
-      return campaignProducts;
-    }
-    // Adjust category index for regular products based on whether campaigns exist
-    const productCategoryIndex = hasCampaigns ? index - 1 : index;
-    return products.filter(product => product.Category === productCategoryIndex);
+  const productsByCategory = menuCategories.map((category, index) => {
+    return menuProducts.filter(product => product.MenuCategoryId === category.Id);
   });
 
   // Scroll to category
@@ -116,10 +101,9 @@ const MenuView: React.FC = () => {
       const scrollPosition = currentScrollY + 250; // Offset for sticky header + category bar
       const windowHeight = window.innerHeight;
 
-      // TODO: doesn't work properly with last category
       // Check if user has scrolled to bottom
       if ((windowHeight + scrollPosition) > document.body.offsetHeight) {
-        setActiveCategory(categories.length - 1);
+        setActiveCategory(menuCategories.length - 1);
         return;
       }
 
@@ -166,8 +150,7 @@ const MenuView: React.FC = () => {
     <Box sx={{ pb: 10 }}>
       {/* Fixed Menu Header */}
       <MenuHeader
-        restaurantName="Demo Restaurant"
-        orderStatus={orderStatus}
+        restaurantName="Demo Restaurant" // TODO:
         onTotalClick={() => setShowTotalDialog(true)}
       />
 
@@ -179,8 +162,6 @@ const MenuView: React.FC = () => {
           zIndex: 1000,
           backgroundColor: theme.colors.background,
           py: 1.5,
-          transform: showCategoryBar ? 'translateY(0)' : 'translateY(-100%)',
-          transition: 'transform 0.1s ease-in-out',
         }}
       >
         <Container maxWidth="lg">
@@ -196,7 +177,7 @@ const MenuView: React.FC = () => {
               },
             }}
           >
-            {categories.map((category, index) => (
+            {menuCategories.map((category, index) => (
               <Box
                 key={index}
                 ref={(el) => {
@@ -207,7 +188,7 @@ const MenuView: React.FC = () => {
               >
                 <CategoryPill
                   index={index}
-                  name={category}
+                  name={getTranslation(category.Name, i18n.language)}
                   isActive={activeCategory === index}
                   onClick={handleCategoryClick}
                 />
@@ -219,12 +200,12 @@ const MenuView: React.FC = () => {
 
       {/* Product Categories */}
       <Container maxWidth="lg" sx={{ mt: 8 }}>
-        {categories.map((category, categoryIndex) => (
+        {menuCategories.map((category, index) => (
           <Box
-            key={categoryIndex}
+            key={index}
             ref={(el) => {
               if (el) {
-                categoryRefs.current[categoryIndex] = el as HTMLDivElement;
+                categoryRefs.current[index] = el as HTMLDivElement;
               }
             }}
             sx={{ mb: 6 }}
@@ -234,7 +215,7 @@ const MenuView: React.FC = () => {
               fontWeight="bold"
               sx={{ mb: 3 }}
             >
-              {category}
+              {getTranslation(category.Name, i18n.language)}
             </Typography>
             <Box
               sx={{
@@ -247,31 +228,14 @@ const MenuView: React.FC = () => {
                 gap: 3,
               }}
             >
-              {productsByCategory[categoryIndex].map((product) => {
-                // Type guard to differentiate between regular and campaign products
-                const isCampaign = 'CampaignPrice' in product;
-                const price = isCampaign 
-                  ? (product as any).CampaignPrice || 0 
-                  : (product as any).Price;
-                const name = product.Name || '';
-                const ingredients = product.Ingredients || undefined;
-                const ageRestricted = (product as any).AgeRestrictied || false;
-                const dietaries = product.Dietaries || undefined;
-                
+              {productsByCategory[index].map((product) => {                
                 return (
                   <ProductCard
                     key={product.Id}
-                    id={product.Id}
-                    image={product.ImgUrl || ''}
-                    name={name}
-                    price={price}
-                    description={product.Description}
-                    toppings={product.Toppings}
-                    ingredients={ingredients}
-                    excludables={product.Excludables}
-                    ageRestricted={ageRestricted}
-                    dietaries={dietaries}
-                    freeToppings={product.FreeToppings}
+                    productId={product.Id}
+                    imgUrl={product.ImgUrl}
+                    name={product.Name}
+                    price={product.Price}
                   />
                 );
               })}
@@ -284,10 +248,11 @@ const MenuView: React.FC = () => {
       <ActionBar />
 
       {/* Thank You Dialog - shown when bill is requested */}
-      <ThankYouDialog isOpen={billRequested} onReset={handleResetSession} />
+      <ThankYouDialog isOpen={sessionStatus === SessionStatus.BILL_REQUESTED} onReset={handleResetSession} />
 
+      {/* TODO */}
       {/* Locked Dialog - shown when table is locked by staff */}
-      <LockedDialog isOpen={tableLocked} />
+      {/* <LockedDialog isOpen={isLocked} /> */}
 
       {/* Total Order Summary Dialog */}
       <TotalOrderSummaryDialog

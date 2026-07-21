@@ -11,43 +11,40 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import FastfoodIcon from '@mui/icons-material/Fastfood';
 import { useTranslation } from 'react-i18next';
+import { useAtom } from 'jotai';
+
 import { theme } from '../../theme/theme';
-import ProductDialog from './ProductInfoDialog';
-import { getLocalizedProductName, getLocalizedDescription } from '../../api/utils/multilingualName.utils';
+import ProductDialog from './ProductDialog';
+import { getTranslation } from '../../utils/multilingualNameUtils';
+import { selectedProductIdAtom } from '../../state/productStore';
 
 interface Props {
-  id: string;
-  image: string;
+  productId: string;
+  imgUrl?: string;
   name: string;
   price: number;
-  initialQuantity?: number;
-  description?: string;
-  toppings?: string;
-  ingredients?: string;
-  excludables?: string;
-  ageRestricted?: boolean;
-  dietaries?: number[];
-  freeToppings?: number;
 }
 
 const ProductCard: React.FC<Props> = (props: Props) => {
-  const { id, image, name, price, initialQuantity = 0, description, toppings, ingredients, excludables, ageRestricted, dietaries, freeToppings } = props;
+  const { productId: productId, imgUrl, name, price } = props;
   const { t, i18n } = useTranslation();
 
-  // Get localized product name and description
-  const localizedName = getLocalizedProductName(name, i18n.language);
-  const localizedDescription = getLocalizedDescription(description, i18n.language);
+  const localizedName = getTranslation(name, i18n.language);
 
-  const [quantity, setQuantity] = useState<number>(initialQuantity);
+  const [selectedProductId, setSelectedProductId] = useAtom(selectedProductIdAtom);
+
+  const [quantity, setQuantity] = useState<number>(0); // remove?
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
   const [imageError, setImageError] = useState<boolean>(false);
   const isSelected: boolean = quantity > 0;
 
   const handleOpenDialog = (): void => {
+    setSelectedProductId(productId);
     setDialogOpen(true);
   };
 
   const handleCloseDialog = (): void => {
+    setSelectedProductId('');
     setDialogOpen(false);
   };
 
@@ -71,7 +68,7 @@ const ProductCard: React.FC<Props> = (props: Props) => {
           <CardMedia
             component="img"
             height={200}
-            image={image}
+            image={imgUrl}
             alt={localizedName}
             onError={() => setImageError(true)}
             sx={{ objectFit: 'cover' }}
@@ -137,20 +134,7 @@ const ProductCard: React.FC<Props> = (props: Props) => {
       </Card>
 
       <ProductDialog
-        productId={id}
-        product={{
-          id,
-          image,
-          name: localizedName,
-          price,
-          description: localizedDescription,
-          toppings,
-          ingredients,
-          excludables,
-          ageRestricted,
-          dietaries,
-          freeToppings,
-        }}
+        productId={productId}
         isOpen={dialogOpen}
         onClose={handleCloseDialog}
       />

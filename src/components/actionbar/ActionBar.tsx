@@ -18,7 +18,7 @@ import {
   submittedOrdersAtom,
   billSplitConfigurationAtom,
   totalOrderCountAtom,
-} from '../../context/orderStore';
+} from '../../state/orderStore';
 
 interface ActionBarProps {
   // No props needed, using Jotai atoms

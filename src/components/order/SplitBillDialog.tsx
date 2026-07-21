@@ -22,7 +22,7 @@ import {
   SplitBill,
   BillStatus,
   submittedOrdersAtom,
-} from '../../context/orderStore';
+} from '../../state/orderStore';
 
 interface SplitBillDialogProps {
   isOpen: boolean;

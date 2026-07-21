@@ -6,59 +6,37 @@ import {
   Button,
   Container,
   Box,
-  keyframes,
   Menu,
   MenuItem,
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
-import { useAtom, useSetAtom } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
-import { languageAtom } from '../../context/orderStore';
-import { openConfirmDialogAtom } from '../../context/confirmDialogStore';
+import { languageAtom } from '../../state/settingsStore';
+import { openConfirmDialogAtom } from '../../state/confirmDialogStore';
 import { theme } from '../../theme/theme';
 import Toaster from '../common/Toaster';
-
-// TODO: move to enums file
-export enum OrderStatus {
-  Received = 'Received',
-  Preparing = 'Preparing',
-}
+import { OrderStatus } from '../../types/enums/orderStatus';
+import { orderStatusAtom } from '../../state/orderStore';
 
 interface MenuHeaderProps {
   restaurantName?: string;
   onTotalClick?: () => void;
-  orderStatus?: OrderStatus | null;
 }
-
-const boingAnimation = keyframes`
-  0% {
-    transform: scale(1);
-  }
-  25% {
-    transform: scale(1.15);
-  }
-  50% {
-    transform: scale(0.95);
-  }
-  75% {
-    transform: scale(1.05);
-  }
-  100% {
-    transform: scale(1);
-  }
-`;
 
 const MenuHeader: React.FC<MenuHeaderProps> = ({
   restaurantName = 'Restaurant',
   onTotalClick,
-  orderStatus,
 }) => {
   const { t, i18n } = useTranslation();
+
+  const orderStatus = useAtomValue(orderStatusAtom);
+  const [language, setLanguage] = useAtom(languageAtom);
+  const openConfirmDialog = useSetAtom(openConfirmDialogAtom);
+
   const [animateStatus, setAnimateStatus] = useState(false);
   const [prevStatus, setPrevStatus] = useState<OrderStatus | null>(orderStatus ?? null);
-  const [language, setLanguage] = useAtom(languageAtom);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const openConfirmDialog = useSetAtom(openConfirmDialogAtom);
   const [showToaster, setShowToaster] = useState(false);
 
   const handleLanguageClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -82,7 +60,6 @@ const MenuHeader: React.FC<MenuHeaderProps> = ({
       cancelText: t('common.cancel'),
       confirmText: t('common.confirm'),
       onConfirm: () => {
-        console.log('Service called');
         setShowToaster(true);
       },
     });
@@ -124,13 +101,13 @@ const MenuHeader: React.FC<MenuHeaderProps> = ({
 
   const getStatusColor = (status: OrderStatus | null) => {
     switch (status) {
-      case OrderStatus.Received:
+      case OrderStatus.RECEIVED:
         return {
           bg: '#FEF3C7',
           text: '#92400E',
           border: '#FCD34D',
         };
-      case OrderStatus.Preparing:
+      case OrderStatus.PREPARING:
         return {
           bg: '#D1FAE5',
           text: '#065F46',
