@@ -25,6 +25,7 @@ import { getTranslation } from '../../utils/multilingualNameUtils';
 import { ProductExcludable, ProductTopping } from '../../types/models';
 import { getDietaryCodes, getDietaryName } from '../../utils/dietaryUtils';
 import { OrderProductViewModel } from '../../types/viewModels/orderProductViewModel';
+import { randomUUID } from 'crypto';
 
 interface ProductDialogProps {
   productId: string;
@@ -35,8 +36,8 @@ interface ProductDialogProps {
 const ProductDialog: React.FC<ProductDialogProps> = ({ isOpen, onClose }) => {
   const { t, i18n } = useTranslation();
   const [quantity, setQuantity] = useState<number>(1);
-  const [selectedToppings, setSelectedToppings] = useState<Record<string, number>>({});
-  const [selectedExcludables, setSelectedExcludables] = useState<Set<string>>(new Set());
+  const [selectedToppings, setSelectedToppings] = useState<ProductTopping[]>([]);
+  const [selectedExcludables, setSelectedExcludables] = useState<ProductExcludable[]>([]);
   const [imageError, setImageError] = useState<boolean>(false);
   const [totalPrice, setTotalPrice] = useState<number>(0);
 
@@ -65,8 +66,10 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ isOpen, onClose }) => {
   const handleAddToOrder = (): void => {
     if (product) {
       const orderProduct: OrderProductViewModel = {
+        Id: randomUUID(),
         ProductId: product.Id,
         Name: product.Name,
+        ImgUrl: product.ImgUrl,
         Price: totalPrice,
         ProductToppings: selectedToppings,
         ProductExcludables: selectedExcludables
@@ -78,44 +81,41 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ isOpen, onClose }) => {
   };
 
   const handleToppingToggle = (toppingId: string): void => {
-    setSelectedToppings(prev => {
-      const current = prev[toppingId] || 0;
-      if (current === 0) {
-        return { ...prev, [toppingId]: 1 };
-      }
-      return { ...prev, [toppingId]: 0 };
-    });
+    const topping = product?.ProductToppings.find(topping => topping.Id === toppingId);
+    if (topping) setSelectedToppings([...selectedToppings, topping]);
   };
 
   const handleToppingIncrement = (toppingId: string, e: React.MouseEvent): void => {
     e.stopPropagation();
-    setSelectedToppings(prev => ({
-      ...prev,
-      [toppingId]: (prev[toppingId] || 0) + 1
-    }));
+    const topping = product?.ProductToppings.find(topping => topping.Id === toppingId);
+    if (topping) setSelectedToppings([...selectedToppings, topping]);
   };
 
   const handleToppingDecrement = (toppingId: string, e: React.MouseEvent): void => {
     e.stopPropagation();
-    setSelectedToppings(prev => {
-      const current = prev[toppingId] || 0;
-      if (current > 0) {
-        return { ...prev, [toppingId]: current - 1 };
-      }
-      return prev;
-    });
+    const selectedTopping = selectedToppings.find(topping => topping.Id === toppingId);
+    if (selectedTopping) {
+      const selectedToppingIndex = selectedToppings.indexOf(selectedTopping);
+      if (selectedToppingIndex > -1) {
+        setSelectedToppings(selectedToppings.splice(selectedToppingIndex, 1));
+      } 
+    }
   };
 
   const handleExcludableToggle = (excludableId: string): void => {
-    setSelectedExcludables(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(excludableId)) {
-        newSet.delete(excludableId);
-      } else {
-        newSet.add(excludableId);
+      const productExcludables = product?.ProductExcludables;
+      if (productExcludables) {
+        const selectedExcludable = productExcludables.find(excludable => excludable.Id === excludableId);
+        
+        // Not the most elegant way to toggle excludable selection, but works, probably
+        if (selectedExcludable) {
+          const selectedIndex = productExcludables.indexOf(selectedExcludable);
+          setSelectedExcludables(productExcludables.splice(selectedIndex, 1));
+        } else {
+          const newExcludable = product?.ProductExcludables.find(excludable => excludable.Id === excludableId); 
+          if (newExcludable) setSelectedExcludables([...selectedExcludables, newExcludable]);
+        }
       }
-      return newSet;
-    });
   };
 
   const calculateTotal = (): number => {
@@ -124,23 +124,16 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ isOpen, onClose }) => {
     let total = product.Price * quantity;
     const freeToppingsCount = product.FreeToppings || 0;
     
-    // Calculate total number of selected toppings
-    const totalToppingsSelected = Object.values(selectedToppings).reduce((sum, count) => sum + count, 0);
-    
     // Calculate how many toppings need to be charged
-    const chargeableToppings = Math.max(0, totalToppingsSelected - freeToppingsCount);
+    const chargeableToppings = Math.max(0, selectedToppings.length - freeToppingsCount);
     
     // If we have free toppings, we need to apply the price only to the excess toppings
     if (freeToppingsCount > 0 && chargeableToppings > 0) {
-      // Sort toppings by price (highest first) to maximize free topping value for customer fairness
       const toppingPrices: number[] = [];
-      toppings?.forEach((topping) => {
-        const count = selectedToppings[topping.Id] || 0;
-        for (let i = 0; i < count; i++) {
-          toppingPrices.push(topping.Price);
-        }
+      selectedToppings?.forEach((topping) => {
+        toppingPrices.push(topping.Price);
       });
-      toppingPrices.sort((a, b) => b - a); // Sort descending
+      toppingPrices.sort((a, b) => a - b); // Sort prices from lowest to highest, reverse to b - a if we want to go highest-lowest price order
       
       // Add only the chargeable toppings (skip the free ones)
       for (let i = freeToppingsCount; i < toppingPrices.length; i++) {
@@ -149,8 +142,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ isOpen, onClose }) => {
     } else if (freeToppingsCount === 0) {
       // No free toppings, charge for all
       toppings?.forEach((topping) => {
-        const count = selectedToppings[topping.Id] || 0;
-        total += topping.Price * count;
+        total += topping.Price;
       });
     }    
     return total; // TODO: round to decimal?
@@ -285,7 +277,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ isOpen, onClose }) => {
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               {toppings.map((topping, index) => {
-                const count = selectedToppings[topping.Id] || 0;
+                const count = selectedToppings.filter(t => t === topping).length || 0;
                 const isSelected = count > 0;
                 const toppingName = getTranslation(topping.Name, i18n.language);
 
@@ -320,7 +312,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ isOpen, onClose }) => {
                           {toppingName}
                         </Typography>
                         {topping.Price > 0 && (
-                          product?.FreeToppings && Object.values(selectedToppings).reduce((sum, cnt) => sum + cnt, 0) < product.FreeToppings ? (
+                          product?.FreeToppings && selectedToppings.length < product.FreeToppings ? (
                             <></>
                             ) : (
                             <Typography component="span" color={theme.colors.text} sx={{ ml: 1 }}>
@@ -387,7 +379,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ isOpen, onClose }) => {
             </Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
               {excludables.map((excludable, index) => {
-                const isExcluded = selectedExcludables.has(excludable.Id);
+                const isExcluded = !!selectedExcludables.find(e => e.Id === excludable.Id);
                 const toppingName = getTranslation(excludable.Name, i18n.language);
 
                 return (

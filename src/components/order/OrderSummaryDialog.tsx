@@ -15,22 +15,18 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import FastfoodIcon from '@mui/icons-material/Fastfood';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
-// import {
-//   orderItemsAtom,
-//   orderCountAtom,
-//   tableNumberAtom,
-//   removeOrderItemAtom,
-//   updateOrderItemQuantityAtom,
-//   submitOrderToTotalAtom,
-//   updateOrderStatusAtom,
-//   addOrderItemAtom,
-// } from '../../state/orderStore';
 import { openConfirmDialogAtom } from '../../state/confirmDialogStore';
 import { showToasterAtom } from '../../state/toasterStore';
 import { getTranslation } from '../../utils/multilingualNameUtils';
+import { orderProductsAtom, orderStatusAtom } from '../../state/orderStore';
+import { OrderProductViewModel } from '../../types/viewModels/orderProductViewModel';
+import { randomUUID } from 'crypto';
+import { OrderStatus } from '../../types/enums/orderStatus';
+import { calculateTotalOrderPrice } from '../../utils/orderUtils';
+import { tabletNumberAtom } from '../../state/settingsStore';
 
 interface OrderSummaryDialogProps {
   isOpen: boolean;
@@ -43,55 +39,55 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
 }) => {
   const { t, i18n } = useTranslation();
   
-  // Use Jotai atoms
-  // const orderItems = useAtomValue(orderItemsAtom);
-  // const orderCount = useAtomValue(orderCountAtom);
-  // const tableNumber = useAtomValue(tableNumberAtom);
-  // const removeItem = useSetAtom(removeOrderItemAtom);
-  // const updateQuantity = useSetAtom(updateOrderItemQuantityAtom);
-  // const openConfirmDialog = useSetAtom(openConfirmDialogAtom);
-  // const submitOrderToTotal = useSetAtom(submitOrderToTotalAtom);
-  // const updateOrderStatus = useSetAtom(updateOrderStatusAtom);
+  const [orderProducts, setOrderProducts] = useAtom(orderProductsAtom);
+  const [orderStatus, setOrderStatus] = useAtom(orderStatusAtom);
+
+  const tableNumber = useAtomValue(tabletNumberAtom);
+  const openConfirmDialog = useSetAtom(openConfirmDialogAtom);
   const showToaster = useSetAtom(showToasterAtom);
 
   // Order confirmation hook
   // const { confirmOrder } = useOrderConfirmation();
   // const addOrderItem = useSetAtom(addOrderItemAtom);
 
+  // TODO: add "Forgot something" products
   // Filter products for quick add: Sides (Category 2) and non-alcoholic Drinks (Category 3)
-  const quickAddProducts: ProductWithCategory[] = MOCK_PRODUCTS.filter(
-    (product) => 
-      (product.Category === 2 || product.Category === 3) && // Sides or Drinks
-      !product.AgeRestrictied && // Non-alcoholic
-      product.Enabled
-  ).slice(0, 6); // Limit to 6 products for display
+  // const quickAddProducts: ProductWithCategory[] = MOCK_PRODUCTS.filter(
+  //   (product) => 
+  //     (product.Category === 2 || product.Category === 3) && // Sides or Drinks
+  //   !product.AgeRestrictied && // Non-alcoholic
+  //   product.Enabled
+  // ).slice(0, 6); // Limit to 6 products for display
 
-  const handleQuickAddProduct = (product: ProductWithCategory): void => {
-    const productName = getTranslation(product.Name, i18n.language);
-    addOrderItem({
-      id: product.Id,
-      productId: product.Id,
-      name: productName,
-      image: product.ImgUrl || '',
-      price: product.Price,
-      quantity: 1,
-    });
-  };
+  // const handleQuickAddProduct = (product: Product): void => {
+  //   const productName = getTranslation(product.Name, i18n.language);
+
+  //   const newItem: OrderProductViewModel = {
+  //     Id: randomUUID(),
+  //     ProductId: product.Id,
+  //     Name: productName,
+  //     Price: product.Price,
+  //     ProductToppings: {},
+  //     ProductExcludables: new Set(),
+  //   };
+  //   const tempArray = orderProducts;
+  //   tempArray.push(newItem);
+  // };
 
   const handleRemoveItem = (itemId: string): void => {
-    removeItem(itemId);
+    const updatedArray = orderProducts.filter(product => product.Id !== itemId);
+    setOrderProducts(updatedArray);
   };
 
-  const handleIncrementItem = (itemId: string, currentQuantity: number): void => {
-    updateQuantity({ itemId, quantity: currentQuantity + 1 });
-  };
-
-  const handleDecrementItem = (itemId: string, currentQuantity: number): void => {
-    if (currentQuantity > 1) {
-      updateQuantity({ itemId, quantity: currentQuantity - 1 });
-    } else {
-      // Remove item if quantity becomes 0
-      removeItem(itemId);
+  const handleIncrementItem = (itemId: string): void => {
+    const item = orderProducts.find(product => product.Id === itemId);
+    if (item) {
+      const newItem: OrderProductViewModel = {
+        ...item,
+        Id: randomUUID(),
+      }
+      const updatedArray = [...orderProducts, newItem];
+      setOrderProducts(updatedArray);
     }
   };
 
@@ -102,49 +98,36 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
         cancelText: t('common.cancel'),
         confirmText: t('common.confirm'),
         onConfirm: async () => {
-            // Submit order and get the order ID
-            const orderId = submitOrderToTotal();
-            onClose();
-            
-            // Confirm order via API (currently returns true immediately)
-            // When webhooks are implemented, this will wait for actual confirmation
-            const isConfirmed = await confirmOrder(orderId, (status) => {
-                // Handle status changes from the order system
-                if (status === 'preparing' && orderId) {
-                    // Update order status in store
-                    updateOrderStatus({ orderId, status: 'preparing' });
-                    showToaster({
-                        message: t('toaster.orderPreparing'),
-                        severity: 'warning', // Yellow color for in-progress status
-                        duration: 3000,
-                    });
-                } else if (status === 'ready' && orderId) {
-                    // Update order status to ready - this will move items to final bill
-                    updateOrderStatus({ orderId, status: 'ready' });
-                }
-            });
-            
-            if (isConfirmed) {
-                // Show success toaster for initial confirmation
-                showToaster({
-                    message: t('toaster.orderReceived'),
-                    severity: 'success',
-                    duration: 3000,
-                });
-            }
+          const orderId = randomUUID(); // TODO:
+          onClose();
+
+          setOrderStatus(prev => {
+            return {...prev, [orderId]: OrderStatus.PENDING};
+          });
+          showToaster({
+            message: t('toaster.orderPreparing'),
+            severity: 'warning', // Yellow color for in-progress status
+            duration: 3000,
+          });
+
+          console.debug("Order placed");
+      
+          // TODO:
+          // if (isConfirmed) {
+          //     // Show success toaster for initial confirmation
+          //     showToaster({
+          //         message: t('toaster.orderReceived'),
+          //         severity: 'success',
+          //         duration: 3000,
+          //     });
+          // }
         },
     });
   };
 
   // Calculate payment summary including toppings
-  const subtotal = orderItems.reduce((sum, item) => {
-    const itemBasePrice = item.price * item.quantity;
-    const toppingsPrice = item.toppings
-      ? item.toppings.reduce((toppingSum, topping) => toppingSum + (topping.price * topping.quantity), 0)
-      : 0;
-    return sum + itemBasePrice + toppingsPrice;
-  }, 0);
-  const taxes = subtotal * 0.14; // 14% tax - TODO: alcohol tax rate is different
+  const subtotal = calculateTotalOrderPrice(orderProducts);
+  const taxes = subtotal * 0.135; // 13.5% tax - TODO: alcohol tax rate is different; maybe add custom tax rate?
   const beforeTaxes = subtotal - taxes;
 //   const discount = 10; // TODO:
 //   const total = subtotal; // TODO: apply discount
@@ -210,7 +193,8 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
             {t('orderSummaryDialog.forgotSomething')}
           </Typography>
           
-          <Box sx={{ 
+          {/* TODO: uncomment when we have a proper "forgot something" product functionality */}
+          {/* <Box sx={{ 
             display: 'flex', 
             gap: theme.spacing.md,
             overflowX: 'auto',
@@ -298,7 +282,7 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
                 </Box>
               );
             })}
-          </Box>
+          </Box> */}
         </Box>
 
         <Typography 
@@ -306,21 +290,16 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
           fontWeight={theme.typography.fontWeights.semibold}
           sx={{ mb: theme.spacing.md }}
         >
-          {t('orderSummaryDialog.totalItems')} ({orderCount})
+          {t('orderSummaryDialog.totalItems')} ({orderProducts.length})
         </Typography>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.md }}>
-          {orderItems.map((item) => {
-            // Calculate total price for this item including toppings
-            const itemBasePrice = item.price * item.quantity;
-            const toppingsTotalPrice = item.toppings
-              ? item.toppings.reduce((sum, topping) => sum + (topping.price * topping.quantity), 0)
-              : 0;
-            const itemTotalPrice = itemBasePrice + toppingsTotalPrice;
+          {orderProducts.map((product) => {
+            const count = orderProducts.filter(orderProduct => orderProduct === product).length;
 
             return (
               <Box
-                key={item.id}
+                key={product.Id}
                 sx={{
                   display: 'flex',
                   alignItems: 'flex-start',
@@ -333,8 +312,8 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
                 }}
               >
                 <Avatar
-                  src={item.image}
-                  alt={item.name}
+                  src={product.ImgUrl}
+                  alt={getTranslation(product.Name, i18n.language)}
                   variant="rounded"
                   sx={{
                     width: 64,
@@ -347,35 +326,35 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
                     variant="body1"
                     fontWeight={theme.typography.fontWeights.semibold}
                   >
-                    {item.quantity > 1 && `${item.quantity}x `}{item.name}
+                    {count > 1 && `${count}x `}{getTranslation(product.Name, i18n.language)}
                   </Typography>
                   
                   {/* Show toppings if present */}
-                  {item.toppings && item.toppings.length > 0 && (
+                  {product.ProductToppings && product.ProductToppings.length > 0 && (
                     <Box sx={{ mt: 0.5 }}>
-                      {item.toppings.map((topping) => (
+                      {product.ProductToppings.map((topping) => (
                         <Typography
-                          key={topping.id}
+                          key={topping.Id}
                           variant="caption"
                           color="text.secondary"
                           sx={{ display: 'block', lineHeight: 1.4 }}
                         >
-                          + {topping.quantity > 1 && `${topping.quantity}x `}{topping.name} (€{topping.price.toFixed(2)})
+                          + {getTranslation(topping.Name, i18n.language)}
                         </Typography>
                       ))}
                     </Box>
                   )}
                   
                   {/* Show excludables if present */}
-                  {item.excludables && item.excludables.length > 0 && (
+                  {product.ProductExcludables && product.ProductExcludables.length > 0 && (
                     <Box sx={{ mt: 0.5 }}>
-                      {item.excludables.map((excludable, index) => (
+                      {product.ProductExcludables.map((excludable, index) => (
                         <Typography
                           key={index}
                           variant="caption"
                           sx={{ display: 'block', lineHeight: 1.4, color: '#dc2626' }}
                         >
-                          − {excludable}
+                          − {getTranslation(excludable.Name, i18n.language)}
                         </Typography>
                       ))}
                     </Box>
@@ -386,7 +365,7 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
                     color="text.secondary"
                     sx={{ mt: 0.5 }}
                   >
-                    €{itemTotalPrice.toFixed(2)}
+                    {product.Price}€
                   </Typography>
                 </Box>
                 
@@ -394,7 +373,7 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <IconButton
                     size="small"
-                    onClick={() => handleDecrementItem(item.id, item.quantity)}
+                    onClick={() => handleRemoveItem(product.Id)}
                     sx={{
                       color: 'text.secondary',
                       '&:hover': {
@@ -413,12 +392,12 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
                       fontWeight: 'medium',
                     }}
                   >
-                    {item.quantity}
+                    {count}
                   </Typography>
                   
                   <IconButton
                     size="small"
-                    onClick={() => handleIncrementItem(item.id, item.quantity)}
+                    onClick={() => handleIncrementItem(product.Id)}
                     sx={{
                       color: 'text.secondary',
                       '&:hover': {
@@ -430,7 +409,7 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
                   </IconButton>
                   
                   <IconButton
-                    onClick={() => handleRemoveItem(item.id)}
+                    onClick={() => handleRemoveItem(product.Id)}
                     sx={{
                       color: 'error.main',
                       ml: 0.5,
@@ -524,7 +503,7 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
           onClick={handlePlaceOrder}
           variant="contained"
           fullWidth
-          disabled={orderCount === 0}
+          disabled={orderProducts.length === 0}
           sx={{
             backgroundColor: theme.colors.primary,
             color: 'white',
