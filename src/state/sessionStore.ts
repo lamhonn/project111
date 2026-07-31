@@ -4,22 +4,29 @@ import { SessionStatus } from "../types/enums/sessionStatus";
 import { OrderViewModel } from "../types/viewModels/orderViewModel";
 import { BillViewModel } from "../types/viewModels/billViewModel";
 import { SessionService } from "../api/services/sessionService";
+import { organizationIdAtom, tabletIdAtom, userIdAtom } from "./authStore";
 
+// TODO: persist in storage for session recovery?
 export const currentSessionAtom = atom<SessionDto | null>(null); 
 
 export const sessionStatusAtom = atom<SessionStatus>(SessionStatus.WELCOME);
 
 export const sessionOrdersAtom = atom<OrderViewModel[]>([]); 
 
-// TODO: persist in storage?
 export const setStartSessionAtom = atom(
     null,
     async (get, set) => {
+        const organizationId = get(organizationIdAtom);
+        const tabletId = get(tabletIdAtom);
+        const userId = get(userIdAtom);
+    
+        if (!organizationId || !tabletId || !userId) return;
+
         const newSession: SessionDto = {
             Id: crypto.randomUUID(),
-            OrganizationId: "sometoken", // TODO: derive from token
-            UserId: "sometoken", //TODO: derive from token
-            TabletId: "sometoken" //TODO: derife from token
+            OrganizationId: organizationId, 
+            UserId: userId,
+            TabletId: tabletId
         }
 
         set(currentSessionAtom, newSession)

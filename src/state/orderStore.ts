@@ -8,6 +8,7 @@ import { OrderProductExcludableDto } from '../types/dtos/orderProductExcludableD
 import { OrderProductToppingDto } from '../types/dtos/orderProductToppingDto';
 import { OrderService } from '../api/services/orderService';
 import { BillViewModel } from '../types/viewModels/billViewModel';
+import { organizationIdAtom, tabletIdAtom, userIdAtom } from './authStore';
 
 const EMPTY_GUID = '00000000-0000-0000-0000-000000000000';
 
@@ -25,6 +26,10 @@ export const createOrderAtom = atom(
             const sessionId = get(currentSessionAtom)?.Id;
             const orderProductsViewModel = get(orderProductsAtom);
             const totalPrice = calculateTotalOrderPrice(orderProductsViewModel);
+
+            const organizationId = get(organizationIdAtom);
+            const tabletId = get(tabletIdAtom);
+            const userId = get(userIdAtom);
         
             const orderProducts: OrderProductDto[] = get(orderProductsAtom).map(viewModel => <OrderProductDto>{
                 Id: viewModel.Id,
@@ -43,12 +48,12 @@ export const createOrderAtom = atom(
                 Price: totalPrice
             });
         
-            if (sessionId) {
+            if (sessionId && organizationId && tabletId && userId) {
                 const newOrder: OrderDto = {
                     Id: crypto.randomUUID(),
-                    OrganizationId: "sometoken", // TODO:
-                    UserId: "sometoken", // TODO:
-                    TabletId: "sometoken", // TODO:
+                    OrganizationId: organizationId,
+                    UserId: userId,
+                    TabletId: tabletId,
                     SessionId: sessionId,
                     TotalPrice: totalPrice, // NOTE: total price including toppings
                     OrderProducts: orderProducts

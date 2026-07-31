@@ -46,6 +46,7 @@ export function registerInterceptors(axiosInstance: AxiosInstance) {
                             return axiosInstance(originalRequest);
                         } 
                         catch (refreshError) {
+                            // TODO: add forced logout
                             store.set(tokenAtom, null);
                             return Promise.reject(refreshError);
                         }
