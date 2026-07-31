@@ -27,11 +27,6 @@ class ErrorBoundary extends Component<Props, State> {
     console.error('Error caught by ErrorBoundary:', error, errorInfo);
   }
 
-  handleCallService = (): void => {
-    // Use the Jotai store to open the confirm dialog
-    // TODO: proper service call hook in the future
-  };
-
   handleCloseError = (): void => {
     this.setState({
       hasError: false,
@@ -45,7 +40,6 @@ class ErrorBoundary extends Component<Props, State> {
           {this.props.children}
           <ErrorDialog
             isOpen={this.state.hasError}
-            onCallService={this.handleCallService}
             onClose={this.handleCloseError}
           />
         </>

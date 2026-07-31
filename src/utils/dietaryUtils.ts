@@ -1,5 +1,5 @@
 import { TFunction } from 'i18next';
-import { Dietary, DietaryCode, DietaryName } from '../../types/enums/dietary.types';
+import { DietaryCode, DietaryName, Dietary } from '../types/enums';
 
 /**
  * Get the short code for a dietary option (e.g., 'G', 'L', 'VL', 'V', 'VEG')

@@ -5,18 +5,28 @@
     "bill": "Lasku",
     "total": "Loppusumma",
     "table": "Pöytä",
-    "campaigns": "Kampanjat"
-  },  "dietary": {
+    "campaigns": "Kampanjat",
+    "error": "Virhe"
+  },  
+  "dietary": {
     "glutenFree": "Gluteeniton",
     "lactoseFree": "Laktoositon",
     "lowLactose": "Vähälaktoosinen",
     "vegetarian": "Kasvisruoka",
     "vegan": "Vegaaninen"
-  },  "welcome": {
+  },
+  "login": {
+    "enterPin": "Syötä PIN",
+    "pleaseEnterPin": "Syötä 8-lukuinen PIN koodi kirjautuaksesi.",
+    "authorizationRequired": "Kirjautuminen vaaditaan"
+
+  }, 
+  "welcome": {
     "title": "Tervetuloa!",
     "description": "Valmis aloittamaan ruokailukokemuksesi? Napauta alla olevaa painiketta aloittaaksesi.",
     "startButton": "Aloita"
-  },  "actionBar": {
+  },  
+  "actionBar": {
     "callForService": "Kutsu tarjoilija",
     "showOrder": "Näytä tilaus"
   },
@@ -24,8 +34,10 @@
     "restaurant": "Ravintola"
   },
   "orderStatus": {
+    "pending": "Käsittelee",
     "received": "Vastaanotettu",
-    "preparing": "Valmistetaan"
+    "preparing": "Valmistetaan",
+    "completed": "Valmis"
   },
   "productCard": {
     "addItem": "Lisää tuote"

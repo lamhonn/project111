@@ -16,13 +16,16 @@ import ReceiptIcon from '@mui/icons-material/Receipt';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
-import { SplitBill, OrderItem, BillStatus } from '../../state/orderStore';
+import { billsAtom, sessionOrdersAtom } from '../../state/sessionStore';
+import { useAtomValue } from 'jotai';
+import { calculateTotalOrderProductsPrice } from '../../utils/orderUtils';
+import { getTranslation } from '../../utils/multilingualNameUtils';
+
+const EMPTY_GUID = '00000000-0000-0000-0000-000000000000';
 
 interface BillRequestOptionsDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  bills: SplitBill[];
-  primaryBillItems: OrderItem[];
   onRequestAll: () => void;
   onRequestSelected: (selectedBillIds: string[], includePrimary: boolean) => void;
 }
@@ -30,22 +33,26 @@ interface BillRequestOptionsDialogProps {
 const BillRequestOptionsDialog: React.FC<BillRequestOptionsDialogProps> = ({
   isOpen,
   onClose,
-  bills,
-  primaryBillItems,
   onRequestAll,
   onRequestSelected,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [viewMode, setViewMode] = useState<'options' | 'select'>('options');
   const [selectedBillIds, setSelectedBillIds] = useState<Set<string>>(new Set());
-  const [includePrimary, setIncludePrimary] = useState(false);
+  const [includeDefault, setIncludeDefault] = useState(false);
+
+  const orders = useAtomValue(sessionOrdersAtom);
+  const orderProducts = orders.flatMap(order =>  order.OrderProducts); // Consider moving this logic into state instead of running it on every render
+  const bills = useAtomValue(billsAtom);
+  const defaultBill = bills.find(bill => bill.Id === EMPTY_GUID);
+  const defaultBillProducts = orderProducts.filter(orderProduct => defaultBill?.OrderProducts.includes(orderProduct.Id)); // Consider moving this logic into state instead of running it on every render
 
   // Reset state when dialog opens
   React.useEffect(() => {
     if (isOpen) {
       setViewMode('options');
       setSelectedBillIds(new Set());
-      setIncludePrimary(false);
+      setIncludeDefault(false);
     }
   }, [isOpen]);
 
@@ -70,36 +77,25 @@ const BillRequestOptionsDialog: React.FC<BillRequestOptionsDialogProps> = ({
     });
   };
 
-  const handleTogglePrimary = () => {
-    setIncludePrimary(prev => !prev);
+  const handleToggleDefault = () => {
+    setIncludeDefault(prev => !prev);
   };
 
   const handleConfirmSelection = () => {
-    if (selectedBillIds.size === 0 && !includePrimary) {
+    if (selectedBillIds.size === 0 && !includeDefault) {
       return; // Don't allow requesting nothing
     }
-    onRequestSelected(Array.from(selectedBillIds), includePrimary);
+    onRequestSelected(Array.from(selectedBillIds), includeDefault);
     onClose();
   };
 
   const handleBack = () => {
     setViewMode('options');
     setSelectedBillIds(new Set());
-    setIncludePrimary(false);
+    setIncludeDefault(false);
   };
 
-  // Calculate total for items
-  const calculateItemsTotal = (items: OrderItem[]): number => {
-    return items.reduce((sum, item) => {
-      const itemBasePrice = item.price * item.quantity;
-      const toppingsPrice = item.toppings
-        ? item.toppings.reduce((toppingSum, topping) => toppingSum + (topping.price * topping.quantity), 0)
-        : 0;
-      return sum + itemBasePrice + toppingsPrice;
-    }, 0);
-  };
-
-  const hasPrimaryBill = primaryBillItems.length > 0;
+  const hasPrimaryBill = defaultBillProducts.length > 0;
 
   return (
     <Dialog
@@ -201,24 +197,24 @@ const BillRequestOptionsDialog: React.FC<BillRequestOptionsDialogProps> = ({
               {hasPrimaryBill && (
                 <Box
                   sx={{
-                    border: `2px solid ${includePrimary ? theme.colors.primary : theme.colors.border}`,
+                    border: `2px solid ${includeDefault ? theme.colors.primary : theme.colors.border}`,
                     borderRadius: theme.borderRadius.large,
                     p: 2,
                     cursor: 'pointer',
                     transition: theme.transitions.fast,
-                    backgroundColor: includePrimary ? theme.colors.primaryLight : 'transparent',
+                    backgroundColor: includeDefault ? theme.colors.primaryLight : 'transparent',
                     '&:hover': {
                       borderColor: theme.colors.primary,
                       backgroundColor: theme.colors.primaryLight,
                     },
                   }}
-                  onClick={handleTogglePrimary}
+                  onClick={handleToggleDefault}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                       <Checkbox
-                        checked={includePrimary}
-                        onChange={handleTogglePrimary}
+                        checked={includeDefault}
+                        onChange={handleToggleDefault}
                         onClick={(e) => e.stopPropagation()}
                       />
                       <Box>
@@ -226,12 +222,12 @@ const BillRequestOptionsDialog: React.FC<BillRequestOptionsDialogProps> = ({
                           {t('billRequestDialog.primaryBill')}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                          {primaryBillItems.length} {primaryBillItems.length === 1 ? t('splitBillDialog.item') : t('splitBillDialog.items')}
+                          {defaultBillProducts.length} {defaultBillProducts.length === 1 ? t('splitBillDialog.item') : t('splitBillDialog.items')}
                         </Typography>
                       </Box>
                     </Box>
                     <Typography fontWeight={theme.typography.fontWeights.bold} color="text.primary">
-                      €{calculateItemsTotal(primaryBillItems).toFixed(2)}
+                      €{calculateTotalOrderProductsPrice(defaultBillProducts)}
                     </Typography>
                   </Box>
                 </Box>
@@ -239,13 +235,13 @@ const BillRequestOptionsDialog: React.FC<BillRequestOptionsDialogProps> = ({
 
               {/* Split Bills - Show all, but disable requested ones */}
               {bills.map((bill, index) => {
-                const isSelected = selectedBillIds.has(bill.id);
-                const isRequested = bill.status === BillStatus.Requested;
-                const billTotal = calculateItemsTotal(bill.items);
+                const isSelected = selectedBillIds.has(bill.Id);
+                const isRequested = bill.Billed;
+                const billTotal = calculateTotalOrderProductsPrice(orderProducts.filter(orderProduct => bill.OrderProducts.includes(orderProduct.Id)));
                 
                 return (
                   <Box
-                    key={bill.id}
+                    key={bill.Id}
                     sx={{
                       border: `2px solid ${isRequested ? theme.colors.border : (isSelected ? theme.colors.primary : theme.colors.border)}`,
                       borderRadius: theme.borderRadius.large,
@@ -259,13 +255,13 @@ const BillRequestOptionsDialog: React.FC<BillRequestOptionsDialogProps> = ({
                         backgroundColor: isRequested ? 'grey.100' : theme.colors.primaryLight,
                       },
                     }}
-                    onClick={!isRequested ? () => handleToggleBill(bill.id) : undefined}
+                    onClick={!isRequested ? () => handleToggleBill(bill.Id) : undefined}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                         <Checkbox
                           checked={isSelected}
-                          onChange={() => handleToggleBill(bill.id)}
+                          onChange={() => handleToggleBill(bill.Id)}
                           onClick={(e) => e.stopPropagation()}
                           disabled={isRequested}
                         />
@@ -288,27 +284,30 @@ const BillRequestOptionsDialog: React.FC<BillRequestOptionsDialogProps> = ({
                             )}
                           </Box>
                           <Typography variant="body2" color="text.secondary">
-                            {bill.items.length} {bill.items.length === 1 ? t('splitBillDialog.item') : t('splitBillDialog.items')}
+                            {bill.OrderProducts.length} {bill.OrderProducts.length === 1 ? t('splitBillDialog.item') : t('splitBillDialog.items')}
                           </Typography>
                           {/* Show first 3 products */}
                           <Box sx={{ mt: 0.5 }}>
-                            {bill.items.slice(0, 3).map((item, idx) => (
+                            {bill.OrderProducts.slice(0, 3).map((product, idx) => {
+                              const orderProduct = orderProducts.find(orderProduct => orderProduct.Id === product); 
+                              return (
                               <Typography 
                                 key={idx}
                                 variant="caption" 
                                 color="text.secondary"
                                 sx={{ display: 'block', fontSize: '0.7rem' }}
                               >
-                                • {item.quantity > 1 && `${item.quantity}× `}{item.name}
+                                • {orderProduct ? getTranslation(orderProduct.Name, i18n.language) : t('common.error')}
                               </Typography>
-                            ))}
-                            {bill.items.length > 3 && (
+                              )
+                            })}
+                            {bill.OrderProducts.length > 3 && (
                               <Typography 
                                 variant="caption" 
                                 color="text.secondary"
                                 sx={{ fontStyle: 'italic', fontSize: '0.7rem' }}
                               >
-                                +{bill.items.length - 3} more
+                                +{bill.OrderProducts.length - 3} more
                               </Typography>
                             )}
                           </Box>
@@ -345,7 +344,7 @@ const BillRequestOptionsDialog: React.FC<BillRequestOptionsDialogProps> = ({
                 variant="contained"
                 fullWidth
                 onClick={handleConfirmSelection}
-                disabled={selectedBillIds.size === 0 && !includePrimary}
+                disabled={selectedBillIds.size === 0 && !includeDefault}
                 sx={{
                   backgroundColor: theme.colors.primary,
                   color: 'white',
@@ -362,7 +361,7 @@ const BillRequestOptionsDialog: React.FC<BillRequestOptionsDialogProps> = ({
                   },
                 }}
               >
-                {t('billRequestDialog.requestSelected')} ({selectedBillIds.size + (includePrimary ? 1 : 0)})
+                {t('billRequestDialog.requestSelected')} ({selectedBillIds.size + (includeDefault ? 1 : 0)})
               </Button>
             </Box>
           </Box>

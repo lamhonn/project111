@@ -5,14 +5,22 @@
     "bill": "Totalt",
     "total": "Totalt",
     "table": "Bord",
-    "campaigns": "Kampanjer"
-  },  "dietary": {
+    "campaigns": "Kampanjer",
+    "error": "Fel"
+  },  
+  "dietary": {
     "glutenFree": "Glutenfri",
     "lactoseFree": "Laktosfri",
     "lowLactose": "Låg laktos",
     "vegetarian": "Vegetarisk",
     "vegan": "Vegansk"
-  },  "welcome": {
+  },
+  "login": {
+    "enterPin": "Ange PIN",
+    "pleaseEnterPin": "Ange din 8-siffriga PIN-kod för att logga in.",
+    "authorizationRequired": "Auktorisering krävs"
+  }, 
+  "welcome": {
     "title": "Välkommen!",
     "description": "Redo att börja din matupplevelse? Tryck på knappen nedan för att börja.",
     "startButton": "Börja"
@@ -24,8 +32,10 @@
     "restaurant": "Restaurang"
   },
   "orderStatus": {
+    "pending": "Under behandling",
     "received": "Mottagen",
-    "preparing": "Förbereder"
+    "preparing": "Förbereder",
+    "completed": "Klar"
   },
   "productCard": {
     "addItem": "Lägg till artikel"

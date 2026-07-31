@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Button,
   Typography,
   Badge,
+  keyframes,
 } from '@mui/material';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -11,31 +12,33 @@ import { useAtomValue } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
 import OrderSummaryDialog from '../order/OrderSummaryDialog';
-import TotalOrderSummaryDialog from '../order/TotalOrderSummaryDialog';
-import {
-  orderCountAtom,
-  totalPriceAtom,
-  submittedOrdersAtom,
-  billSplitConfigurationAtom,
-  totalOrderCountAtom,
-} from '../../state/orderStore';
+import BillSummaryDialog from '../order/BillSummaryDialog';
+import { billsAtom, sessionOrdersAtom } from '../../state/sessionStore';
+import { calculateTotalSessionPrice } from '../../utils/orderUtils';
 
-interface ActionBarProps {
-  // No props needed, using Jotai atoms
-}
+// Pulsing animation for active statuses
+const pulse = keyframes`
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+`;
 
-const ActionBar: React.FC<ActionBarProps> = () => {
+const ActionBar: React.FC = () => {
   const { t } = useTranslation();
-  const orderCount = useAtomValue(orderCountAtom);
-  const totalPrice = useAtomValue(totalPriceAtom);
-  const billBacklogCount = useAtomValue(totalOrderCountAtom);
-  const submittedOrders = useAtomValue(submittedOrdersAtom);
-  const billSplitConfig = useAtomValue(billSplitConfigurationAtom);
+
+  const orders = useAtomValue(sessionOrdersAtom);
+  const orderCount = orders.length;
+  const bills = useAtomValue(billsAtom);
+  const totalPrice = calculateTotalSessionPrice(orders);
   const [showOrderDialog, setShowOrderDialog] = useState(false);
   const [showTotalDialog, setShowTotalDialog] = useState(false);
+  const [shouldPulse, setShouldPulse] = useState(false);
 
   // Determine if there are active orders (preparing or received) or split bills
-  const hasActiveOrders = submittedOrders.length > 0 || (billSplitConfig && billSplitConfig.bills.length > 0);
+  const hasOrders = orders.length > 0;
 
   const handleShowOrder = (): void => {
     setShowOrderDialog(true);
@@ -53,7 +56,11 @@ const ActionBar: React.FC<ActionBarProps> = () => {
     setShowTotalDialog(false);
   };
 
-  // const hasOrder: boolean = orderCount > 0;
+  useEffect(() => {
+    setShouldPulse(true);
+
+    setTimeout(() => setShouldPulse(false), 2500);
+  }, [orderCount])
 
   return (
     <>
@@ -79,8 +86,8 @@ const ActionBar: React.FC<ActionBarProps> = () => {
           onClick={handleBillClick}
           sx={{
             flex: 1,
-            backgroundColor: hasActiveOrders ? '#fefce8' : theme.colors.brandWhite,
-            color: hasActiveOrders ? '#eab308' : theme.colors.primary,
+            backgroundColor: hasOrders ? '#fefce8' : theme.colors.brandWhite,
+            color: hasOrders ? '#eab308' : theme.colors.primary,
             fontSize: theme.typography.fontSizes.medium,
             px: theme.spacing.lg,
             py: 1.5,
@@ -88,15 +95,16 @@ const ActionBar: React.FC<ActionBarProps> = () => {
             textTransform: 'none',
             boxShadow: theme.shadows.sm,
             gap: theme.spacing.sm,
-            border: hasActiveOrders ? '2px solid #eab308' : 'none',
+            border: shouldPulse ? '2px solid #eab308' : 'none',
             '&:hover': {
-              backgroundColor: hasActiveOrders ? '#fef3c7' : 'grey.100',
+              backgroundColor: hasOrders ? '#fef3c7' : 'grey.100',
             },
+            animation: shouldPulse ? `${pulse} 2s ease-in-out infinite` : 'none',
           }}
         >
           <Typography component="span">{t('common.bill')}</Typography>
           <Badge
-            badgeContent={billBacklogCount}
+            badgeContent={hasOrders}
             sx={{
               '& .MuiBadge-badge': {
                 backgroundColor: 'error.main',
@@ -160,6 +168,8 @@ const ActionBar: React.FC<ActionBarProps> = () => {
         </Button>
       </Box>
 
+      {/* TODO: why do we have these here AND MenuView? */}
+
       {/* Order Summary Dialog */}
       <OrderSummaryDialog
         isOpen={showOrderDialog}
@@ -167,7 +177,7 @@ const ActionBar: React.FC<ActionBarProps> = () => {
       />
 
       {/* Total Order Summary Dialog */}
-      <TotalOrderSummaryDialog
+      <BillSummaryDialog
         isOpen={showTotalDialog}
         onClose={handleCloseTotalDialog}
       />

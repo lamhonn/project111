@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -14,15 +14,13 @@ import CloseIcon from '@mui/icons-material/Close';
 import { useAtomValue, useSetAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
-import { 
-  totalOrderItemsAtom, 
-  OrderItem, 
-  saveBillSplitAtom,
-  billSplitConfigurationAtom,
-  SplitBill,
-  BillStatus,
-  submittedOrdersAtom,
-} from '../../state/orderStore';
+import { billsAtom, saveBillsAtom, sessionOrdersAtom } from '../../state/sessionStore';
+import { OrderProductViewModel } from '../../types/viewModels/orderProductViewModel';
+import { BillViewModel } from '../../types/viewModels/billViewModel';
+import { calculateTotalOrderProductsPrice } from '../../utils/orderUtils';
+import { getTranslation } from '../../utils/multilingualNameUtils';
+
+const EMPTY_GUID = '00000000-0000-0000-0000-000000000000';
 
 interface SplitBillDialogProps {
   isOpen: boolean;
@@ -33,76 +31,77 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { t } = useTranslation();
-  const totalOrderItems = useAtomValue(totalOrderItemsAtom);
-  const submittedOrders = useAtomValue(submittedOrdersAtom);
-  const existingBillSplit = useAtomValue(billSplitConfigurationAtom);
-  const saveBillSplit = useSetAtom(saveBillSplitAtom);
+  const { t, i18n } = useTranslation();
+  
+  const orders = useAtomValue(sessionOrdersAtom);
+  const orderProducts = orders.flatMap(order =>  order.OrderProducts); // Consider moving this logic into state instead of running it on every render
+  const bills = useAtomValue(billsAtom);
+  
+  const [splitBills, setSplitBills] = useState(bills); // Atoms behave as immutable. Use this for temporary UI bill splitting functionality instead of "billsAtom"
+  const [defaultBill, setDefaultBill] = useState(bills.find(bill => bill.Id === EMPTY_GUID));
+  const saveBills = useSetAtom(saveBillsAtom);
 
-  // Combine ready items and items from submitted orders (all available items for splitting)
-  const allAvailableItems = React.useMemo(() => {
-    const readyItems = [...totalOrderItems];
-    const preparingItems = submittedOrders.flatMap(order => order.items);
-    return [...readyItems, ...preparingItems];
-  }, [totalOrderItems, submittedOrders]);
+  const getOrderProductsForBill = (orderProductIds: string[]): OrderProductViewModel[] => {
+    return orderProducts.filter(orderProduct => orderProductIds.includes(orderProduct.Id));
+  }
 
-  // State for bills
-  const [bills, setBills] = useState<SplitBill[]>([]);
-
-  // State for items that haven't been assigned to any bill yet
-  const [unassignedItems, setUnassignedItems] = useState<OrderItem[]>([]);
+  // A workaround for updating defaultBill here instead of always having to separately do the .find query further
+  useEffect(() => {
+    setDefaultBill(splitBills.find(bill => bill.Id === EMPTY_GUID));
+  }, [splitBills]);
 
   // Initialize unassigned items when dialog opens
-  React.useEffect(() => {
-    if (isOpen) {
-      // If there's an existing split configuration, restore it
-      if (existingBillSplit) {
-        // Get all item IDs from the existing split (both in bills and unsplit)
-        const existingItemIds = new Set<string>();
-        existingBillSplit.bills.forEach(bill => {
-          bill.items.forEach(item => existingItemIds.add(item.id));
-        });
-        existingBillSplit.unsplitItems.forEach(item => existingItemIds.add(item.id));
+  // useEffect(() => {
+  //   if (isOpen) {
+  //     // If there's an existing split configuration, restore it
+  //     if (existingBillSplit) {
+  //       // Get all item IDs from the existing split (both in bills and unsplit)
+  //       const existingItemIds = new Set<string>();
+  //       existingBillSplit.bills.forEach(bill => {
+  //         bill.items.forEach(item => existingItemIds.add(item.id));
+  //       });
+  //       existingBillSplit.unsplitItems.forEach(item => existingItemIds.add(item.id));
 
-        // Find new items that weren't in the previous split
-        const newItems = allAvailableItems.filter(item => !existingItemIds.has(item.id));
+  //       // Find new items that weren't in the previous split
+  //       const newItems = allAvailableItems.filter(item => !existingItemIds.has(item.id));
 
-        // Restore bills and add new items to unassigned
-        setBills(existingBillSplit.bills);
-        setUnassignedItems([...existingBillSplit.unsplitItems, ...newItems]);
-      } else {
-        // Otherwise, initialize with all items unassigned and no bills
-        setUnassignedItems([...allAvailableItems]);
-        setBills([]);
-      }
-    }
-  }, [isOpen, allAvailableItems, existingBillSplit]);
+  //       // Restore bills and add new items to unassigned
+  //       setBills(existingBillSplit.bills);
+  //       setUnassignedItems([...existingBillSplit.unsplitItems, ...newItems]);
+  //     } else {
+  //       // Otherwise, initialize with all items unassigned and no bills
+  //       setUnassignedItems([...allAvailableItems]);
+  //       setBills([]);
+  //     }
+  //   }
+  // }, [isOpen, existingBillSplit]);
 
   // Drag and drop handlers
-  const [draggedItem, setDraggedItem] = useState<OrderItem | null>(null);
-  const [draggedFromBillId, setDraggedFromBillId] = useState<string | null>(null);
+  const [draggedItem, setDraggedItem] = useState<string | null>(null); // product's ID
+  const [draggedFromBillId, setDraggedFromBillId] = useState<string | null>(null); // bill's ID where we are moving from
 
   // Click-based selection (fallback for drag-and-drop)
-  const [selectedItem, setSelectedItem] = useState<OrderItem | null>(null);
-  const [selectedFromBillId, setSelectedFromBillId] = useState<string | null>(null);
+  const [selectedItem, setSelectedItem] = useState<string | null>(null); // product's ID
+  const [selectedFromBillId, setSelectedFromBillId] = useState<string | null>(null); // bill's ID where we are moving from
 
-  // Quantity selection dialog
-  const [showQuantityDialog, setShowQuantityDialog] = useState<boolean>(false);
-  const [pendingMove, setPendingMove] = useState<{
-    item: OrderItem;
-    fromBillId: string | null;
-    toBillId: string | null; // null means moving to unassigned
-  } | null>(null);
-  const [moveQuantity, setMoveQuantity] = useState<number>(1);
+  // TODO: quantity functionality. requires refining the logic for handling duplicates in "orderProducts" array
+  // // Quantity selection dialog
+  // const [showQuantityDialog, setShowQuantityDialog] = useState<boolean>(false);
+  // const [pendingMove, setPendingMove] = useState<{
+  //   item: string; // ID
+  //   fromBillId: string | null;
+  //   toBillId: string | null; // null means moving to unassigned
+  // } | null>(null);
+  // const [moveQuantity, setMoveQuantity] = useState<number>(1);
 
-  const handleDragStart = (item: OrderItem, fromBillId?: string): void => {
+  const handleDragStart = (item: string, fromBillId?: string): void => {
     setDraggedItem(item);
     setDraggedFromBillId(fromBillId || null);
   };
 
-  const handleItemClick = (item: OrderItem, fromBillId?: string): void => {
+  const handleItemClick = (item: string, fromBillId?: string): void => {
     // Toggle selection
-    if (selectedItem?.id === item.id) {
+    if (selectedItem === item) {
       setSelectedItem(null);
       setSelectedFromBillId(null);
     } else {
@@ -115,154 +114,27 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
     e.preventDefault();
   };
 
-  const handleDropToBill = (billId: string): void => {
-    if (!draggedItem) return;
+  const handleDropToBill = (toBillId: string): void => {
+    if (!draggedItem || !selectedItem) return;
 
-    // Check if dropping to instruction box (billId === 'new')
-    if (billId === 'new') {
-      // Create a new bill with this item
-      const newBillNumber = bills.length + 1;
-      const newBill: SplitBill = {
-        id: String(newBillNumber),
-        items: [draggedItem],
-        status: BillStatus.Active,
-      };
-
-      // Remove from source
-      if (draggedFromBillId) {
-        setBills(prevBills => {
-          const filtered = prevBills
-            .map(bill =>
-              bill.id === draggedFromBillId
-                ? { ...bill, items: bill.items.filter(item => item.id !== draggedItem.id) }
-                : bill
-            )
-            .filter(bill => bill.items.length > 0); // Auto-delete empty bills
-          
-          // Renumber remaining bills
-          const renumbered = filtered.map((bill, index) => ({
-            ...bill,
-            id: String(index + 1),
-          }));
-          
-          return [...renumbered, newBill];
-        });
-      } else {
-        setUnassignedItems(prev => prev.filter(item => item.id !== draggedItem.id));
-        setBills(prev => [...prev, newBill]);
-      }
-    } else {
-      // Remove from source
-      if (draggedFromBillId) {
-        // Remove from another bill and auto-delete if empty
-        setBills(prevBills => {
-          const updated = prevBills.map(bill =>
-            bill.id === draggedFromBillId
-              ? { ...bill, items: bill.items.filter(item => item.id !== draggedItem.id) }
-              : bill
-          );
-          const filtered = updated.filter(bill => bill.items.length > 0 || bill.id === billId);
-          return filtered.map((bill, index) => ({
-            ...bill,
-            id: String(index + 1),
-          }));
-        });
-      } else {
-        // Remove from unassigned
-        setUnassignedItems(prev => prev.filter(item => item.id !== draggedItem.id));
-      }
-
-      // Add to target bill
-      setBills(prevBills =>
-        prevBills.map(bill =>
-          bill.id === billId
-            ? { ...bill, items: [...bill.items, draggedItem] }
-            : bill
-        )
-      );
-    }
+    moveProductToBill(selectedItem, draggedFromBillId, toBillId);
 
     setDraggedItem(null);
     setDraggedFromBillId(null);
   };
 
-  const handleDropToUnassigned = (): void => {
-    if (!draggedItem || !draggedFromBillId) return;
-
-    // Remove from bill
-    setBills(prevBills =>
-      prevBills.map(bill =>
-        bill.id === draggedFromBillId
-          ? { ...bill, items: bill.items.filter(item => item.id !== draggedItem.id) }
-          : bill
-      )
-    );
-
-    // Add back to unassigned
-    setUnassignedItems(prev => [...prev, draggedItem]);
-
-    setDraggedItem(null);
-    setDraggedFromBillId(null);
-  };
-
-  const handleBillAreaClick = (billId: string): void => {
+  const handleBillAreaClick = (toBillId: string): void => {
     if (!selectedItem) return;
 
     // Don't move if trying to move to the same bill it's already in
-    if (selectedFromBillId === billId) {
+    if (selectedFromBillId === toBillId) {
       // Just deselect the item
       setSelectedItem(null);
       setSelectedFromBillId(null);
       return;
     }
 
-    // Check if item has quantity > 1
-    if (selectedItem.quantity > 1) {
-      setPendingMove({
-        item: selectedItem,
-        fromBillId: selectedFromBillId,
-        toBillId: billId,
-      });
-      setMoveQuantity(1);
-      setShowQuantityDialog(true);
-      return;
-    }
-
-    // If clicking on instruction box, create new bill
-    if (billId === 'new') {
-      const newBillNumber = bills.length + 1;
-      const newBill: SplitBill = {
-        id: String(newBillNumber),
-        items: [selectedItem],
-        status: BillStatus.Active,
-      };
-
-      // Remove from source
-      if (selectedFromBillId) {
-        setBills(prevBills => {
-          const filtered = prevBills
-            .map(bill =>
-              bill.id === selectedFromBillId
-                ? { ...bill, items: bill.items.filter(item => item.id !== selectedItem.id) }
-                : bill
-            )
-            .filter(bill => bill.items.length > 0);
-          
-          const renumbered = filtered.map((bill, index) => ({
-            ...bill,
-            id: String(index + 1),
-          }));
-          
-          return [...renumbered, newBill];
-        });
-      } else {
-        setUnassignedItems(prev => prev.filter(item => item.id !== selectedItem.id));
-        setBills(prev => [...prev, newBill]);
-      }
-    } else {
-      // Move to existing bill
-      moveItemToDestination(selectedItem, selectedFromBillId, billId, selectedItem.quantity);
-    }
+    moveProductToBill(selectedItem, selectedFromBillId, toBillId);
 
     // Clear selection
     setSelectedItem(null);
@@ -272,179 +144,72 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
   const handleUnassignedAreaClick = (): void => {
     if (!selectedItem || !selectedFromBillId) return;
 
-    // Check if item has quantity > 1
-    if (selectedItem.quantity > 1) {
-      setPendingMove({
-        item: selectedItem,
-        fromBillId: selectedFromBillId,
-        toBillId: null, // null means unassigned
-      });
-      setMoveQuantity(1);
-      setShowQuantityDialog(true);
-      return;
-    }
-
-    // Move the entire item
-    moveItemToDestination(selectedItem, selectedFromBillId, null, selectedItem.quantity);
+    moveProductToBill(selectedItem, selectedFromBillId, EMPTY_GUID);
 
     // Clear selection
     setSelectedItem(null);
     setSelectedFromBillId(null);
   };
 
-  const moveItemToDestination = (item: OrderItem, fromBillId: string | null, toBillId: string | null, quantity: number): void => {
-    const isMovingAll = quantity === item.quantity;
+  const moveProductToBill = (product: string, fromBillId: string | null, toBillId: string | null): void => {
+    if (fromBillId && toBillId) {
+      if (toBillId === 'new') {
+        const newBill: BillViewModel = {
+          Id: crypto.randomUUID(),
+          OrderProducts: [product],
+          Billed: false,
+          Name: `${ t('splitBillDialog.bill') } ${ bills.length }`
+        };
 
-    // Remove from source
-    if (fromBillId) {
-      // Remove from a bill and auto-delete if empty
-      setBills(prevBills => {
-        const updated = prevBills.map(bill => {
-          if (bill.id === fromBillId) {
-            if (isMovingAll) {
-              // Remove entire item
-              return { ...bill, items: bill.items.filter(i => i.id !== item.id) };
-            } else {
-              // Reduce quantity
-              return {
-                ...bill,
-                items: bill.items.map(i =>
-                  i.id === item.id ? { ...i, quantity: i.quantity - quantity } : i
-                ),
-              };
+        setSplitBills(prev => [...prev, newBill]);
+      }
+      else {
+        // Remove from a bill and auto-delete if empty
+        setSplitBills(prevBills => {
+          const updated: BillViewModel[] = prevBills.map(bill => {
+            if (bill.Id === toBillId) {
+              return { ...bill, OrderProducts: bill.OrderProducts.filter((op: string) => op !== product)};
             }
-          }
-          return bill;
+  
+            if (bill.Id === fromBillId) {
+              return { ...bill, OrderProducts: [ ...bill.OrderProducts, product ]};
+            }
+  
+            return bill;
+          });
+          
+          // Filter out empty 
+          const filtered = updated.filter(bill => bill.OrderProducts.length > 0 && bill.Id !== EMPTY_GUID);
+          return filtered;
         });
-        
-        // Filter out empty bills and renumber
-        const filtered = updated.filter(bill => bill.items.length > 0);
-        return filtered.map((bill, index) => ({
-          ...bill,
-          id: String(index + 1),
-        }));
-      });
-    } else {
-      // Remove from unassigned
-      setUnassignedItems(prev => {
-        if (isMovingAll) {
-          return prev.filter(i => i.id !== item.id);
-        } else {
-          return prev.map(i =>
-            i.id === item.id ? { ...i, quantity: i.quantity - quantity } : i
-          );
-        }
-      });
-    }
-
-    // Create the item to add with the specified quantity
-    const itemToAdd = { ...item, quantity };
-
-    // Add to destination
-    if (toBillId === 'new') {
-      // Create a new bill with this item
-      const newBillNumber = bills.length + 1;
-      const newBill: SplitBill = {
-        id: String(newBillNumber),
-        items: [itemToAdd],
-        status: BillStatus.Active,
-      };
-      setBills(prev => [...prev, newBill]);
-    } else if (toBillId) {
-      // Add to a bill
-      setBills(prevBills =>
-        prevBills.map(bill => {
-          if (bill.id === toBillId) {
-            // Check if item already exists in this bill
-            const existingItem = bill.items.find(i => i.id === item.id);
-            if (existingItem) {
-              // Merge quantities
-              return {
-                ...bill,
-                items: bill.items.map(i =>
-                  i.id === item.id ? { ...i, quantity: i.quantity + quantity } : i
-                ),
-              };
-            } else {
-              // Add new item
-              return { ...bill, items: [...bill.items, itemToAdd] };
-            }
-          }
-          return bill;
-        })
-      );
-    } else {
-      // Add to unassigned
-      setUnassignedItems(prev => {
-        const existingItem = prev.find(i => i.id === item.id);
-        if (existingItem) {
-          // Merge quantities
-          return prev.map(i =>
-            i.id === item.id ? { ...i, quantity: i.quantity + quantity } : i
-          );
-        } else {
-          // Add new item
-          return [...prev, itemToAdd];
-        }
-      });
-    }
+      }
+    } 
   };
 
-  const handleQuantityConfirm = (): void => {
-    if (!pendingMove || moveQuantity < 1) return;
+  // TODO: add quantity selection later. Requires handling of duplicate items on bills array
+  // const handleQuantityConfirm = (): void => {
+  //   if (!pendingMove || moveQuantity < 1) return;
 
-    moveItemToDestination(
-      pendingMove.item,
-      pendingMove.fromBillId,
-      pendingMove.toBillId,
-      moveQuantity
-    );
+  //   moveProductToBill(
+  //     pendingMove.item,
+  //     pendingMove.fromBillId,
+  //     pendingMove.toBillId,
+  //   );
 
-    // Clear selection and dialog
-    setSelectedItem(null);
-    setSelectedFromBillId(null);
-    setShowQuantityDialog(false);
-    setPendingMove(null);
-  };
+  //   // Clear selection and dialog
+  //   setSelectedItem(null);
+  //   setSelectedFromBillId(null);
+  //   setShowQuantityDialog(false);
+  //   setPendingMove(null);
+  // };
 
-  const handleQuantityCancel = (): void => {
-    setShowQuantityDialog(false);
-    setPendingMove(null);
-  };
-
-
-
-  const calculateBillTotal = (items: OrderItem[]): number => {
-    return items.reduce((sum, item) => {
-      const itemBasePrice = item.price * item.quantity;
-      const toppingsPrice = item.toppings
-        ? item.toppings.reduce((toppingSum, topping) => toppingSum + (topping.price * topping.quantity), 0)
-        : 0;
-      return sum + itemBasePrice + toppingsPrice;
-    }, 0);
-  };
+  // const handleQuantityCancel = (): void => {
+  //   setShowQuantityDialog(false);
+  //   setPendingMove(null);
+  // };
 
   const handleSave = (): void => {
-    // Filter out empty bills and renumber the remaining ones
-    const nonEmptyBills = bills
-      .filter(bill => bill.items.length > 0)
-      .map((bill, index) => ({
-        ...bill,
-        id: String(index + 1),
-      }));
-
-    // Check if all items are unassigned (no bills with items)
-    if (nonEmptyBills.length === 0) {
-      // Clear the split bill configuration - revert to normal "All products" view
-      saveBillSplit(null);
-    } else {
-      // Save the bill split configuration to global state with only non-empty bills
-      saveBillSplit({
-        bills: nonEmptyBills,
-        unsplitItems: unassignedItems,
-      });
-    }
-    
+    saveBills(splitBills);    
     onClose();
   };
 
@@ -509,12 +274,12 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
             fontWeight={theme.typography.fontWeights.semibold}
             sx={{ mb: theme.spacing.md }}
           >
-            {t('splitBillDialog.allItems')} ({unassignedItems.length})
+            {t('splitBillDialog.allItems')} ({defaultBill?.OrderProducts.length})
           </Typography>
 
           <Box
             onDragOver={handleDragOver}
-            onDrop={handleDropToUnassigned}
+            onDrop={() => handleDropToBill(EMPTY_GUID)}
             sx={{
               position: 'relative',
               display: 'flex',
@@ -523,7 +288,7 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
               minHeight: 200,
               p: theme.spacing.sm,
               borderRadius: theme.borderRadius.medium,
-              backgroundColor: unassignedItems.length === 0 ? 'grey.50' : 'transparent',
+              backgroundColor: defaultBill?.OrderProducts.length === 0 ? 'grey.50' : 'transparent',
               border: selectedItem && selectedFromBillId ? `2px dashed ${theme.colors.primary}` : 'none',
               transition: 'all 0.2s ease',
             }}
@@ -566,7 +331,7 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                 </Typography>
               </Box>
             )}
-            {unassignedItems.length === 0 ? (
+            {defaultBill?.OrderProducts.length === 0 ? (
               <Box sx={{
                 display: 'flex',
                 alignItems: 'center',
@@ -579,23 +344,20 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                 </Typography>
               </Box>
             ) : (
-              unassignedItems.map((item) => {
-                const itemBasePrice = item.price * item.quantity;
-                const toppingsTotalPrice = item.toppings
-                  ? item.toppings.reduce((sum, topping) => sum + (topping.price * topping.quantity), 0)
-                  : 0;
-                const itemTotalPrice = itemBasePrice + toppingsTotalPrice;
+              bills.find(bill => bill.Id === EMPTY_GUID)?.OrderProducts.map((product) => {
+                const orderProduct = orderProducts.find(op => op.Id === product);
+                if (!orderProduct) return;
 
-                const isSelected = selectedItem?.id === item.id && selectedFromBillId === null;
-
+                const isSelected = selectedItem === product && selectedFromBillId === null;
+                
                 return (
                   <Card
-                    key={item.id}
+                    key={product}
                     draggable
-                    onDragStart={() => handleDragStart(item)}
+                    onDragStart={() => handleDragStart(product)}
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleItemClick(item);
+                      handleItemClick(product);
                     }}
                     sx={{
                       cursor: 'pointer',
@@ -623,8 +385,8 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                       gap: theme.spacing.md,
                     }}>
                       <Avatar
-                        src={item.image}
-                        alt={item.name}
+                        src={orderProduct.ImgUrl}
+                        alt={getTranslation(orderProduct.Name, i18n.language)}
                         variant="rounded"
                         sx={{
                           width: 48,
@@ -637,23 +399,24 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                           variant="body2"
                           fontWeight={theme.typography.fontWeights.semibold}
                         >
-                          {item.quantity > 1 && `${item.quantity}x `}{item.name}
+                          {getTranslation(orderProduct?.Name, i18n.language)}
                         </Typography>
-                        {item.toppings && item.toppings.length > 0 && (
+                        {/* TODO: should we label "3 toppings" vs "tomato, lettuce, bacon" ? */}
+                        {orderProduct.ProductToppings.length > 0 && (
                           <Typography
                             variant="caption"
                             color="text.secondary"
                             sx={{ display: 'block', mt: 0.5 }}
                           >
-                            {item.toppings.map(t => `+ ${t.name}`).join(', ')}
+                            {orderProduct.ProductToppings.map(topping => `+ ${getTranslation(topping.Name, i18n.language)}`).join(', ')}
                           </Typography>
                         )}
-                        {item.excludables && item.excludables.length > 0 && (
+                        {orderProduct.ProductExcludables.length > 0 && (
                           <Typography
                             variant="caption"
                             sx={{ display: 'block', mt: 0.5, color: '#dc2626' }}
                           >
-                            {item.excludables.map(e => `− ${e}`).join(', ')}
+                            {orderProduct.ProductExcludables.map(excludable => `− ${getTranslation(excludable.Name, i18n.language)}`).join(', ')}
                           </Typography>
                         )}
                       </Box>
@@ -661,7 +424,7 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                         variant="body2"
                         fontWeight={theme.typography.fontWeights.medium}
                       >
-                        €{itemTotalPrice.toFixed(2)}
+                        {orderProduct.Price}€
                       </Typography>
                     </CardContent>
                   </Card>
@@ -691,14 +454,15 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
             gap: theme.spacing.lg,
           }}>
             {bills.map((bill) => {
-              const total = calculateBillTotal(bill.items);
-              const isRequested = bill.status === BillStatus.Requested;
+              const billOrderProducts = getOrderProductsForBill(bill.OrderProducts);
+              const total = calculateTotalOrderProductsPrice(billOrderProducts);
+              const isRequested = bill.Billed;
 
               return (
                 <Box
-                  key={bill.id}
+                  key={bill.Id}
                   onDragOver={!isRequested ? handleDragOver : undefined}
-                  onDrop={!isRequested ? () => handleDropToBill(bill.id) : undefined}
+                  onDrop={!isRequested ? () => handleDropToBill(bill.Id) : undefined}
                   sx={{
                     position: 'relative',
                     border: `2px dashed ${isRequested ? theme.colors.border : (selectedItem ? theme.colors.primary : theme.colors.border)}`,
@@ -711,9 +475,9 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                   }}
                 >
                   {/* Overlay for clicking when item is selected */}
-                  {selectedItem && !isRequested && selectedFromBillId !== bill.id && (
+                  {selectedItem && !isRequested && selectedFromBillId !== bill.Id && (
                     <Box
-                      onClick={() => handleBillAreaClick(bill.id)}
+                      onClick={() => handleBillAreaClick(bill.Id)}
                       sx={{
                         position: 'absolute',
                         top: 0,
@@ -760,7 +524,7 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                         fontWeight={theme.typography.fontWeights.semibold}
                         color={isRequested ? "text.secondary" : "primary"}
                       >
-                        {t('splitBillDialog.bill')} {bill.id}
+                        {bill.Name}
                       </Typography>
                       {isRequested && (
                         <Chip 
@@ -785,12 +549,12 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                         fontWeight={theme.typography.fontWeights.bold}
                         color={isRequested ? "text.secondary" : "primary"}
                       >
-                        €{total.toFixed(2)}
+                        {total}€
                       </Typography>
                     </Box>
                   </Box>
 
-                  {bill.items.length === 0 ? (
+                  {bill.OrderProducts.length === 0 ? (
                     <Box sx={{
                       display: 'flex',
                       alignItems: 'center',
@@ -808,23 +572,20 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                       flexDirection: 'column',
                       gap: theme.spacing.sm,
                     }}>
-                      {bill.items.map((item) => {
-                        const itemBasePrice = item.price * item.quantity;
-                        const toppingsTotalPrice = item.toppings
-                          ? item.toppings.reduce((sum, topping) => sum + (topping.price * topping.quantity), 0)
-                          : 0;
-                        const itemTotalPrice = itemBasePrice + toppingsTotalPrice;
+                      {bill.OrderProducts.map((product) => {
+                        const orderProduct = orderProducts.find(op => op.Id === product);
+                        const isSelected = selectedItem === product && selectedFromBillId === bill.Id;
 
-                        const isSelected = selectedItem?.id === item.id && selectedFromBillId === bill.id;
+                        if (!orderProduct) return;
 
                         return (
                           <Card
-                            key={item.id}
+                            key={orderProduct.Id}
                             draggable={!isRequested}
-                            onDragStart={!isRequested ? () => handleDragStart(item, bill.id) : undefined}
+                            onDragStart={!isRequested ? () => handleDragStart(product, bill.Id) : undefined}
                             onClick={!isRequested ? (e) => {
                               e.stopPropagation();
-                              handleItemClick(item, bill.id);
+                              handleItemClick(product, bill.Id);
                             } : undefined}
                             sx={{
                               cursor: isRequested ? 'default' : 'pointer',
@@ -851,8 +612,8 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                               gap: theme.spacing.sm,
                             }}>
                               <Avatar
-                                src={item.image}
-                                alt={item.name}
+                                src={orderProduct.ImgUrl}
+                                alt={getTranslation(orderProduct.Name, i18n.language)}
                                 variant="rounded"
                                 sx={{
                                   width: 36,
@@ -865,23 +626,23 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                                   variant="caption"
                                   fontWeight={theme.typography.fontWeights.medium}
                                 >
-                                  {item.quantity > 1 && `${item.quantity}x `}{item.name}
+                                  {getTranslation(orderProduct.Name, i18n.language)}
                                 </Typography>
-                                {item.toppings && item.toppings.length > 0 && (
+                                {orderProduct.ProductToppings.length > 0 && (
                                   <Typography
                                     variant="caption"
                                     color="text.secondary"
                                     sx={{ display: 'block', fontSize: '0.65rem', mt: 0.25 }}
                                   >
-                                    {item.toppings.map(t => `+ ${t.name}`).join(', ')}
+                                    {orderProduct.ProductToppings.map(topping => `+ ${getTranslation(topping.Name, i18n.language)}`).join(', ')}
                                   </Typography>
                                 )}
-                                {item.excludables && item.excludables.length > 0 && (
+                                {orderProduct.ProductExcludables.length > 0 && (
                                   <Typography
                                     variant="caption"
                                     sx={{ display: 'block', fontSize: '0.65rem', mt: 0.25, color: '#dc2626' }}
                                   >
-                                    {item.excludables.map(e => `− ${e}`).join(', ')}
+                                    {orderProduct.ProductExcludables.map(excludable => `− ${getTranslation(excludable.Name, i18n.language)}`).join(', ')}
                                   </Typography>
                                 )}
                               </Box>
@@ -889,7 +650,7 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
                                 variant="caption"
                                 fontWeight={theme.typography.fontWeights.medium}
                               >
-                                €{itemTotalPrice.toFixed(2)}
+                                {orderProduct.Price}€
                               </Typography>
                             </CardContent>
                           </Card>
@@ -901,8 +662,8 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
               );
             })}
 
-            {/* Instruction Box for New Bill - Show only when there are unassigned items or a bill item is selected */}
-            {(unassignedItems.length > 0 || (selectedItem && selectedFromBillId)) && (
+            {/* Instruction Box for New Bill - Show only when a bill item is selected */}
+            {(selectedItem && selectedFromBillId) && (
               <Box
                 onDragOver={handleDragOver}
                 onDrop={() => handleDropToBill('new')}
@@ -979,8 +740,9 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
         </Box>
       </Box>
 
+      {/* TODO: add quantity selection later */}
       {/* Quantity Selection Dialog */}
-      <Dialog
+      {/* <Dialog
         open={showQuantityDialog}
         onClose={handleQuantityCancel}
         maxWidth="xs"
@@ -1099,7 +861,7 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
             </Button>
           </Box>
         </Box>
-      </Dialog>
+      </Dialog> */}
 
       {/* Footer Actions */}
       <Box sx={{ 

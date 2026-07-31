@@ -1,25 +1,25 @@
-export enum Dietaries {
-  GlutenFree = 0,
-  LactoseFree = 1,
-  LowLactose = 2,
-  Vegetarian = 3,
-  Vegan = 4,
+export enum Dietary {
+  LactoseFree,
+  LowLactose,
+  Vegan,
+  Vegetarian,
+  GlutenFree,
 }
 
 // Short codes for each dietary option
-export const DietaryCode: Record<Dietaries, string> = {
-  [Dietaries.GlutenFree]: 'G',
-  [Dietaries.LactoseFree]: 'L',
-  [Dietaries.LowLactose]: 'VL',
-  [Dietaries.Vegetarian]: 'V',
-  [Dietaries.Vegan]: 'VEG',
+export const DietaryCode: Record<Dietary, string> = {
+  [Dietary.LactoseFree]: 'L',
+  [Dietary.LowLactose]: 'VL',
+  [Dietary.Vegan]: 'VEG',
+  [Dietary.Vegetarian]: 'V',
+  [Dietary.GlutenFree]: 'G',
 };
 
 // English names for each dietary option (used as translation keys)
-export const DietaryName: Record<Dietaries, string> = {
-  [Dietaries.GlutenFree]: 'glutenFree',
-  [Dietaries.LactoseFree]: 'lactoseFree',
-  [Dietaries.LowLactose]: 'lowLactose',
-  [Dietaries.Vegetarian]: 'vegetarian',
-  [Dietaries.Vegan]: 'vegan',
+export const DietaryName: Record<Dietary, string> = {
+  [Dietary.LactoseFree]: 'lactoseFree',
+  [Dietary.LowLactose]: 'lowLactose',
+  [Dietary.Vegan]: 'vegan',
+  [Dietary.Vegetarian]: 'vegetarian',
+  [Dietary.GlutenFree]: 'glutenFree',
 };

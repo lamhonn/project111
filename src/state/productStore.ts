@@ -1,8 +1,8 @@
 import { atom } from 'jotai';
-import { Product, ProductExcludable, ProductTopping } from '../types/models';
+import { Product } from '../types/models';
 import { ProductService } from '../api/services/productService';
-
-const jwtToken = "sometoken"; // TODO: derive from token
+import { orderProductsAtom } from './orderStore';
+import { OrderProductViewModel } from '../types/viewModels/orderProductViewModel';
 
 export const productsAtom = atom<Product[]>([]);
 
@@ -48,5 +48,32 @@ export const getProductById = atom(
         finally {
             set(loadingAtom, false);
         }
+    }
+);
+
+export const addProductToOrderAtom = atom(
+    null, 
+    (get, set, { 
+        product, 
+        totalPrice, 
+        selectedToppings, 
+        selectedExcludables 
+    }: { 
+        product: Product, 
+        totalPrice: number, 
+        selectedToppings: any[], 
+        selectedExcludables: any[] 
+    }) => {
+        const orderProduct: OrderProductViewModel = {
+            Id: crypto.randomUUID(), // NOTE: will also be persisted to DB, contrary to the nature of ViewModel objects
+            ProductId: product.Id,
+            Name: product.Name,
+            ImgUrl: product.ImgUrl,
+            Price: totalPrice,
+            ProductToppings: selectedToppings,
+            ProductExcludables: selectedExcludables,
+        };
+
+        set(orderProductsAtom, (prev) => [...prev, orderProduct]);
     }
 );

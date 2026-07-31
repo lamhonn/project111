@@ -5,7 +5,8 @@
     "bill": "Bill",
     "total": "Total",
     "table": "Table",
-    "campaigns": "Campaigns"
+    "campaigns": "Campaigns",
+    "error": "Error"
   },
   "dietary": {
     "glutenFree": "Gluten-free",
@@ -13,6 +14,11 @@
     "lowLactose": "Low lactose",
     "vegetarian": "Vegetarian",
     "vegan": "Vegan"
+  },
+  "login": {
+    "enterPin": "Enter PIN",
+    "pleaseEnterPin": "Please enter your 8-digit PIN to login.",
+    "authorizationRequired": "Authorization required"
   },
   "welcome": {
     "title": "Welcome!",
@@ -27,8 +33,10 @@
     "restaurant": "Restaurant"
   },
   "orderStatus": {
+    "pending": "Pending",
     "received": "Received",
-    "preparing": "Preparing"
+    "preparing": "Preparing",
+    "completed": "Completed"
   },
   "productCard": {
     "addItem": "Add Item"

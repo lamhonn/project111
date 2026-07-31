@@ -1,10 +1,12 @@
 import React from 'react';
 import { Chip, keyframes } from '@mui/material';
 import { theme } from '../../theme/theme';
+import { OrderStatus } from '../../types/enums/orderStatus';
+import { t } from 'i18next';
+import { getOrderStatusLabel } from '../../utils/orderUtils';
 
 interface StatusPillProps {
-  status: 'received' | 'preparing' | 'ready';
-  label: string;
+  status: OrderStatus;
 }
 
 // Pulsing animation for active statuses
@@ -17,20 +19,22 @@ const pulse = keyframes`
   }
 `;
 
-const StatusPill: React.FC<StatusPillProps> = ({ status, label }) => {
+const StatusPill: React.FC<StatusPillProps> = ({ status }) => {
+
   const getStatusColor = () => {
     switch (status) {
-      case 'received':
+      case OrderStatus.RECEIVED:
         return {
           backgroundColor: '#22c55e', // Green
           color: 'white',
         };
-      case 'preparing':
+      case OrderStatus.PENDING:
+      case OrderStatus.PREPARING:
         return {
           backgroundColor: '#eab308', // Yellow/Warning
           color: 'white',
         };
-      case 'ready':
+      case OrderStatus.COMPLETED:
         return {
           backgroundColor: '#22c55e', // Green
           color: 'white',
@@ -44,7 +48,8 @@ const StatusPill: React.FC<StatusPillProps> = ({ status, label }) => {
   };
 
   const colors = getStatusColor();
-  const shouldPulse = status === 'received' || status === 'preparing';
+  const label = getOrderStatusLabel(status);
+  const shouldPulse = status === OrderStatus.PENDING || status === OrderStatus.RECEIVED || status === OrderStatus.PREPARING;
 
   return (
     <Chip

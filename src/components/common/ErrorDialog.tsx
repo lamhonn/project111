@@ -4,21 +4,22 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import CloseIcon from '@mui/icons-material/Close';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
+import { useSetAtom } from 'jotai';
+import { setCallServiceAtom } from '../../state/serviceStore';
 
 interface ErrorDialogProps {
   isOpen: boolean;
-  onCallService: () => void;
   onClose: () => void;
 }
 
 const ErrorDialog: React.FC<ErrorDialogProps> = ({ 
   isOpen, 
-  onCallService,
   onClose,
 }) => {
   const { t } = useTranslation();
   const [serviceCalled, setServiceCalled] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const callService = useSetAtom(setCallServiceAtom);
 
   // Prevent scrolling when dialog is open
   useEffect(() => {
@@ -48,7 +49,7 @@ const ErrorDialog: React.FC<ErrorDialogProps> = ({
   const handleCallService = () => {
     setServiceCalled(true);
     setCountdown(10); // 10 second cooldown
-    onCallService();
+    callService();
   };
 
   if (!isOpen) return null;

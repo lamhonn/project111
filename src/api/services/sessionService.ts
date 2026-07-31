@@ -9,5 +9,8 @@ export const SessionService = {
         return data;
     },
 
-    // TODO: end session
+    endSession: async (session: SessionDto) => {
+        const { data } = await api.patch<SessionDto>(baseUrl, session);
+        return data;        
+    }
 }

@@ -12,30 +12,23 @@ import {
 import PersonIcon from '@mui/icons-material/Person';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
-import { languageAtom } from '../../state/settingsStore';
+import { languageAtom, restaurantNameAtom } from '../../state/uiStore';
 import { openConfirmDialogAtom } from '../../state/confirmDialogStore';
 import { theme } from '../../theme/theme';
 import Toaster from '../common/Toaster';
-import { OrderStatus } from '../../types/enums/orderStatus';
-import { orderStatusAtom } from '../../state/orderStore';
+import { serviceCalledAtom, setCallServiceAtom } from '../../state/serviceStore';
 
-interface MenuHeaderProps {
-  restaurantName?: string;
-  onTotalClick?: () => void;
-}
-
-const MenuHeader: React.FC<MenuHeaderProps> = ({
-  restaurantName = 'Restaurant',
-  onTotalClick,
-}) => {
+const MenuHeader: React.FC = () => {
   const { t, i18n } = useTranslation();
 
-  const orderStatus = useAtomValue(orderStatusAtom);
   const [language, setLanguage] = useAtom(languageAtom);
   const openConfirmDialog = useSetAtom(openConfirmDialogAtom);
 
-  const [animateStatus, setAnimateStatus] = useState(false);
-  const [prevStatus, setPrevStatus] = useState<OrderStatus | null>(orderStatus ?? null);
+  const callService = useSetAtom(setCallServiceAtom);
+  const serviceCalled = useAtomValue(serviceCalledAtom);
+
+  const restaurantName = useAtomValue(restaurantNameAtom)
+
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [showToaster, setShowToaster] = useState(false);
 
@@ -60,6 +53,7 @@ const MenuHeader: React.FC<MenuHeaderProps> = ({
       cancelText: t('common.cancel'),
       confirmText: t('common.confirm'),
       onConfirm: () => {
+        callService();
         setShowToaster(true);
       },
     });
@@ -89,40 +83,6 @@ const MenuHeader: React.FC<MenuHeaderProps> = ({
       i18n.changeLanguage(language);
     }
   }, [language, i18n]);
-
-  useEffect(() => {
-    if (orderStatus && orderStatus !== prevStatus) {
-      setAnimateStatus(true);
-      setPrevStatus(orderStatus);
-      const timer = setTimeout(() => setAnimateStatus(false), 600);
-      return () => clearTimeout(timer);
-    }
-  }, [orderStatus, prevStatus]);
-
-  const getStatusColor = (status: OrderStatus | null) => {
-    switch (status) {
-      case OrderStatus.RECEIVED:
-        return {
-          bg: '#FEF3C7',
-          text: '#92400E',
-          border: '#FCD34D',
-        };
-      case OrderStatus.PREPARING:
-        return {
-          bg: '#D1FAE5',
-          text: '#065F46',
-          border: '#6EE7B7',
-        };
-      default:
-        return {
-          bg: 'grey.100',
-          text: 'text.secondary',
-          border: 'grey.200',
-        };
-    }
-  };
-
-  const statusColors = orderStatus ? getStatusColor(orderStatus) : null;
 
   return (
     <AppBar
@@ -158,7 +118,7 @@ const MenuHeader: React.FC<MenuHeaderProps> = ({
             {restaurantName}
           </Typography>
 
-          {/* Right side - Language Selector & Bill Button */}
+          {/* Right side - Language Selector & Service Button */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             {/* Language Selector */}
             <Button
@@ -228,6 +188,7 @@ const MenuHeader: React.FC<MenuHeaderProps> = ({
               onClick={handleCallService}
               startIcon={<PersonIcon />}
               variant="outlined"
+              disabled={serviceCalled}
               sx={{
                 borderColor: theme.colors.border,
                 color: 'text.primary',

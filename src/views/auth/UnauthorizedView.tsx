@@ -2,7 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Box, Container, Paper, Typography, TextField } from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
 import { theme } from '../../theme/theme';
-import { useTabletAuth } from '../../api/hooks/auth.hooks';
+import { errorAtom, isAuthorizedAtom, loginAtom } from '../../state/authStore';
+import { useAtomValue, useSetAtom } from 'jotai';
+import { useTranslation } from 'react-i18next';
 
 /**
  * PIN Entry View
@@ -11,11 +13,15 @@ import { useTabletAuth } from '../../api/hooks/auth.hooks';
  * User must enter an 8-digit PIN to gain access.
  */
 const UnauthorizedView: React.FC = () => {
+  const { t } = useTranslation();
   const [pin, setPin] = useState<string[]>(Array(8).fill(''));
   const [error, setError] = useState<string>('');
   const [isShaking, setIsShaking] = useState(false);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const { submitPin } = useTabletAuth();
+
+  const login = useSetAtom(loginAtom);
+  const isAuthorized = useAtomValue(isAuthorizedAtom);
+  const loginError = useAtomValue(errorAtom);
 
   // Focus first input on mount
   useEffect(() => {
@@ -41,10 +47,10 @@ const UnauthorizedView: React.FC = () => {
     // Auto-submit when all 8 digits are entered
     if (value && index === 7 && newPin.every(digit => digit !== '')) {
       const pinString = newPin.join('');
-      const result = submitPin(pinString);
+      login(pinString);
 
-      if (!result.success) {
-        setError(result.error || 'Invalid PIN');
+      if (isAuthorized) {
+        setError(loginError || 'Invalid PIN');
         setIsShaking(true);
         setTimeout(() => {
           setIsShaking(false);
@@ -71,9 +77,9 @@ const UnauthorizedView: React.FC = () => {
       inputRefs.current[7]?.focus();
       
       // Auto-submit
-      const result = submitPin(pastedData);
-      if (!result.success) {
-        setError(result.error || 'Invalid PIN');
+      const result = login(pastedData);
+      if (!isAuthorized) {
+        setError(loginError || 'Invalid PIN');
         setIsShaking(true);
         setTimeout(() => {
           setIsShaking(false);
@@ -130,11 +136,11 @@ const UnauthorizedView: React.FC = () => {
             fontWeight={theme.typography.fontWeights.bold}
             gutterBottom
           >
-            Enter PIN
+            {t('login.enterPin')}
           </Typography>
 
           <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-            Please enter your 8-digit PIN to login. 
+            {t('login.pleaseEnterPin')} 
           </Typography>
 
           {/* PIN Input Grid */}
@@ -208,7 +214,7 @@ const UnauthorizedView: React.FC = () => {
             }}
           >
             <Typography variant="caption" color="text.secondary">
-              Authorization required
+              {t('login.authorizationRequired')}
             </Typography>
           </Box>
         </Paper>

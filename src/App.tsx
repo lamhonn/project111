@@ -8,7 +8,7 @@ import ErrorBoundary from './components/common/ErrorBoundary';
 import AuthGuard from './components/auth/AuthGuard';
 import { store } from './state/store';
 import { SessionStatus } from './types/enums/sessionStatus';
-import { sessionStatusAtom, setStartSession } from './state/sessionStore';
+import { sessionStatusAtom, setStartSessionAtom } from './state/sessionStore';
 // import './App.css';
 
 // Create a MUI theme with brand colors
@@ -47,7 +47,7 @@ const muiTheme = createTheme({
 const AppContent: React.FC = () => {
   // const sessionState = useAtomValue(sessionStateAtom);
   const sessionState = useAtomValue(sessionStatusAtom);
-  const startSession = useSetAtom(setStartSession);
+  const startSession = useSetAtom(setStartSessionAtom);
 
   const handleStartSession = () => {
     startSession();

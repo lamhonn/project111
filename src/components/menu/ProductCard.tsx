@@ -26,7 +26,7 @@ interface Props {
 }
 
 const ProductCard: React.FC<Props> = (props: Props) => {
-  const { productId: productId, imgUrl, name, price } = props;
+  const { productId, imgUrl, name, price } = props;
   const { t, i18n } = useTranslation();
 
   const localizedName = getTranslation(name, i18n.language);
@@ -134,7 +134,6 @@ const ProductCard: React.FC<Props> = (props: Props) => {
       </Card>
 
       <ProductDialog
-        productId={productId}
         isOpen={dialogOpen}
         onClose={handleCloseDialog}
       />

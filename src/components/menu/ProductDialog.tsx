@@ -18,17 +18,13 @@ import FastfoodIcon from '@mui/icons-material/Fastfood';
 import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
-import { orderProductsAtom } from '../../state/orderStore';
-import { Dietaries } from '../../types/enums';
-import { getProductById, loadingAtom, selectedProductAtom } from '../../state/productStore';
+import { Dietary } from '../../types/enums';
+import { addProductToOrderAtom, getProductById, loadingAtom, selectedProductAtom } from '../../state/productStore';
 import { getTranslation } from '../../utils/multilingualNameUtils';
 import { ProductExcludable, ProductTopping } from '../../types/models';
 import { getDietaryCodes, getDietaryName } from '../../utils/dietaryUtils';
-import { OrderProductViewModel } from '../../types/viewModels/orderProductViewModel';
-import { randomUUID } from 'crypto';
 
 interface ProductDialogProps {
-  productId: string;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -49,7 +45,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ isOpen, onClose }) => {
   const [toppings, setToppings] = useState<ProductTopping[]>();
   const [excludables, setExcludables] = useState<ProductExcludable[]>();
 
-  const [orderProducts, setOrderProducts] = useAtom(orderProductsAtom);
+  const addProductToOrder = useSetAtom(addProductToOrderAtom);
 
   useEffect(() => {
     getProduct();
@@ -65,16 +61,12 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ isOpen, onClose }) => {
 
   const handleAddToOrder = (): void => {
     if (product) {
-      const orderProduct: OrderProductViewModel = {
-        Id: randomUUID(),
-        ProductId: product.Id,
-        Name: product.Name,
-        ImgUrl: product.ImgUrl,
-        Price: totalPrice,
-        ProductToppings: selectedToppings,
-        ProductExcludables: selectedExcludables
-      }
-      setOrderProducts([...orderProducts, orderProduct]);
+      addProductToOrder({
+        product,
+        totalPrice,
+        selectedToppings,
+        selectedExcludables
+      });
     }
     
     onClose();
@@ -250,7 +242,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ isOpen, onClose }) => {
               fontWeight={theme.typography.fontWeights.medium}
               color="text.secondary"
             >
-              ({getDietaryCodes(product.Dietaries as Dietaries[]).join(', ')})
+              ({getDietaryCodes(product.Dietaries as Dietary[]).join(', ')})
             </Typography>
           )}
         </Box>

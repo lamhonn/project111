@@ -21,12 +21,10 @@ import { theme } from '../../theme/theme';
 import { openConfirmDialogAtom } from '../../state/confirmDialogStore';
 import { showToasterAtom } from '../../state/toasterStore';
 import { getTranslation } from '../../utils/multilingualNameUtils';
-import { orderProductsAtom, orderStatusAtom } from '../../state/orderStore';
+import { createOrderAtom, orderProductsAtom } from '../../state/orderStore';
 import { OrderProductViewModel } from '../../types/viewModels/orderProductViewModel';
-import { randomUUID } from 'crypto';
-import { OrderStatus } from '../../types/enums/orderStatus';
 import { calculateTotalOrderPrice } from '../../utils/orderUtils';
-import { tabletNumberAtom } from '../../state/settingsStore';
+import { tabletNumberAtom } from '../../state/uiStore';
 
 interface OrderSummaryDialogProps {
   isOpen: boolean;
@@ -40,7 +38,7 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
   const { t, i18n } = useTranslation();
   
   const [orderProducts, setOrderProducts] = useAtom(orderProductsAtom);
-  const [orderStatus, setOrderStatus] = useAtom(orderStatusAtom);
+  const createOrder = useSetAtom(createOrderAtom);
 
   const tableNumber = useAtomValue(tabletNumberAtom);
   const openConfirmDialog = useSetAtom(openConfirmDialogAtom);
@@ -51,28 +49,6 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
   // const addOrderItem = useSetAtom(addOrderItemAtom);
 
   // TODO: add "Forgot something" products
-  // Filter products for quick add: Sides (Category 2) and non-alcoholic Drinks (Category 3)
-  // const quickAddProducts: ProductWithCategory[] = MOCK_PRODUCTS.filter(
-  //   (product) => 
-  //     (product.Category === 2 || product.Category === 3) && // Sides or Drinks
-  //   !product.AgeRestrictied && // Non-alcoholic
-  //   product.Enabled
-  // ).slice(0, 6); // Limit to 6 products for display
-
-  // const handleQuickAddProduct = (product: Product): void => {
-  //   const productName = getTranslation(product.Name, i18n.language);
-
-  //   const newItem: OrderProductViewModel = {
-  //     Id: randomUUID(),
-  //     ProductId: product.Id,
-  //     Name: productName,
-  //     Price: product.Price,
-  //     ProductToppings: {},
-  //     ProductExcludables: new Set(),
-  //   };
-  //   const tempArray = orderProducts;
-  //   tempArray.push(newItem);
-  // };
 
   const handleRemoveItem = (itemId: string): void => {
     const updatedArray = orderProducts.filter(product => product.Id !== itemId);
@@ -84,7 +60,7 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
     if (item) {
       const newItem: OrderProductViewModel = {
         ...item,
-        Id: randomUUID(),
+        Id: crypto.randomUUID(),
       }
       const updatedArray = [...orderProducts, newItem];
       setOrderProducts(updatedArray);
@@ -98,12 +74,10 @@ const OrderSummaryDialog: React.FC<OrderSummaryDialogProps> = ({
         cancelText: t('common.cancel'),
         confirmText: t('common.confirm'),
         onConfirm: async () => {
-          const orderId = randomUUID(); // TODO:
+          createOrder();
+          
           onClose();
 
-          setOrderStatus(prev => {
-            return {...prev, [orderId]: OrderStatus.PENDING};
-          });
           showToaster({
             message: t('toaster.orderPreparing'),
             severity: 'warning', // Yellow color for in-progress status

@@ -33,7 +33,7 @@ const Toaster: React.FC<ToasterProps> = ({
         onClose={onClose}
         severity={severity}
         variant="filled"
-        sx={{ width: '100%', borderRadius: theme.borderRadius.xlarge}}
+        sx={{ width: '100%', borderRadius: theme.borderRadius.xlarge, boxShadow: theme.shadows.md }}
         icon={false}
       >
         {message}

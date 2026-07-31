@@ -9,16 +9,16 @@ import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Toaster from '../../components/common/Toaster';
 import CategoryPill from '../../components/category/CategoryPill';
 import MenuHeader from '../../components/header/MenuHeader';
-import TotalOrderSummaryDialog from '../../components/order/TotalOrderSummaryDialog';
+import BillSummaryDialog from '../../components/order/BillSummaryDialog';
 import ThankYouDialog from '../../components/order/ThankYouDialog';
 import LockedDialog from '../../components/order/LockedDialog';
 import { toasterAtom, hideToasterAtom } from '../../state/toasterStore';
-import { menusAtom, loadingAtom, getActiveMenus, getMenuCategories, getMenuProducts, menuCategoriesAtom, menuProductsAtom } from '../../state/menuStore';
+import { loadingAtom, getActiveMenus, getMenuCategories, getMenuProducts, menuCategoriesAtom, menuProductsAtom } from '../../state/menuStore';
 import { getTranslation } from '../../utils/multilingualNameUtils';
 import { theme } from '../../theme';
-import { orderStatusAtom } from '../../state/orderStore';
 import { sessionStatusAtom } from '../../state/sessionStore';
 import { SessionStatus } from '../../types/enums/sessionStatus';
+import { lockedAtom } from '../../state/uiStore';
 
 const MenuView: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -35,8 +35,9 @@ const MenuView: React.FC = () => {
   const menuProducts = useAtomValue(menuProductsAtom);
   const getProducts = useSetAtom(getMenuProducts);
 
-  const orderStatus = useAtomValue(orderStatusAtom);
   const sessionStatus = useAtomValue(sessionStatusAtom)
+
+  const isLocked = useAtomValue(lockedAtom)
 
   const [activeCategory, setActiveCategory] = useState<number>(0);
   const [showTotalDialog, setShowTotalDialog] = useState<boolean>(false);
@@ -149,10 +150,7 @@ const MenuView: React.FC = () => {
   return (
     <Box sx={{ pb: 10 }}>
       {/* Fixed Menu Header */}
-      <MenuHeader
-        restaurantName="Demo Restaurant" // TODO:
-        onTotalClick={() => setShowTotalDialog(true)}
-      />
+      <MenuHeader />
 
       {/* Sticky Category Pills */}
       <Box
@@ -252,10 +250,10 @@ const MenuView: React.FC = () => {
 
       {/* TODO */}
       {/* Locked Dialog - shown when table is locked by staff */}
-      {/* <LockedDialog isOpen={isLocked} /> */}
+      <LockedDialog isOpen={isLocked} />
 
       {/* Total Order Summary Dialog */}
-      <TotalOrderSummaryDialog
+      <BillSummaryDialog
         isOpen={showTotalDialog}
         onClose={() => setShowTotalDialog(false)}
       />
