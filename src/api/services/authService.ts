@@ -9,7 +9,7 @@ export const AuthService = {
     },
 
     refresh: async () => {
-        const { data } = await api.post<string>(`${baseUrl}/refresh`);
+        const { data } = await api.post<string>(`${baseUrl}/tablet/refresh`);
         return data;
     },
 }
