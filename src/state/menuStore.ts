@@ -2,8 +2,7 @@ import { atom } from 'jotai';
 import { Menu } from '../types/models/menu';
 import { MenuService } from '../api/services/menuService';
 import { MenuCategory, MenuProduct } from '../types/models';
-
-const organizationId = "someOrganization"; // TODO: derive from token
+import { organizationIdAtom } from './authStore';
 
 export const menusAtom = atom<Menu[]>([]);
 
@@ -20,8 +19,12 @@ export const getActiveMenus = atom(
     async (get, set) => {
         set(loadingAtom, true);
         set(errorAtom, null);
-
+        
         try {
+            const organizationId = get(organizationIdAtom);
+
+            if (!organizationId) return;
+
             const response = await MenuService.getActiveByOrganizationId(organizationId);
             set(menusAtom, response);
         }
