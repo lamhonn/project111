@@ -9,6 +9,7 @@ import { OrderProductToppingDto } from '../types/dtos/orderProductToppingDto';
 import { OrderService } from '../api/services/orderService';
 import { BillViewModel } from '../types/viewModels/billViewModel';
 import { organizationIdAtom, tabletIdAtom, userIdAtom } from './authStore';
+import { OrderStatus } from '../types/enums/orderStatus';
 
 const EMPTY_GUID = '00000000-0000-0000-0000-000000000000';
 
@@ -56,6 +57,7 @@ export const createOrderAtom = atom(
                     TabletId: tabletId,
                     SessionId: sessionId,
                     TotalPrice: totalPrice, // NOTE: total price including toppings
+                    OrderStatus: OrderStatus.RECEIVED,
                     OrderProducts: orderProducts
                 }
 

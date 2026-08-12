@@ -10,8 +10,6 @@ export const loadingAtom = atom(false);
 
 export const selectedProductIdAtom = atom<string>('');
 
-export const selectedProductAtom = atom<Product | null>(null);
-
 export const errorAtom = atom<string | null>(null);
 
 export const getProductById = atom(
@@ -40,7 +38,6 @@ export const getProductById = atom(
                 // update the array if some product has been modified
                 set(productsAtom, existingProducts.map(product => product.Id === response.Id && product === response ? response : product))
             }
-            set(selectedProductAtom, response);   
         } 
         catch (error) {
             set(errorAtom, "Error fetching product");

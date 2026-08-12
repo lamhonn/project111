@@ -9,11 +9,10 @@ import ConfirmDialog from '../../components/common/ConfirmDialog';
 import Toaster from '../../components/common/Toaster';
 import CategoryPill from '../../components/category/CategoryPill';
 import MenuHeader from '../../components/header/MenuHeader';
-import BillSummaryDialog from '../../components/order/BillSummaryDialog';
 import ThankYouDialog from '../../components/order/ThankYouDialog';
 import LockedDialog from '../../components/order/LockedDialog';
 import { toasterAtom, hideToasterAtom } from '../../state/toasterStore';
-import { loadingAtom, getActiveMenus, getMenuCategories, getMenuProducts, menuCategoriesAtom, menuProductsAtom } from '../../state/menuStore';
+import { loadingAtom, getActiveMenus, getMenuCategoriesAtom } from '../../state/menuStore';
 import { getTranslation } from '../../utils/multilingualNameUtils';
 import { theme } from '../../theme';
 import { sessionStatusAtom } from '../../state/sessionStore';
@@ -29,18 +28,13 @@ const MenuView: React.FC = () => {
   // Fetch data from API hooks
   const getMenus = useSetAtom(getActiveMenus);
 
-  const menuCategories = useAtomValue(menuCategoriesAtom);
-  const getCategories = useSetAtom(getMenuCategories);
-
-  const menuProducts = useAtomValue(menuProductsAtom);
-  const getProducts = useSetAtom(getMenuProducts);
+  const menuCategories = useAtomValue(getMenuCategoriesAtom);
 
   const sessionStatus = useAtomValue(sessionStatusAtom)
 
   const isLocked = useAtomValue(lockedAtom)
 
   const [activeCategory, setActiveCategory] = useState<number>(0);
-  const [showTotalDialog, setShowTotalDialog] = useState<boolean>(false);
   const categoryRefs = useRef<(HTMLDivElement | null)[]>([]);
   const categoryPillRefs = useRef<(HTMLDivElement | null)[]>([]);
   const categoryBarRef = useRef<HTMLDivElement | null>(null);
@@ -55,8 +49,6 @@ const MenuView: React.FC = () => {
 
   useEffect(() => {
     getMenus();
-    getCategories();
-    getProducts();
   }, []);
 
   // Prevent scrolling when bill is requested
@@ -74,11 +66,6 @@ const MenuView: React.FC = () => {
       document.body.style.position = 'unset';
     };
   }, [sessionStatus]);
-
-  // Group products by category
-  const productsByCategory = menuCategories.map((category, index) => {
-    return menuProducts.filter(product => product.MenuCategoryId === category.Id);
-  });
 
   // Scroll to category
   const handleCategoryClick = (index: number): void => {
@@ -226,7 +213,7 @@ const MenuView: React.FC = () => {
                 gap: 3,
               }}
             >
-              {productsByCategory[index].map((product) => {                
+              {category.Products.map((product) => {                
                 return (
                   <ProductCard
                     key={product.Id}
@@ -251,12 +238,6 @@ const MenuView: React.FC = () => {
       {/* TODO */}
       {/* Locked Dialog - shown when table is locked by staff */}
       <LockedDialog isOpen={isLocked} />
-
-      {/* Total Order Summary Dialog */}
-      <BillSummaryDialog
-        isOpen={showTotalDialog}
-        onClose={() => setShowTotalDialog(false)}
-      />
 
       {/* Global Confirm Dialog */}
       <ConfirmDialog />

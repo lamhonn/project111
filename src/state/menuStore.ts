@@ -1,14 +1,11 @@
 import { atom } from 'jotai';
 import { Menu } from '../types/models/menu';
 import { MenuService } from '../api/services/menuService';
-import { MenuCategory, MenuProduct } from '../types/models';
+import { MenuProduct } from '../types/models';
 import { organizationIdAtom } from './authStore';
+import { MenuCategoryViewModel } from '../types/viewModels/menuCategoryViewModel';
 
 export const menusAtom = atom<Menu[]>([]);
-
-export const menuProductsAtom = atom<MenuProduct[]>([]);
-
-export const menuCategoriesAtom = atom<MenuCategory[]>([]);
 
 export const loadingAtom = atom(false);
 
@@ -37,36 +34,21 @@ export const getActiveMenus = atom(
     }
 );
 
-export const getMenuCategories = atom(
-    (get) => get(menuCategoriesAtom),
-    (get, set) => {
-        set(errorAtom, null);
+export const getMenuCategoriesAtom = atom(
+    (get) => {
+        const menus = get(menusAtom);
 
-        try {
-            const menus = get(menusAtom);
-            const menuCategories: MenuCategory[] = menus.flatMap(menu => menu.MenuCategories);
+        const menuCategories: MenuCategoryViewModel[] = menus.flatMap(menu => 
+            menu.MenuCategories.map(menuCategory => 
+            (
+                {
+                    Id: menuCategory.Id,
+                    Name: menuCategory.Name,
+                    Products: menu.MenuProducts.filter(product => product.MenuCategoryId === menuCategory.Id)
+                }
+            )
+        ));
 
-            set(menuCategoriesAtom, menuCategories);
-        }
-        catch (error) {
-            set(errorAtom, "Error loading categories");
-        }
-    }
-);
-
-export const getMenuProducts = atom(
-    (get) => get(menuProductsAtom),
-    (get, set) => {
-        set(errorAtom, null);
-
-        try {
-            const menus = get(menusAtom);
-            const menuProducts: MenuProduct[] = menus.flatMap(menu => menu.MenuProducts);
-
-            set(menuProductsAtom, menuProducts);
-        }
-        catch (error) {
-            set(errorAtom, "Error loading products");
-        }
+        return menuCategories;
     }
 );

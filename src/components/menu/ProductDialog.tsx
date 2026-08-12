@@ -19,7 +19,7 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
 import { theme } from '../../theme/theme';
 import { Dietary } from '../../types/enums';
-import { addProductToOrderAtom, getProductById, loadingAtom, selectedProductAtom } from '../../state/productStore';
+import { addProductToOrderAtom, getProductById, loadingAtom } from '../../state/productStore';
 import { getTranslation } from '../../utils/multilingualNameUtils';
 import { ProductExcludable, ProductTopping } from '../../types/models';
 import { getDietaryCodes, getDietaryName } from '../../utils/dietaryUtils';
@@ -40,7 +40,7 @@ const ProductDialog: React.FC<ProductDialogProps> = ({ isOpen, onClose }) => {
   const loading = useAtomValue(loadingAtom);
 
   const getProduct = useSetAtom(getProductById);
-  const product = useAtomValue(selectedProductAtom);
+  const product = useAtomValue(getProductById);
   
   const [toppings, setToppings] = useState<ProductTopping[]>();
   const [excludables, setExcludables] = useState<ProductExcludable[]>();

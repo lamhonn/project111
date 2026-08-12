@@ -11,7 +11,7 @@ export * from './product';
 export * from './productExcludable';
 export * from './productTopping';
 export * from './session';
-export * from './table';
+export * from './tablet';
 export * from './user';
 
 export * from '../enums';

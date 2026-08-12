@@ -1,3 +1,4 @@
+import { OrderStatus } from "../enums/orderStatus";
 import { OrderProductDto } from "./orderProductDto";
 
 export interface OrderDto {
@@ -7,5 +8,6 @@ export interface OrderDto {
     UserId: string,
     TabletId: string,
     TotalPrice: number,
+    OrderStatus: OrderStatus,
     OrderProducts: OrderProductDto[],
 }

@@ -168,8 +168,6 @@ const ActionBar: React.FC = () => {
         </Button>
       </Box>
 
-      {/* TODO: why do we have these here AND MenuView? */}
-
       {/* Order Summary Dialog */}
       <OrderSummaryDialog
         isOpen={showOrderDialog}

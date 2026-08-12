@@ -11,7 +11,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import FastfoodIcon from '@mui/icons-material/Fastfood';
 import { useTranslation } from 'react-i18next';
-import { useAtom } from 'jotai';
+import { useSetAtom } from 'jotai';
 
 import { theme } from '../../theme/theme';
 import ProductDialog from './ProductDialog';
@@ -31,7 +31,7 @@ const ProductCard: React.FC<Props> = (props: Props) => {
 
   const localizedName = getTranslation(name, i18n.language);
 
-  const [selectedProductId, setSelectedProductId] = useAtom(selectedProductIdAtom);
+  const setSelectedProductId = useSetAtom(selectedProductIdAtom);
 
   const [quantity, setQuantity] = useState<number>(0); // remove?
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
