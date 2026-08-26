@@ -19,6 +19,7 @@ import { OrderProductViewModel } from '../../types/viewModels/orderProductViewMo
 import { BillViewModel } from '../../types/viewModels/billViewModel';
 import { calculateTotalOrderProductsPrice } from '../../utils/orderUtils';
 import { getTranslation } from '../../utils/multilingualNameUtils';
+import { BillStatus } from '../../types/enums/billStatus';
 
 const EMPTY_GUID = '00000000-0000-0000-0000-000000000000';
 
@@ -157,7 +158,7 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
         const newBill: BillViewModel = {
           Id: crypto.randomUUID(),
           OrderProducts: [product],
-          Billed: false,
+          Status: BillStatus.PENDING,
           Name: `${ t('splitBillDialog.bill') } ${ bills.length }`
         };
 
@@ -456,7 +457,7 @@ const SplitBillDialog: React.FC<SplitBillDialogProps> = ({
             {bills.map((bill) => {
               const billOrderProducts = getOrderProductsForBill(bill.OrderProducts);
               const total = calculateTotalOrderProductsPrice(billOrderProducts);
-              const isRequested = bill.Billed;
+              const isRequested = bill.Status === BillStatus.REQUESTED;
 
               return (
                 <Box

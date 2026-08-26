@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -20,6 +20,7 @@ import { billsAtom, sessionOrdersAtom } from '../../state/sessionStore';
 import { useAtomValue } from 'jotai';
 import { calculateTotalOrderProductsPrice } from '../../utils/orderUtils';
 import { getTranslation } from '../../utils/multilingualNameUtils';
+import { BillStatus } from '../../types/enums/billStatus';
 
 const EMPTY_GUID = '00000000-0000-0000-0000-000000000000';
 
@@ -48,7 +49,7 @@ const BillRequestOptionsDialog: React.FC<BillRequestOptionsDialogProps> = ({
   const defaultBillProducts = orderProducts.filter(orderProduct => defaultBill?.OrderProducts.includes(orderProduct.Id)); // Consider moving this logic into state instead of running it on every render
 
   // Reset state when dialog opens
-  React.useEffect(() => {
+  useEffect(() => {
     if (isOpen) {
       setViewMode('options');
       setSelectedBillIds(new Set());
@@ -236,7 +237,7 @@ const BillRequestOptionsDialog: React.FC<BillRequestOptionsDialogProps> = ({
               {/* Split Bills - Show all, but disable requested ones */}
               {bills.map((bill, index) => {
                 const isSelected = selectedBillIds.has(bill.Id);
-                const isRequested = bill.Billed;
+                const isRequested = (bill.Status === BillStatus.REQUESTED || bill.Status === BillStatus.COMPLETED);
                 const billTotal = calculateTotalOrderProductsPrice(orderProducts.filter(orderProduct => bill.OrderProducts.includes(orderProduct.Id)));
                 
                 return (

@@ -1,6 +1,8 @@
+import { BillStatus } from "../enums/billStatus";
+
 export interface BillViewModel {
     Id: string,
     Name: string,
-    Billed: boolean,
+    Status: BillStatus,
     OrderProducts: string[] // array of OrderProductViewModel IDs
 }

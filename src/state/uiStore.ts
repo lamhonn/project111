@@ -1,6 +1,7 @@
 import { atom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
 
-export const languageAtom = atom<string>("en");
+export const languageAtom = atomWithStorage<string>("systemLanguage", "en");
 
 export const tabletNumberAtom = atom<number>(0);
 

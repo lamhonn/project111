@@ -10,6 +10,7 @@ import { OrderService } from '../api/services/orderService';
 import { BillViewModel } from '../types/viewModels/billViewModel';
 import { organizationIdAtom, tabletIdAtom, userIdAtom } from './authStore';
 import { OrderStatus } from '../types/enums/orderStatus';
+import { BillStatus } from '../types/enums/billStatus';
 
 const EMPTY_GUID = '00000000-0000-0000-0000-000000000000';
 
@@ -86,7 +87,7 @@ export const createOrderAtom = atom(
                     const newDefaultBill: BillViewModel = {
                         Id: EMPTY_GUID,
                         Name: "DEFAULT", // TODO: translation?
-                        Billed: false,
+                        Status: BillStatus.PENDING,
                         OrderProducts: orderProducts.map(orderProduct => orderProduct.Id)
                     }
                     set(billsAtom, [ newDefaultBill ]);

@@ -69,14 +69,6 @@ const MenuHeader: React.FC = () => {
     { code: 'sv', label: 'SV' },
   ];
 
-  // Sync i18n language with language atom on mount
-  useEffect(() => {
-    // Initialize language atom from i18n on first mount
-    if (i18n.language && i18n.language !== language) {
-      setLanguage(i18n.language);
-    }
-  }, []);
-
   // Sync i18n when language atom changes
   useEffect(() => {
     if (language && i18n.language !== language) {

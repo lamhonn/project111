@@ -5,9 +5,11 @@ import { OrderViewModel } from "../types/viewModels/orderViewModel";
 import { BillViewModel } from "../types/viewModels/billViewModel";
 import { SessionService } from "../api/services/sessionService";
 import { organizationIdAtom, tabletIdAtom, userIdAtom } from "./authStore";
+import { BillStatus } from "../types/enums/billStatus";
+import { atomWithStorage } from "jotai/utils";
 
 // TODO: persist in storage for session recovery?
-export const currentSessionAtom = atom<SessionDto | null>(null); 
+export const currentSessionAtom = atomWithStorage<SessionDto | null>("session", null); 
 
 export const sessionStatusAtom = atom<SessionStatus>(SessionStatus.WELCOME);
 
@@ -69,13 +71,20 @@ export const setBillsRequestedAtom = atom(
 
         const updatedBills = bills.map(bill =>
             billIds.includes(bill.Id)
-            ? { ...bill, Billed: true }
+            ? { ...bill, Status: BillStatus.REQUESTED }
             : bill
         );
 
         set(billsAtom, updatedBills);
 
-        // TODO: request bills query
+        // TODO: websocket that resets session status
+        set(sessionStatusAtom, SessionStatus.BILL_REQUESTED);
+
+        // TODO: bill endpoints
+        
+        if (updatedBills.filter(bill => !bill.Status).length === 0) {
+            set(setEndSessionAtom);
+        }
     }
 );
 

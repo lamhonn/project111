@@ -27,6 +27,7 @@ import { calculateTotalOrderProductsPrice } from '../../utils/orderUtils';
 import { OrderStatus } from '../../types/enums/orderStatus';
 import { getTranslation } from '../../utils/multilingualNameUtils';
 import { OrderProductViewModel } from '../../types/viewModels/orderProductViewModel';
+import { BillStatus } from '../../types/enums/billStatus';
 
 const EMPTY_GUID = '00000000-0000-0000-0000-000000000000';
 
@@ -54,7 +55,7 @@ const BillSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
   const defaultBillProducts = orderProducts.filter(orderProduct => defaultBill?.OrderProducts.includes(orderProduct.Id)); // Consider moving this logic into state instead of running it on every render
   const setBillsRequested = useSetAtom(setBillsRequestedAtom);
 
-  const activeBills = bills.filter(bill => !bill.Billed);
+  const activeBills = bills.filter(bill => bill.Status === BillStatus.PENDING );
 
   const hasSplitBills = activeBills.length > 1;
 
@@ -82,7 +83,6 @@ const BillSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
 
   // Handle requesting all bills
   const handleRequestAllBills = (): void => {
-    // TODO: Implement API call to request all bills
     setBillsRequested(activeBills.map(bill => bill.Id));
     onClose();
   };
@@ -305,7 +305,7 @@ const BillSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                   const billProducts = getOrderProductsForBill(bill.OrderProducts);
 
                   return (
-                    <Box key={bill.Id} sx={{ mb: theme.spacing.lg, opacity: bill.Billed ? 0.6 : 1 }}>
+                    <Box key={bill.Id} sx={{ mb: theme.spacing.lg, opacity: bill.Status === BillStatus.PENDING ? 1 : 0.6 }}>
                       <Box sx={{ 
                         display: 'flex', 
                         justifyContent: 'space-between',
@@ -316,11 +316,11 @@ const BillSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                           <Typography 
                             variant="body1"
                             fontWeight={theme.typography.fontWeights.semibold}
-                            color={bill.Billed ? 'text.secondary' : 'text.primary'}
+                            color={bill.Status === BillStatus.PENDING ? 'text.primary' : 'text.secondary'}
                           >
                             {t('splitBillDialog.bill')} {bill.Id}
                           </Typography>
-                          {bill.Billed && (
+                          {(bill.Status === BillStatus.REQUESTED || bill.Status === BillStatus.COMPLETED) && (
                             <Chip 
                               label={t('splitBillDialog.requested')} 
                               size="small"
@@ -336,8 +336,8 @@ const BillSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                             label={`${bill.OrderProducts.length} ${bill.OrderProducts.length === 1 ? t('splitBillDialog.item') : t('splitBillDialog.items')}`}
                             size="small"
                             sx={{
-                              bgcolor: bill.Billed ? 'grey.200' : theme.colors.primaryLight,
-                              color: bill.Billed ? 'text.secondary' : theme.colors.primary,
+                              bgcolor: bill.Status === BillStatus.PENDING ? theme.colors.primaryLight : 'grey.200',
+                              color: bill.Status === BillStatus.PENDING ? theme.colors.primary : 'text.secondary',
                               fontWeight: theme.typography.fontWeights.medium,
                               fontSize: theme.typography.fontSizes.small,
                             }}
@@ -346,7 +346,7 @@ const BillSummaryDialog: React.FC<TotalOrderSummaryDialogProps> = ({
                         <Typography 
                           variant="body1"
                           fontWeight={theme.typography.fontWeights.bold}
-                          color={bill.Billed ? 'text.secondary' : 'primary'}
+                          color={bill.Status === BillStatus.PENDING ? 'primary' : 'text.secondary'}
                         >
                           {billTotal}€
                         </Typography>
